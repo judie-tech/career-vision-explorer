@@ -1,13 +1,12 @@
-
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu, X, User } from "lucide-react";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 

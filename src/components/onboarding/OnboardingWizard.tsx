@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -21,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { Video, Check, ArrowRight, ArrowLeft } from "lucide-react";
+import { Video, Check, ArrowRight, ArrowLeft, Upload } from "lucide-react";
 
 interface OnboardingWizardProps {
   onComplete: () => void;
