@@ -1,15 +1,8 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 import { 
   Dialog, 
   DialogContent, 
@@ -18,24 +11,20 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { Video, Check, ArrowRight, ArrowLeft, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { CareerGoalsStep } from "./steps/CareerGoalsStep";
+import { WorkPreferenceStep } from "./steps/WorkPreferenceStep";
+import { SalaryExpectationsStep } from "./steps/SalaryExpectationsStep";
+import { LocationStep } from "./steps/LocationStep";
+import { VideoIntroductionStep } from "./steps/VideoIntroductionStep";
+import { ProfileSummaryStep } from "./steps/ProfileSummaryStep";
+import { VideoRecordingModal } from "./VideoRecordingModal";
+import { AIAssistant } from "./AIAssistant";
+import { OnboardingData } from "./types";
 
 interface OnboardingWizardProps {
   onComplete: () => void;
-}
-
-type WorkPreference = "remote" | "in-person" | "hybrid" | "";
-type SalaryRange = "entry" | "mid" | "senior" | "executive" | "";
-
-interface OnboardingData {
-  careerGoals: string;
-  workPreference: WorkPreference;
-  salaryExpectations: SalaryRange;
-  location: string;
-  skills: string;
-  videoIntroduction: File | null;
 }
 
 const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
@@ -51,8 +40,6 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
     videoIntroduction: null,
   });
   const [videoRecordingOpen, setVideoRecordingOpen] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingComplete, setRecordingComplete] = useState(false);
   const [videoAnalyzing, setVideoAnalyzing] = useState(false);
   const [videoAnalysisResult, setVideoAnalysisResult] = useState<string | null>(null);
   const [aiResponses, setAiResponses] = useState<string[]>([
@@ -104,34 +91,13 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
     navigate("/jobs");
   };
   
-  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      updateField("videoIntroduction", e.target.files[0]);
-      analyzeVideo(e.target.files[0]);
-    }
-  };
-  
-  const startRecording = () => {
-    setIsRecording(true);
-    toast({
-      title: "Recording Started",
-      description: "Speak clearly about your career aspirations and skills (30-60 seconds)."
-    });
-    
-    // In a real app, this would use MediaRecorder API to record video
-    setTimeout(() => {
-      setIsRecording(false);
-      setRecordingComplete(true);
-      toast({
-        title: "Recording Complete",
-        description: "Your video introduction has been recorded."
-      });
-    }, 3000);
+  const handleVideoUpload = (file: File) => {
+    updateField("videoIntroduction", file);
+    analyzeVideo(file);
   };
   
   const saveRecording = () => {
     // In a real app, this would save the recorded video blob
-    setVideoRecordingOpen(false);
     const mockFile = new File([""], "video-intro.mp4", { type: "video/mp4" });
     updateField("videoIntroduction", mockFile);
     analyzeVideo(mockFile);
@@ -153,154 +119,49 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
     switch (currentStep) {
       case 0:
         return (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">What are your career goals?</h3>
-            <Textarea
-              placeholder="I'm looking to advance my career in software development with a focus on machine learning and AI..."
-              value={data.careerGoals}
-              onChange={(e) => updateField("careerGoals", e.target.value)}
-              className="min-h-[120px]"
-            />
-          </div>
+          <CareerGoalsStep 
+            value={data.careerGoals} 
+            onChange={(value) => updateField("careerGoals", value)} 
+          />
         );
       
       case 1:
         return (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">What's your preferred work style?</h3>
-            <Select
-              value={data.workPreference}
-              onValueChange={(value) => updateField("workPreference", value as WorkPreference)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select work preference" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="remote">Remote</SelectItem>
-                <SelectItem value="in-person">In-Person</SelectItem>
-                <SelectItem value="hybrid">Hybrid</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <WorkPreferenceStep 
+            value={data.workPreference} 
+            onChange={(value) => updateField("workPreference", value)} 
+          />
         );
       
       case 2:
         return (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">What are your salary expectations?</h3>
-            <Select
-              value={data.salaryExpectations}
-              onValueChange={(value) => updateField("salaryExpectations", value as SalaryRange)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select salary range" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="entry">Entry Level (30K-50K KES/month)</SelectItem>
-                <SelectItem value="mid">Mid Level (50K-100K KES/month)</SelectItem>
-                <SelectItem value="senior">Senior Level (100K-200K KES/month)</SelectItem>
-                <SelectItem value="executive">Executive Level (200K+ KES/month)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <SalaryExpectationsStep 
+            value={data.salaryExpectations} 
+            onChange={(value) => updateField("salaryExpectations", value)} 
+          />
         );
       
       case 3:
         return (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">What's your preferred location?</h3>
-            <Input
-              placeholder="Nairobi, Kenya"
-              value={data.location}
-              onChange={(e) => updateField("location", e.target.value)}
-            />
-          </div>
+          <LocationStep 
+            value={data.location} 
+            onChange={(value) => updateField("location", value)} 
+          />
         );
       
       case 4:
         return (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Add a video introduction</h3>
-            <p className="text-sm text-gray-500">
-              Record a 30-60 second introduction. Our AI will analyze your communication style.
-            </p>
-            <div className="flex flex-col gap-3">
-              <Button onClick={() => setVideoRecordingOpen(true)}>
-                <Video className="mr-2 h-4 w-4" />
-                Record Video
-              </Button>
-              <div className="relative">
-                <Input
-                  type="file"
-                  accept="video/*"
-                  onChange={handleVideoUpload}
-                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
-                />
-                <Button variant="outline" className="w-full">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload Video
-                </Button>
-              </div>
-            </div>
-            {data.videoIntroduction && (
-              <div className="bg-green-50 border border-green-200 rounded-md p-3 flex items-center">
-                <Check className="h-5 w-5 text-green-500 mr-2" />
-                <span>{data.videoIntroduction.name || "Video recorded successfully"}</span>
-              </div>
-            )}
-            {videoAnalyzing && (
-              <div className="text-sm text-gray-500">
-                Analyzing your video with AI...
-                <Progress value={65} className="mt-2" />
-              </div>
-            )}
-            {videoAnalysisResult && (
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm">
-                <p className="font-medium mb-1">AI Communication Analysis:</p>
-                <p>{videoAnalysisResult}</p>
-              </div>
-            )}
-          </div>
+          <VideoIntroductionStep 
+            videoFile={data.videoIntroduction}
+            onVideoUpload={handleVideoUpload}
+            openVideoRecording={() => setVideoRecordingOpen(true)}
+            videoAnalyzing={videoAnalyzing}
+            videoAnalysisResult={videoAnalysisResult}
+          />
         );
       
       case 5:
-        return (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Your Profile Summary</h3>
-            <div className="bg-gray-50 rounded-md p-4 space-y-3">
-              <div>
-                <p className="text-sm font-medium">Career Goals</p>
-                <p className="text-sm text-gray-600">{data.careerGoals || "Not specified"}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Work Preference</p>
-                <p className="text-sm text-gray-600">
-                  {data.workPreference ? data.workPreference.charAt(0).toUpperCase() + data.workPreference.slice(1) : "Not specified"}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Salary Expectations</p>
-                <p className="text-sm text-gray-600">
-                  {data.salaryExpectations === "entry" && "Entry Level (30K-50K KES/month)"}
-                  {data.salaryExpectations === "mid" && "Mid Level (50K-100K KES/month)"}
-                  {data.salaryExpectations === "senior" && "Senior Level (100K-200K KES/month)"}
-                  {data.salaryExpectations === "executive" && "Executive Level (200K+ KES/month)"}
-                  {!data.salaryExpectations && "Not specified"}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Location</p>
-                <p className="text-sm text-gray-600">{data.location || "Not specified"}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Video Introduction</p>
-                <p className="text-sm text-gray-600">
-                  {data.videoIntroduction ? "Provided" : "Not provided"}
-                </p>
-              </div>
-            </div>
-          </div>
-        );
+        return <ProfileSummaryStep data={data} />;
       
       default:
         return null;
@@ -326,10 +187,7 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
             </div>
           </div>
           
-          <div className="bg-gray-50 rounded-lg p-4 mb-4">
-            <p className="font-medium text-gray-700">AI Assistant:</p>
-            <p className="text-gray-600">{aiResponses[aiResponses.length - 1]}</p>
-          </div>
+          <AIAssistant message={aiResponses[aiResponses.length - 1]} />
           
           <div className="mb-4">
             {renderStep()}
@@ -358,65 +216,11 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
         </DialogContent>
       </Dialog>
       
-      <Dialog open={videoRecordingOpen} onOpenChange={setVideoRecordingOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Record Video Introduction</DialogTitle>
-            <DialogDescription>
-              Record a 30-60 second introduction about your skills and career goals.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="aspect-video bg-gray-100 rounded-md flex flex-col items-center justify-center">
-            {!recordingComplete ? (
-              <>
-                <Video className="h-12 w-12 text-gray-400 mb-2" />
-                <p className="text-gray-500 text-sm">
-                  {isRecording ? "Recording..." : "Camera preview will appear here"}
-                </p>
-              </>
-            ) : (
-              <>
-                <Check className="h-12 w-12 text-green-500 mb-2" />
-                <p className="text-green-600 text-sm">Recording complete!</p>
-              </>
-            )}
-          </div>
-          
-          <div className="flex gap-2">
-            {!isRecording && !recordingComplete && (
-              <Button onClick={startRecording} className="w-full">
-                Start Recording
-              </Button>
-            )}
-            
-            {isRecording && (
-              <Button 
-                variant="destructive" 
-                className="w-full"
-                onClick={() => setIsRecording(false)}
-              >
-                Stop Recording
-              </Button>
-            )}
-            
-            {recordingComplete && (
-              <>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => setRecordingComplete(false)}
-                >
-                  Re-record
-                </Button>
-                <Button className="w-full" onClick={saveRecording}>
-                  Save & Continue
-                </Button>
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <VideoRecordingModal 
+        isOpen={videoRecordingOpen}
+        onClose={() => setVideoRecordingOpen(false)}
+        onSave={saveRecording}
+      />
     </>
   );
 };
