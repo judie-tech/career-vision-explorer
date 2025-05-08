@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Check, Upload, Video } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface VideoIntroductionStepProps {
   videoFile: File | null;
@@ -23,8 +24,37 @@ export const VideoIntroductionStep = ({
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      onVideoUpload(e.target.files[0]);
+      const file = e.target.files[0];
+      
+      // Validate file type
+      const validTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
+      if (!validTypes.includes(file.type)) {
+        toast.error("Invalid file type", {
+          description: "Please upload a video file (MP4, WebM, or QuickTime)"
+        });
+        return;
+      }
+      
+      // Validate file size (max 50MB)
+      if (file.size > 50 * 1024 * 1024) {
+        toast.error("File too large", {
+          description: "Video must be less than 50MB"
+        });
+        return;
+      }
+      
+      toast.success("Video uploaded", {
+        description: "Your video is being processed"
+      });
+      onVideoUpload(file);
     }
+  };
+
+  const handleRecordClick = () => {
+    toast("Ready to record", {
+      description: "Prepare for your 30-60 second introduction"
+    });
+    openVideoRecording();
   };
 
   return (
@@ -34,7 +64,7 @@ export const VideoIntroductionStep = ({
         Record a 30-60 second introduction. Our AI will analyze your communication style.
       </p>
       <div className="flex flex-col gap-3">
-        <Button onClick={openVideoRecording}>
+        <Button onClick={handleRecordClick}>
           <Video className="mr-2 h-4 w-4" />
           Record Video
         </Button>
@@ -44,6 +74,7 @@ export const VideoIntroductionStep = ({
             accept="video/*"
             onChange={handleFileChange}
             className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+            data-testid="video-upload-input"
           />
           <Button variant="outline" className="w-full">
             <Upload className="mr-2 h-4 w-4" />

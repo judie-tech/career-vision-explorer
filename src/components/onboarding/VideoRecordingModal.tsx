@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Check, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -9,6 +9,7 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface VideoRecordingModalProps {
   isOpen: boolean;
@@ -19,23 +20,67 @@ interface VideoRecordingModalProps {
 export const VideoRecordingModal = ({ isOpen, onClose, onSave }: VideoRecordingModalProps) => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingComplete, setRecordingComplete] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    
+    if (isRecording) {
+      interval = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    } else {
+      setRecordingTime(0);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isRecording]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const startRecording = () => {
     setIsRecording(true);
+    toast.info("Recording started", {
+      description: "Your video is now being recorded"
+    });
+    
     // In a real app, this would use MediaRecorder API to record video
     setTimeout(() => {
       setIsRecording(false);
       setRecordingComplete(true);
-    }, 3000);
+      toast.success("Recording complete", {
+        description: "Your video has been recorded successfully"
+      });
+    }, 5000);
+  };
+
+  const stopRecording = () => {
+    setIsRecording(false);
+    setRecordingComplete(true);
+    toast.info("Recording stopped", {
+      description: "You've stopped the recording"
+    });
   };
 
   const handleReRecord = () => {
     setRecordingComplete(false);
+    toast.info("Ready to re-record", {
+      description: "Previous recording will be discarded"
+    });
   };
 
   const handleSave = () => {
     onSave();
     onClose();
+    toast.success("Video saved", {
+      description: "Your introduction video has been saved to your profile"
+    });
   };
 
   return (
@@ -53,7 +98,7 @@ export const VideoRecordingModal = ({ isOpen, onClose, onSave }: VideoRecordingM
             <>
               <Video className="h-12 w-12 text-gray-400 mb-2" />
               <p className="text-gray-500 text-sm">
-                {isRecording ? "Recording..." : "Camera preview will appear here"}
+                {isRecording ? `Recording... ${formatTime(recordingTime)}` : "Camera preview will appear here"}
               </p>
             </>
           ) : (
@@ -75,7 +120,7 @@ export const VideoRecordingModal = ({ isOpen, onClose, onSave }: VideoRecordingM
             <Button 
               variant="destructive" 
               className="w-full"
-              onClick={() => setIsRecording(false)}
+              onClick={stopRecording}
             >
               Stop Recording
             </Button>
