@@ -18,7 +18,7 @@ export const WorkPreferenceStep = ({ value, onChange }: WorkPreferenceStepProps)
     <div className="space-y-4">
       <h3 className="text-lg font-medium">What's your preferred work style?</h3>
       <Select
-        value={value}
+        value={value || "remote"} // Provide a default value to prevent empty string
         onValueChange={(value) => onChange(value as WorkPreference)}
       >
         <SelectTrigger>

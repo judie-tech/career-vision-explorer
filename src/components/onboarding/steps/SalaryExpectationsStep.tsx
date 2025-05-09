@@ -18,7 +18,7 @@ export const SalaryExpectationsStep = ({ value, onChange }: SalaryExpectationsSt
     <div className="space-y-4">
       <h3 className="text-lg font-medium">What are your salary expectations?</h3>
       <Select
-        value={value}
+        value={value || "entry"} // Provide a default value to prevent empty string
         onValueChange={(value) => onChange(value as SalaryRange)}
       >
         <SelectTrigger>
