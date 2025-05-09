@@ -66,7 +66,7 @@ const Index = () => {
   const testimonials = [
     {
       id: 1,
-      quote: "VisionDrill helped me understand my career options and find a job that perfectly matches my skills and aspirations.",
+      quote: "Visiondrill helped me understand my career options and find a job that perfectly matches my skills and aspirations.",
       author: "Maria Rodriguez",
       role: "UX Designer at DesignHub",
     },
@@ -78,7 +78,7 @@ const Index = () => {
     },
     {
       id: 3,
-      quote: "Using VisionDrill's skills assessment helped me identify gaps in my knowledge and focus my learning efforts effectively.",
+      quote: "Using Visiondrill's skills assessment helped me identify gaps in my knowledge and focus my learning efforts effectively.",
       author: "Sarah Johnson",
       role: "Product Manager at InnovateNow",
     },
@@ -500,7 +500,7 @@ const Index = () => {
                       </li>
                     </ul>
                     <div className="mt-6">
-                      <Link to="/planning">
+                      <Link to="/career-paths">
                         <Button className="bg-career-blue hover:bg-career-blue/90">
                           Create Plan
                         </Button>
@@ -529,7 +529,7 @@ const Index = () => {
               Success Stories
             </h2>
             <p className="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
-              See how others have transformed their careers with VisionDrill.
+              See how others have transformed their careers with Visiondrill.
             </p>
           </div>
 
