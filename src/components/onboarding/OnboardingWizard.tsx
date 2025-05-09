@@ -12,7 +12,7 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Linkedin } from "lucide-react";
 import { CareerGoalsStep } from "./steps/CareerGoalsStep";
 import { WorkPreferenceStep } from "./steps/WorkPreferenceStep";
 import { SalaryExpectationsStep } from "./steps/SalaryExpectationsStep";
@@ -21,6 +21,7 @@ import { VideoIntroductionStep } from "./steps/VideoIntroductionStep";
 import { ProfileSummaryStep } from "./steps/ProfileSummaryStep";
 import { VideoRecordingModal } from "./VideoRecordingModal";
 import { AIAssistant } from "./AIAssistant";
+import { LinkedInImportStep } from "./steps/LinkedInImportStep";
 import { OnboardingData } from "./types";
 
 interface OnboardingWizardProps {
@@ -33,8 +34,8 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [data, setData] = useState<OnboardingData>({
     careerGoals: "",
-    workPreference: "",
-    salaryExpectations: "",
+    workPreference: "remote", // Set default values to avoid empty strings
+    salaryExpectations: "entry", // Set default values to avoid empty strings
     location: "",
     skills: "",
     videoIntroduction: null,
@@ -43,10 +44,10 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   const [videoAnalyzing, setVideoAnalyzing] = useState(false);
   const [videoAnalysisResult, setVideoAnalysisResult] = useState<string | null>(null);
   const [aiResponses, setAiResponses] = useState<string[]>([
-    "Welcome to VisionDrill! I'm here to help you set up your profile and find the perfect career opportunities. Let's get started by understanding your career goals and preferences."
+    "Welcome to Visiondrill! I'm here to help you set up your profile and find the perfect career opportunities. Let's get started by understanding your career goals and preferences."
   ]);
   
-  const totalSteps = 5;
+  const totalSteps = 6; // Added one step for LinkedIn import
   const progress = ((currentStep + 1) / (totalSteps + 1)) * 100;
   
   const updateField = <K extends keyof OnboardingData>(field: K, value: OnboardingData[K]) => {
@@ -55,6 +56,7 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   
   const simulateAiResponse = () => {
     const responses = [
+      "You can import your LinkedIn profile or start fresh. This helps us customize your experience.",
       "Thank you for sharing your career goals! This helps us understand what you're looking for.",
       "Great choice! We'll find opportunities that match your work style preference.",
       "Thanks for sharing your salary expectations. This will help us match you with appropriate opportunities.",
@@ -115,9 +117,26 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
     }, 2000);
   };
   
+  const handleLinkedInImport = (data: any) => {
+    toast({
+      title: "LinkedIn Profile Imported",
+      description: "Your profile information has been successfully imported.",
+    });
+    // In a real app, this would populate the form with LinkedIn data
+    setCurrentStep(1); // Move to career goals after import
+  };
+  
   const renderStep = () => {
     switch (currentStep) {
       case 0:
+        return (
+          <LinkedInImportStep 
+            onImport={handleLinkedInImport}
+            onSkip={() => handleNext()}
+          />
+        );
+      
+      case 1:
         return (
           <CareerGoalsStep 
             value={data.careerGoals} 
@@ -125,7 +144,7 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
           />
         );
       
-      case 1:
+      case 2:
         return (
           <WorkPreferenceStep 
             value={data.workPreference} 
@@ -133,7 +152,7 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
           />
         );
       
-      case 2:
+      case 3:
         return (
           <SalaryExpectationsStep 
             value={data.salaryExpectations} 
@@ -141,7 +160,7 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
           />
         );
       
-      case 3:
+      case 4:
         return (
           <LocationStep 
             value={data.location} 
@@ -149,7 +168,7 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
           />
         );
       
-      case 4:
+      case 5:
         return (
           <VideoIntroductionStep 
             videoFile={data.videoIntroduction}
@@ -160,7 +179,7 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
           />
         );
       
-      case 5:
+      case 6:
         return <ProfileSummaryStep data={data} />;
       
       default:

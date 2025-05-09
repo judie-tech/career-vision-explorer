@@ -10,3 +10,23 @@ export interface OnboardingData {
   skills: string;
   videoIntroduction: File | null;
 }
+
+export interface LinkedInProfile {
+  name: string;
+  title: string;
+  skills: string[];
+  education: string[];
+  experience: {
+    company: string;
+    role: string;
+    duration: string;
+  }[];
+}
+
+export interface AssessmentResult {
+  id: string;
+  type: string;
+  score: number;
+  completedAt: Date;
+  recommendedSkills: string[];
+}
