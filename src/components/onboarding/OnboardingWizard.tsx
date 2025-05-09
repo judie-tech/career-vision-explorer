@@ -1,8 +1,6 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { 
   Dialog, 
   DialogContent, 
@@ -12,16 +10,11 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, ArrowRight, Linkedin } from "lucide-react";
-import { CareerGoalsStep } from "./steps/CareerGoalsStep";
-import { WorkPreferenceStep } from "./steps/WorkPreferenceStep";
-import { SalaryExpectationsStep } from "./steps/SalaryExpectationsStep";
-import { LocationStep } from "./steps/LocationStep";
-import { VideoIntroductionStep } from "./steps/VideoIntroductionStep";
-import { ProfileSummaryStep } from "./steps/ProfileSummaryStep";
 import { VideoRecordingModal } from "./VideoRecordingModal";
 import { AIAssistant } from "./AIAssistant";
-import { LinkedInImportStep } from "./steps/LinkedInImportStep";
+import { ProgressIndicator } from "./ProgressIndicator";
+import { StepNavigation } from "./StepNavigation";
+import { StepRenderer } from "./StepRenderer";
 import { OnboardingData } from "./types";
 
 interface OnboardingWizardProps {
@@ -34,8 +27,8 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [data, setData] = useState<OnboardingData>({
     careerGoals: "",
-    workPreference: "remote", // Set default values to avoid empty strings
-    salaryExpectations: "entry", // Set default values to avoid empty strings
+    workPreference: "remote",
+    salaryExpectations: "entry",
     location: "",
     skills: "",
     videoIntroduction: null,
@@ -47,7 +40,7 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
     "Welcome to Visiondrill! I'm here to help you set up your profile and find the perfect career opportunities. Let's get started by understanding your career goals and preferences."
   ]);
   
-  const totalSteps = 6; // Added one step for LinkedIn import
+  const totalSteps = 6;
   const progress = ((currentStep + 1) / (totalSteps + 1)) * 100;
   
   const updateField = <K extends keyof OnboardingData>(field: K, value: OnboardingData[K]) => {
@@ -126,67 +119,6 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
     setCurrentStep(1); // Move to career goals after import
   };
   
-  const renderStep = () => {
-    switch (currentStep) {
-      case 0:
-        return (
-          <LinkedInImportStep 
-            onImport={handleLinkedInImport}
-            onSkip={() => handleNext()}
-          />
-        );
-      
-      case 1:
-        return (
-          <CareerGoalsStep 
-            value={data.careerGoals} 
-            onChange={(value) => updateField("careerGoals", value)} 
-          />
-        );
-      
-      case 2:
-        return (
-          <WorkPreferenceStep 
-            value={data.workPreference} 
-            onChange={(value) => updateField("workPreference", value)} 
-          />
-        );
-      
-      case 3:
-        return (
-          <SalaryExpectationsStep 
-            value={data.salaryExpectations} 
-            onChange={(value) => updateField("salaryExpectations", value)} 
-          />
-        );
-      
-      case 4:
-        return (
-          <LocationStep 
-            value={data.location} 
-            onChange={(value) => updateField("location", value)} 
-          />
-        );
-      
-      case 5:
-        return (
-          <VideoIntroductionStep 
-            videoFile={data.videoIntroduction}
-            onVideoUpload={handleVideoUpload}
-            openVideoRecording={() => setVideoRecordingOpen(true)}
-            videoAnalyzing={videoAnalyzing}
-            videoAnalysisResult={videoAnalysisResult}
-          />
-        );
-      
-      case 6:
-        return <ProfileSummaryStep data={data} />;
-      
-      default:
-        return null;
-    }
-  };
-  
   return (
     <>
       <Dialog open={true}>
@@ -198,39 +130,31 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="mt-2 mb-4">
-            <Progress value={progress} className="h-1" />
-            <div className="flex justify-between mt-1 text-xs text-gray-500">
-              <span>Getting Started</span>
-              <span>Profile Complete</span>
-            </div>
-          </div>
+          <ProgressIndicator progress={progress} />
           
           <AIAssistant message={aiResponses[aiResponses.length - 1]} />
           
           <div className="mb-4">
-            {renderStep()}
+            <StepRenderer
+              currentStep={currentStep}
+              data={data}
+              updateField={updateField}
+              handleLinkedInImport={handleLinkedInImport}
+              handleNext={handleNext}
+              handleVideoUpload={handleVideoUpload}
+              openVideoRecording={() => setVideoRecordingOpen(true)}
+              videoAnalyzing={videoAnalyzing}
+              videoAnalysisResult={videoAnalysisResult}
+            />
           </div>
           
-          <DialogFooter className="flex justify-between">
-            <Button 
-              variant="outline" 
-              onClick={handleBack}
-              disabled={currentStep === 0}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
-            <Button onClick={handleNext}>
-              {currentStep < totalSteps ? (
-                <>
-                  Next
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              ) : (
-                'Complete'
-              )}
-            </Button>
+          <DialogFooter>
+            <StepNavigation
+              currentStep={currentStep}
+              totalSteps={totalSteps}
+              onBack={handleBack}
+              onNext={handleNext}
+            />
           </DialogFooter>
         </DialogContent>
       </Dialog>
