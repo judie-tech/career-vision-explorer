@@ -11,6 +11,7 @@ import {
   TabsList, 
   TabsTrigger 
 } from "@/components/ui/tabs";
+import { Search, Briefcase, BarChart2, Rocket, MapPin, DollarSign, Tag } from "lucide-react";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -87,13 +88,14 @@ const Index = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 lg:py-32">
+      <section className="bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
+        <div className="absolute inset-0 animated-bg opacity-5"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 lg:py-32 relative">
           <div className="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
             <div className="sm:text-center lg:text-left animate-fade-in">
               <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
                 <span className="block">Navigate Your</span>{" "}
-                <span className="block gradient-text">Career Journey</span>
+                <span className="block gradient-text neon-text">Career Journey</span>
               </h1>
               <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto lg:mx-0">
                 Discover career paths, explore job opportunities, and develop your skills with
@@ -102,14 +104,15 @@ const Index = () => {
               <div className="mt-8 sm:mt-10 sm:flex sm:justify-center lg:justify-start">
                 <div className="rounded-md shadow">
                   <Link to="/signup">
-                    <Button className="w-full px-8 py-6 text-lg bg-career-blue hover:bg-career-blue/90">
+                    <Button className="w-full px-8 py-6 text-lg futuristic-btn">
+                      <Rocket className="w-5 h-5 mr-2" />
                       Get Started
                     </Button>
                   </Link>
                 </div>
                 <div className="mt-3 sm:mt-0 sm:ml-3">
                   <Link to="/career-paths">
-                    <Button variant="outline" className="w-full px-8 py-6 text-lg">
+                    <Button variant="outline" className="w-full px-8 py-6 text-lg glowing-border">
                       Explore Careers
                     </Button>
                   </Link>
@@ -119,7 +122,7 @@ const Index = () => {
             <div className="mt-12 relative lg:mt-0 animate-fade-in">
               <div className="mx-auto max-w-md px-4 sm:max-w-2xl sm:px-6 lg:px-0 lg:max-w-none">
                 <img
-                  className="w-full rounded-xl shadow-xl ring-1 ring-black ring-opacity-5"
+                  className="w-full rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 glassmorphism"
                   src="https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=600&h=400"
                   alt="Career planning dashboard"
                 />
@@ -146,10 +149,11 @@ const Index = () => {
                   placeholder="Search jobs, skills, or companies..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="rounded-l-md"
+                  className="rounded-l-md futuristic-input"
                 />
                 <Link to={`/jobs?q=${searchQuery}`}>
-                  <Button className="rounded-l-none bg-career-blue hover:bg-career-blue/90">
+                  <Button className="rounded-l-none futuristic-btn">
+                    <Search className="h-5 w-5 mr-2" />
                     Search
                   </Button>
                 </Link>
@@ -161,47 +165,32 @@ const Index = () => {
             <h3 className="text-xl font-bold text-gray-900 mb-6">Featured Jobs</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {featuredJobs.map((job) => (
-                <Card key={job.id} className="hover-scale">
+                <Card key={job.id} className="hover-scale futuristic-card">
                   <CardContent className="p-6">
                     <h4 className="text-lg font-semibold text-gray-900">{job.title}</h4>
                     <p className="text-gray-600">{job.company}</p>
                     <div className="flex items-center mt-2 text-sm text-gray-500">
-                      <svg
-                        className="h-4 w-4 mr-1"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
+                      <MapPin className="h-4 w-4 mr-1" />
                       {job.location}
                     </div>
-                    <div className="text-sm text-gray-500 mt-1">{job.salary}</div>
+                    <div className="flex items-center text-sm text-gray-500 mt-1">
+                      <DollarSign className="h-4 w-4 mr-1" />
+                      {job.salary}
+                    </div>
                     <div className="mt-4 flex flex-wrap gap-2">
                       {job.tags.map((tag) => (
                         <span
                           key={tag}
                           className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                         >
+                          <Tag className="h-3 w-3 mr-1" />
                           {tag}
                         </span>
                       ))}
                     </div>
                     <div className="mt-6">
                       <Link to={`/jobs/${job.id}`}>
-                        <Button variant="outline" className="w-full">
+                        <Button variant="outline" className="w-full glowing-border">
                           View Details
                         </Button>
                       </Link>
@@ -212,7 +201,7 @@ const Index = () => {
             </div>
             <div className="mt-8 text-center">
               <Link to="/jobs">
-                <Button variant="outline">Browse All Jobs</Button>
+                <Button variant="outline" className="glowing-border">Browse All Jobs</Button>
               </Link>
             </div>
           </div>
@@ -234,7 +223,7 @@ const Index = () => {
 
           <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
             {careerPaths.map((path) => (
-              <div key={path.id} className="career-card hover-scale">
+              <div key={path.id} className="futuristic-card hover-scale">
                 <div className="h-48 w-full overflow-hidden rounded-lg">
                   <img
                     src={path.image}
@@ -246,7 +235,7 @@ const Index = () => {
                 <p className="mt-2 text-gray-600">{path.description}</p>
                 <div className="mt-4">
                   <Link to={`/career-paths/${path.id}`}>
-                    <Button variant="outline" className="w-full">
+                    <Button variant="outline" className="w-full glowing-border">
                       Explore Path
                     </Button>
                   </Link>
@@ -257,7 +246,7 @@ const Index = () => {
 
           <div className="mt-12 text-center">
             <Link to="/career-paths">
-              <Button variant="outline">View All Career Paths</Button>
+              <Button variant="outline" className="glowing-border">View All Career Paths</Button>
             </Link>
           </div>
         </div>
@@ -277,12 +266,12 @@ const Index = () => {
 
           <div className="mt-12">
             <Tabs defaultValue="skills" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="skills">Skills Assessment</TabsTrigger>
-                <TabsTrigger value="market">Market Insights</TabsTrigger>
-                <TabsTrigger value="planning">Career Planning</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3 rounded-xl p-1 glassmorphism">
+                <TabsTrigger value="skills" className="rounded-lg">Skills Assessment</TabsTrigger>
+                <TabsTrigger value="market" className="rounded-lg">Market Insights</TabsTrigger>
+                <TabsTrigger value="planning" className="rounded-lg">Career Planning</TabsTrigger>
               </TabsList>
-              <TabsContent value="skills" className="mt-8 p-6 bg-gray-50 rounded-lg">
+              <TabsContent value="skills" className="mt-8 p-6 bg-gray-50 rounded-lg glassmorphism">
                 <div className="grid md:grid-cols-2 gap-8 items-center">
                   <div>
                     <h3 className="text-2xl font-bold text-gray-900">Assess Your Skills</h3>
@@ -345,7 +334,7 @@ const Index = () => {
                     </ul>
                     <div className="mt-6">
                       <Link to="/skills">
-                        <Button className="bg-career-blue hover:bg-career-blue/90">
+                        <Button className="futuristic-btn">
                           Take Assessment
                         </Button>
                       </Link>
@@ -355,12 +344,12 @@ const Index = () => {
                     <img
                       src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=500&h=400"
                       alt="Skills Assessment"
-                      className="rounded-lg shadow-md"
+                      className="rounded-lg shadow-md glassmorphism"
                     />
                   </div>
                 </div>
               </TabsContent>
-              <TabsContent value="market" className="mt-8 p-6 bg-gray-50 rounded-lg">
+              <TabsContent value="market" className="mt-8 p-6 bg-gray-50 rounded-lg glassmorphism">
                 <div className="grid md:grid-cols-2 gap-8 items-center">
                   <div>
                     <h3 className="text-2xl font-bold text-gray-900">Market Insights</h3>
@@ -423,7 +412,7 @@ const Index = () => {
                     </ul>
                     <div className="mt-6">
                       <Link to="/insights">
-                        <Button className="bg-career-blue hover:bg-career-blue/90">
+                        <Button className="futuristic-btn">
                           View Insights
                         </Button>
                       </Link>
@@ -433,12 +422,12 @@ const Index = () => {
                     <img
                       src="https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=500&h=400"
                       alt="Market Insights"
-                      className="rounded-lg shadow-md"
+                      className="rounded-lg shadow-md glassmorphism"
                     />
                   </div>
                 </div>
               </TabsContent>
-              <TabsContent value="planning" className="mt-8 p-6 bg-gray-50 rounded-lg">
+              <TabsContent value="planning" className="mt-8 p-6 bg-gray-50 rounded-lg glassmorphism">
                 <div className="grid md:grid-cols-2 gap-8 items-center">
                   <div>
                     <h3 className="text-2xl font-bold text-gray-900">Career Planning</h3>
@@ -501,7 +490,7 @@ const Index = () => {
                     </ul>
                     <div className="mt-6">
                       <Link to="/career-paths">
-                        <Button className="bg-career-blue hover:bg-career-blue/90">
+                        <Button className="futuristic-btn">
                           Create Plan
                         </Button>
                       </Link>
@@ -511,7 +500,7 @@ const Index = () => {
                     <img
                       src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?auto=format&fit=crop&w=500&h=400"
                       alt="Career Planning"
-                      className="rounded-lg shadow-md"
+                      className="rounded-lg shadow-md glassmorphism"
                     />
                   </div>
                 </div>
@@ -535,7 +524,7 @@ const Index = () => {
 
           <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
             {testimonials.map((testimonial) => (
-              <Card key={testimonial.id} className="hover-scale">
+              <Card key={testimonial.id} className="hover-scale futuristic-card">
                 <CardContent className="p-6">
                   <div className="text-gray-600 italic">&ldquo;{testimonial.quote}&rdquo;</div>
                   <div className="mt-4">
@@ -550,9 +539,9 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-career-blue text-white">
+      <section className="py-16 bg-career-blue text-white animated-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-extrabold sm:text-4xl">
+          <h2 className="text-3xl font-extrabold sm:text-4xl neon-text">
             Ready to Transform Your Career?
           </h2>
           <p className="mt-4 text-xl opacity-90 max-w-2xl mx-auto">
@@ -560,7 +549,8 @@ const Index = () => {
           </p>
           <div className="mt-8">
             <Link to="/signup">
-              <Button className="bg-white text-career-blue hover:bg-gray-100">
+              <Button className="bg-white text-career-blue hover:bg-gray-100 futuristic-btn">
+                <Rocket className="h-5 w-5 mr-2" />
                 Get Started Now
               </Button>
             </Link>

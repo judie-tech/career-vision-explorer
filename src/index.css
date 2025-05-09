@@ -120,4 +120,50 @@
   .career-btn-secondary {
     @apply career-btn bg-career-purple text-white hover:bg-career-purple/90;
   }
+
+  /* New futuristic UI components */
+  .glassmorphism {
+    @apply bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-lg;
+  }
+  
+  .futuristic-card {
+    @apply bg-gradient-to-br from-white/80 to-white/60 shadow-xl backdrop-blur-sm border border-white/20 rounded-xl p-6 transition-all duration-300;
+  }
+  
+  .glowing-border {
+    @apply border-2 border-transparent transition-all duration-300;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #6366f1, #3b82f6) border-box;
+    background-size: 300% 100%;
+    animation: border-glow 4s linear infinite;
+  }
+  
+  .futuristic-btn {
+    @apply px-6 py-3 rounded-full font-medium transition-all duration-300 bg-gradient-to-r from-career-blue to-career-purple text-white hover:shadow-lg hover:shadow-career-purple/20 focus:ring-2 focus:ring-career-purple/50 outline-none;
+  }
+  
+  .futuristic-input {
+    @apply bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-career-blue/50 focus:border-transparent transition-all duration-300 outline-none;
+  }
+  
+  .neon-text {
+    @apply font-bold;
+    text-shadow: 0 0 5px rgba(59, 130, 246, 0.5), 0 0 10px rgba(139, 92, 246, 0.3);
+  }
+  
+  .animated-bg {
+    background: linear-gradient(-45deg, #3b82f6, #8b5cf6, #6366f1, #a855f7);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+  }
+}
+
+@keyframes border-glow {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 0%; }
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
