@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,8 +23,8 @@ import Layout from "@/components/layout/Layout";
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell } from "recharts";
 
 const Insights = () => {
-  const [industry, setIndustry] = useState("");
-  const [region, setRegion] = useState("");
+  const [industry, setIndustry] = useState("all-industries");
+  const [region, setRegion] = useState("all-regions");
 
   // Mock data for charts
   const salaryByRoleData = [
@@ -139,7 +138,7 @@ const Insights = () => {
               <SelectValue placeholder="Filter by industry" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Industries</SelectItem>
+              <SelectItem value="all-industries">All Industries</SelectItem>
               <SelectItem value="tech">Technology</SelectItem>
               <SelectItem value="finance">Finance</SelectItem>
               <SelectItem value="healthcare">Healthcare</SelectItem>
@@ -153,7 +152,7 @@ const Insights = () => {
               <SelectValue placeholder="Filter by region" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Regions</SelectItem>
+              <SelectItem value="all-regions">All Regions</SelectItem>
               <SelectItem value="us-west">US West</SelectItem>
               <SelectItem value="us-east">US East</SelectItem>
               <SelectItem value="us-central">US Central</SelectItem>
