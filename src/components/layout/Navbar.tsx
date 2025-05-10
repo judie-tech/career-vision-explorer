@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,12 +28,12 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200">
+    <nav className="bg-white border-b border-gray-200 backdrop-blur-md bg-white/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-xl font-bold text-gray-900">VisionDrill</span>
+              <span className="text-xl font-bold text-career-blue bg-clip-text text-transparent bg-gradient-to-r from-career-blue to-career-purple">Visiondrill</span>
             </Link>
             <div className="hidden md:ml-10 md:flex md:space-x-8">
               {navItems.map((item) => (
@@ -54,7 +55,7 @@ const Navbar = () => {
             {isLoggedIn ? (
               <div className="flex items-center space-x-4">
                 <Link to="/profile">
-                  <Button variant="outline" className="flex items-center">
+                  <Button variant="outline" className="flex items-center glowing-border">
                     <User className="mr-2 h-4 w-4" />
                     My Profile
                   </Button>
@@ -62,6 +63,7 @@ const Navbar = () => {
                 <Button 
                   variant="ghost" 
                   onClick={() => setIsLoggedIn(false)}
+                  className="hover:bg-gray-100"
                 >
                   Log out
                 </Button>
@@ -69,10 +71,10 @@ const Navbar = () => {
             ) : (
               <div className="flex items-center space-x-4">
                 <Link to="/login">
-                  <Button variant="ghost">Log In</Button>
+                  <Button variant="ghost" className="hover:bg-gray-100">Log In</Button>
                 </Link>
                 <Link to="/signup">
-                  <Button>Sign Up</Button>
+                  <Button className="futuristic-btn">Sign Up</Button>
                 </Link>
               </div>
             )}

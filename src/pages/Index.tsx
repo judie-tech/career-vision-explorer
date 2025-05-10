@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ import {
   TabsList, 
   TabsTrigger 
 } from "@/components/ui/tabs";
-import { Search, Briefcase, BarChart2, Rocket, MapPin, DollarSign, Tag } from "lucide-react";
+import { Search, BarChart2, Rocket, MessageCircle, User, Book, Briefcase, LayoutGrid, MapPin, DollarSign, Tag } from "lucide-react";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -84,7 +83,7 @@ const Index = () => {
       role: "Product Manager at InnovateNow",
     },
   ];
-
+  
   return (
     <Layout>
       {/* Hero Section */}
@@ -132,122 +131,153 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Job Search Section */}
+      {/* How Visiondrill Careers Works - Replacing Featured Jobs section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              Find Your Next Opportunity
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl mb-4">
+              How Visiondrill Careers Works
             </h2>
-            <p className="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
-              Search through thousands of job listings tailored to your skills and preferences.
+            <p className="max-w-2xl mx-auto text-xl text-gray-500">
+              Our intelligent platform combines AI technology with personalized career development to help you find and succeed in your dream job.
             </p>
-            <div className="mt-8 max-w-2xl mx-auto">
-              <div className="flex rounded-md shadow-sm">
-                <Input
-                  type="text"
-                  placeholder="Search jobs, skills, or companies..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="rounded-l-md futuristic-input"
-                />
-                <Link to={`/jobs?q=${searchQuery}`}>
-                  <Button className="rounded-l-none futuristic-btn">
-                    <Search className="h-5 w-5 mr-2" />
-                    Search
-                  </Button>
-                </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {/* AI-Powered Job Matching */}
+            <div className="flex flex-col items-center text-center p-6 hover-scale glassmorphism">
+              <div className="bg-blue-50 p-4 rounded-lg mb-5">
+                <Search className="h-8 w-8 text-career-blue" />
               </div>
+              <h3 className="text-xl font-bold mb-3">AI-Powered Job Matching</h3>
+              <p className="text-gray-600">
+                Our intelligent system finds the perfect job matches based on your skills, experience, and preferences.
+              </p>
+            </div>
+
+            {/* Skills Assessment */}
+            <div className="flex flex-col items-center text-center p-6 hover-scale glassmorphism">
+              <div className="bg-blue-50 p-4 rounded-lg mb-5">
+                <User className="h-8 w-8 text-career-blue" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Skills Assessment</h3>
+              <p className="text-gray-600">
+                Identify your strengths and areas for improvement through integrated assessments and get a personalized readiness score.
+              </p>
+            </div>
+
+            {/* Microlearning Paths */}
+            <div className="flex flex-col items-center text-center p-6 hover-scale glassmorphism">
+              <div className="bg-blue-50 p-4 rounded-lg mb-5">
+                <Book className="h-8 w-8 text-career-blue" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Microlearning Paths</h3>
+              <p className="text-gray-600">
+                Fill skill gaps with personalized learning recommendations and track your progress toward career goals.
+              </p>
+            </div>
+
+            {/* AI Interview Practice */}
+            <div className="flex flex-col items-center text-center p-6 hover-scale glassmorphism">
+              <div className="bg-blue-50 p-4 rounded-lg mb-5">
+                <MessageCircle className="h-8 w-8 text-career-blue" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">AI Interview Practice</h3>
+              <p className="text-gray-600">
+                Practice interviews with our AI coach that provides feedback on your responses, tone, and delivery.
+              </p>
             </div>
           </div>
 
-          <div className="mt-12">
-            <h3 className="text-xl font-bold text-gray-900 mb-6">Featured Jobs</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {featuredJobs.map((job) => (
-                <Card key={job.id} className="hover-scale futuristic-card">
-                  <CardContent className="p-6">
-                    <h4 className="text-lg font-semibold text-gray-900">{job.title}</h4>
-                    <p className="text-gray-600">{job.company}</p>
-                    <div className="flex items-center mt-2 text-sm text-gray-500">
-                      <MapPin className="h-4 w-4 mr-1" />
-                      {job.location}
-                    </div>
-                    <div className="flex items-center text-sm text-gray-500 mt-1">
-                      <DollarSign className="h-4 w-4 mr-1" />
-                      {job.salary}
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {job.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                        >
-                          <Tag className="h-3 w-3 mr-1" />
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="mt-6">
-                      <Link to={`/jobs/${job.id}`}>
-                        <Button variant="outline" className="w-full glowing-border">
-                          View Details
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            <div className="mt-8 text-center">
-              <Link to="/jobs">
-                <Button variant="outline" className="glowing-border">Browse All Jobs</Button>
-              </Link>
-            </div>
+          <div className="mt-12 text-center">
+            <Link to="/jobs">
+              <Button variant="outline" className="glowing-border">Discover More</Button>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Career Paths Section */}
+      {/* Your Career Journey with Us - Replacing Discover Career Paths section */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              Discover Career Paths
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl mb-4">
+              Your Career Journey with Us
             </h2>
             <p className="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
-              Explore different career trajectories and understand what skills and experience
-              you need to progress.
+              Follow these simple steps to kickstart your professional growth
             </p>
           </div>
 
-          <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
-            {careerPaths.map((path) => (
-              <div key={path.id} className="futuristic-card hover-scale">
-                <div className="h-48 w-full overflow-hidden rounded-lg">
-                  <img
-                    src={path.image}
-                    alt={path.title}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <h3 className="mt-4 text-xl font-bold text-gray-900">{path.title}</h3>
-                <p className="mt-2 text-gray-600">{path.description}</p>
-                <div className="mt-4">
-                  <Link to={`/career-paths/${path.id}`}>
-                    <Button variant="outline" className="w-full glowing-border">
-                      Explore Path
-                    </Button>
-                  </Link>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mt-16">
+            {/* Step 1: Create Your Profile */}
+            <div className="text-center">
+              <div className="flex justify-center mb-6">
+                <div className="relative">
+                  <div className="w-20 h-20 bg-career-blue text-white rounded-full flex items-center justify-center text-2xl font-bold">
+                    1
+                  </div>
+                  <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+                    <User className="h-10 w-10 text-career-blue p-2 bg-white rounded-full border-2 border-career-blue" />
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
+              <h3 className="text-xl font-bold mt-6 mb-3">Create Your Profile</h3>
+              <p className="text-gray-600">
+                Build your comprehensive profile with our AI-powered onboarding wizard.
+              </p>
+              <div className="mt-6">
+                <Link to="/signup">
+                  <Button className="futuristic-btn">Get Started</Button>
+                </Link>
+              </div>
+            </div>
 
-          <div className="mt-12 text-center">
-            <Link to="/career-paths">
-              <Button variant="outline" className="glowing-border">View All Career Paths</Button>
-            </Link>
+            {/* Step 2: Explore Your Dashboard */}
+            <div className="text-center">
+              <div className="flex justify-center mb-6">
+                <div className="relative">
+                  <div className="w-20 h-20 bg-career-blue text-white rounded-full flex items-center justify-center text-2xl font-bold">
+                    2
+                  </div>
+                  <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+                    <LayoutGrid className="h-10 w-10 text-career-blue p-2 bg-white rounded-full border-2 border-career-blue" />
+                  </div>
+                </div>
+              </div>
+              <h3 className="text-xl font-bold mt-6 mb-3">Explore Your Dashboard</h3>
+              <p className="text-gray-600">
+                Get insights on your career readiness, skill gaps, and personalized recommendations.
+              </p>
+              <div className="mt-6">
+                <Link to="/profile">
+                  <Button className="futuristic-btn">View Dashboard</Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Step 3: Apply to Top Jobs */}
+            <div className="text-center">
+              <div className="flex justify-center mb-6">
+                <div className="relative">
+                  <div className="w-20 h-20 bg-career-blue text-white rounded-full flex items-center justify-center text-2xl font-bold">
+                    3
+                  </div>
+                  <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+                    <Briefcase className="h-10 w-10 text-career-blue p-2 bg-white rounded-full border-2 border-career-blue" />
+                  </div>
+                </div>
+              </div>
+              <h3 className="text-xl font-bold mt-6 mb-3">Apply to Top Jobs</h3>
+              <p className="text-gray-600">
+                Get matched with opportunities aligned with your skills and career goals.
+              </p>
+              <div className="mt-6">
+                <Link to="/jobs">
+                  <Button className="futuristic-btn">Find Jobs</Button>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
