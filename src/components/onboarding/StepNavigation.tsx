@@ -26,7 +26,7 @@ export const StepNavigation = ({
         <span className="button-text-visible">Back</span>
       </Button>
       <Button onClick={onNext} className="button-primary-gradient">
-        <span className="high-contrast-text button-text-visible">
+        <span className="white-text button-text-visible">
           {currentStep < totalSteps ? (
             <>
               Next
