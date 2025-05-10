@@ -57,7 +57,7 @@ const Navbar = () => {
             {isLoggedIn ? (
               <div className="flex items-center space-x-4">
                 <Link to="/profile">
-                  <Button variant="outline" className="flex items-center glowing-border">
+                  <Button variant="outline" className="flex items-center glowing-border high-contrast-text">
                     <User className="mr-2 h-4 w-4" />
                     My Profile
                   </Button>
@@ -76,7 +76,7 @@ const Navbar = () => {
                   <Button variant="ghost" className="hover:bg-gray-100">Log In</Button>
                 </Link>
                 <Link to="/signup">
-                  <Button className="futuristic-btn">Sign Up</Button>
+                  <Button className="futuristic-btn high-contrast-text">Sign Up</Button>
                 </Link>
               </div>
             )}
@@ -152,7 +152,7 @@ const Navbar = () => {
                 </Link>
                 <Link
                   to="/signup"
-                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 high-contrast-text"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Sign Up

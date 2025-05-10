@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -93,8 +94,7 @@ const Index = () => {
           <div className="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
             <div className="sm:text-center lg:text-left animate-fade-in">
               <h1 className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
-                <span className="block mb-2">Unlock Your Career</span>{" "}
-                <span className="block neon-text">Potential with AI-Powered Guidance</span>
+                <span className="block neon-text">AI-Driven job linkage</span>
               </h1>
               <p className="mt-3 text-base text-white/90 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto lg:mx-0">
                 Visiondrill Careers Navigator uses advanced AI to match your skills with the
@@ -103,14 +103,14 @@ const Index = () => {
               <div className="mt-8 sm:mt-10 sm:flex sm:justify-center lg:justify-start">
                 <div className="rounded-md shadow">
                   <Link to="/signup">
-                    <Button className="w-full px-8 py-6 text-lg bg-white text-career-blue hover:bg-gray-100 futuristic-btn">
+                    <Button className="w-full px-8 py-6 text-lg bg-white text-career-blue hover:bg-gray-100 futuristic-btn high-contrast-text">
                       Create Your Profile
                     </Button>
                   </Link>
                 </div>
                 <div className="mt-3 sm:mt-0 sm:ml-3">
                   <Link to="/jobs">
-                    <Button variant="outline" className="w-full px-8 py-6 text-lg border-white text-white hover:bg-white/10 glowing-border">
+                    <Button variant="outline" className="w-full px-8 py-6 text-lg border-white text-white hover:bg-white/10 glowing-border high-contrast-text">
                       Explore Jobs
                     </Button>
                   </Link>
@@ -578,7 +578,7 @@ const Index = () => {
           </p>
           <div className="mt-8">
             <Link to="/signup">
-              <Button className="bg-white text-career-blue hover:bg-gray-100 futuristic-btn">
+              <Button className="bg-white text-career-blue hover:bg-gray-100 futuristic-btn high-contrast-text">
                 <Rocket className="h-5 w-5 mr-2" />
                 Get Started Now
               </Button>
