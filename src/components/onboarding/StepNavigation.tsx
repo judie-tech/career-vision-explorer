@@ -23,17 +23,19 @@ export const StepNavigation = ({
         disabled={currentStep === 0}
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Back
+        <span className="button-text-visible">Back</span>
       </Button>
-      <Button onClick={onNext}>
-        {currentStep < totalSteps ? (
-          <>
-            Next
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </>
-        ) : (
-          'Complete'
-        )}
+      <Button onClick={onNext} className="button-primary-gradient">
+        <span className="high-contrast-text button-text-visible">
+          {currentStep < totalSteps ? (
+            <>
+              Next
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </>
+          ) : (
+            'Complete'
+          )}
+        </span>
       </Button>
     </div>
   );
