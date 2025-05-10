@@ -87,32 +87,31 @@ const Index = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
-        <div className="absolute inset-0 animated-bg opacity-5"></div>
+      <section className="bg-gradient-to-b from-career-blue to-career-purple relative overflow-hidden text-white">
+        <div className="absolute inset-0 animated-bg opacity-10"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 lg:py-32 relative">
           <div className="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
             <div className="sm:text-center lg:text-left animate-fade-in">
-              <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-                <span className="block">Navigate Your</span>{" "}
-                <span className="block gradient-text neon-text">Career Journey</span>
+              <h1 className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
+                <span className="block mb-2">Unlock Your Career</span>{" "}
+                <span className="block neon-text">Potential with AI-Powered Guidance</span>
               </h1>
-              <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto lg:mx-0">
-                Discover career paths, explore job opportunities, and develop your skills with
-                personalized guidance. Your professional future starts here.
+              <p className="mt-3 text-base text-white/90 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto lg:mx-0">
+                Visiondrill Careers Navigator uses advanced AI to match your skills with the
+                perfect job, identify growth opportunities, and guide your career journey.
               </p>
               <div className="mt-8 sm:mt-10 sm:flex sm:justify-center lg:justify-start">
                 <div className="rounded-md shadow">
                   <Link to="/signup">
-                    <Button className="w-full px-8 py-6 text-lg futuristic-btn">
-                      <Rocket className="w-5 h-5 mr-2" />
-                      Get Started
+                    <Button className="w-full px-8 py-6 text-lg bg-white text-career-blue hover:bg-gray-100 futuristic-btn">
+                      Create Your Profile
                     </Button>
                   </Link>
                 </div>
                 <div className="mt-3 sm:mt-0 sm:ml-3">
-                  <Link to="/career-paths">
-                    <Button variant="outline" className="w-full px-8 py-6 text-lg glowing-border">
-                      Explore Careers
+                  <Link to="/jobs">
+                    <Button variant="outline" className="w-full px-8 py-6 text-lg border-white text-white hover:bg-white/10 glowing-border">
+                      Explore Jobs
                     </Button>
                   </Link>
                 </div>
@@ -121,7 +120,7 @@ const Index = () => {
             <div className="mt-12 relative lg:mt-0 animate-fade-in">
               <div className="mx-auto max-w-md px-4 sm:max-w-2xl sm:px-6 lg:px-0 lg:max-w-none">
                 <img
-                  className="w-full rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 glassmorphism"
+                  className="w-full rounded-xl shadow-xl ring-1 ring-white/20 glassmorphism"
                   src="https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=600&h=400"
                   alt="Career planning dashboard"
                 />
@@ -131,7 +130,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* How Visiondrill Careers Works - Replacing Featured Jobs section */}
+      {/* How Visiondrill Careers Works */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -197,7 +196,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Your Career Journey with Us - Replacing Discover Career Paths section */}
+      {/* Your Career Journey with Us */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">

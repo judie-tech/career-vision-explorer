@@ -9,6 +9,7 @@ import Jobs from "./pages/Jobs";
 import CareerPaths from "./pages/CareerPaths";
 import Skills from "./pages/Skills";
 import Insights from "./pages/Insights";
+import Partners from "./pages/Partners";
 import NotFound from "./pages/NotFound";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/career-paths" element={<CareerPaths />} />
           <Route path="/skills" element={<Skills />} />
           <Route path="/insights" element={<Insights />} />
+          <Route path="/partners" element={<Partners />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<Profile />} />

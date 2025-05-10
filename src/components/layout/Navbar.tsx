@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, Home, Briefcase, Map, BookOpen, BarChart2, Handshake } from "lucide-react";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -12,11 +12,12 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const navItems = [
-    { title: "Home", path: "/" },
-    { title: "Jobs", path: "/jobs" },
-    { title: "Career Paths", path: "/career-paths" },
-    { title: "Skills", path: "/skills" },
-    { title: "Insights", path: "/insights" },
+    { title: "Home", path: "/", icon: <Home className="h-4 w-4" /> },
+    { title: "Jobs", path: "/jobs", icon: <Briefcase className="h-4 w-4" /> },
+    { title: "Career Paths", path: "/career-paths", icon: <Map className="h-4 w-4" /> },
+    { title: "Skills", path: "/skills", icon: <BookOpen className="h-4 w-4" /> },
+    { title: "Insights", path: "/insights", icon: <BarChart2 className="h-4 w-4" /> },
+    { title: "Partners", path: "/partners", icon: <Handshake className="h-4 w-4" /> },
   ];
 
   const toggleMenu = () => {
@@ -46,6 +47,7 @@ const Navbar = () => {
                       : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                   }`}
                 >
+                  <span className="mr-2">{item.icon}</span>
                   {item.title}
                 </Link>
               ))}
@@ -109,7 +111,10 @@ const Navbar = () => {
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
-                {item.title}
+                <div className="flex items-center">
+                  <span className="mr-3">{item.icon}</span>
+                  {item.title}
+                </div>
               </Link>
             ))}
           </div>
@@ -121,7 +126,10 @@ const Navbar = () => {
                   className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  My Profile
+                  <div className="flex items-center">
+                    <User className="mr-3 h-5 w-5" />
+                    My Profile
+                  </div>
                 </Link>
                 <button
                   className="w-full text-left block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
