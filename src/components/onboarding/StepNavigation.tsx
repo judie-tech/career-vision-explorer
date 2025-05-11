@@ -16,26 +16,29 @@ export const StepNavigation = ({
   onNext
 }: StepNavigationProps) => {
   return (
-    <div className="flex justify-between">
+    <div className="flex justify-between w-full">
       <Button 
         variant="outline" 
         onClick={onBack}
         disabled={currentStep === 0}
+        className="hover:bg-gray-100"
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
-        <span className="button-text-visible">Back</span>
+        Back
       </Button>
-      <Button onClick={onNext} className="button-primary-gradient">
-        <span className="white-text button-text-visible">
-          {currentStep < totalSteps ? (
-            <>
-              Next
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </>
-          ) : (
-            'Complete'
-          )}
-        </span>
+      <Button 
+        onClick={onNext} 
+        variant="gradient"
+        className="text-white shadow-md"
+      >
+        {currentStep < totalSteps ? (
+          <>
+            Next
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </>
+        ) : (
+          'Complete'
+        )}
       </Button>
     </div>
   );

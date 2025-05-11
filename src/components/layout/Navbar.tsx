@@ -29,7 +29,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 backdrop-blur-md bg-white/80">
+    <nav className="bg-white border-b border-gray-200 backdrop-blur-md bg-white/80 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -57,9 +57,9 @@ const Navbar = () => {
             {isLoggedIn ? (
               <div className="flex items-center space-x-4">
                 <Link to="/profile">
-                  <Button variant="outline" className="flex items-center glowing-border">
+                  <Button variant="outline" className="flex items-center">
                     <User className="mr-2 h-4 w-4" />
-                    <span className="high-contrast-text button-text-visible">My Profile</span>
+                    My Profile
                   </Button>
                 </Link>
                 <Button 
@@ -76,9 +76,7 @@ const Navbar = () => {
                   <Button variant="ghost" className="hover:bg-gray-100">Log In</Button>
                 </Link>
                 <Link to="/signup">
-                  <Button className="futuristic-btn">
-                    <span className="high-contrast-text button-text-visible">Sign Up</span>
-                  </Button>
+                  <Button variant="gradient">Sign Up</Button>
                 </Link>
               </div>
             )}
@@ -100,7 +98,7 @@ const Navbar = () => {
 
       {/* Mobile menu, show/hide based on menu state */}
       {isMobile && isMenuOpen && (
-        <div className="md:hidden">
+        <div className="md:hidden bg-white shadow-lg z-50">
           <div className="pt-2 pb-3 space-y-1">
             {navItems.map((item) => (
               <Link
@@ -157,7 +155,7 @@ const Navbar = () => {
                   className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <span className="high-contrast-text">Sign Up</span>
+                  Sign Up
                 </Link>
               </div>
             )}
