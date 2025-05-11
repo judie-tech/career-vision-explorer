@@ -1,14 +1,17 @@
 
 import { useState } from "react";
+import { AdminButton } from "@/components/ui/custom-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { Save } from "lucide-react";
+import { Save, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminSettings = () => {
+  const { toast } = useToast();
   const [generalSettings, setGeneralSettings] = useState({
     siteName: "Visiondrill Careers",
     siteDescription: "AI-Driven career navigator helping professionals find their perfect job match",
@@ -31,15 +34,26 @@ const AdminSettings = () => {
     newsletterEnabled: true
   });
 
+  const saveSettings = () => {
+    toast({
+      title: "Settings Saved",
+      description: "Your changes have been successfully applied",
+      icon: <Check className="h-4 w-4" />
+    });
+  };
+
   return (
     <AdminLayout>
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Site Settings</h1>
-          <Button className="bg-career-blue text-white hover:bg-career-blue/90">
-            <Save className="mr-2 h-4 w-4" />
+          <AdminButton 
+            variant="primary"
+            icon={<Save className="h-4 w-4" />}
+            onClick={saveSettings}
+          >
             Save Settings
-          </Button>
+          </AdminButton>
         </div>
 
         <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -96,7 +110,13 @@ const AdminSettings = () => {
                     </div>
                     <Switch 
                       checked={generalSettings.registrationsEnabled} 
-                      onCheckedChange={(checked) => setGeneralSettings({...generalSettings, registrationsEnabled: checked})}
+                      onCheckedChange={(checked) => {
+                        setGeneralSettings({...generalSettings, registrationsEnabled: checked});
+                        toast({
+                          title: "Registration " + (checked ? "Enabled" : "Disabled"),
+                          description: checked ? "Users can now register on the site" : "User registration has been disabled"
+                        });
+                      }}
                     />
                   </div>
 
@@ -107,7 +127,14 @@ const AdminSettings = () => {
                     </div>
                     <Switch 
                       checked={generalSettings.maintenanceMode} 
-                      onCheckedChange={(checked) => setGeneralSettings({...generalSettings, maintenanceMode: checked})}
+                      onCheckedChange={(checked) => {
+                        setGeneralSettings({...generalSettings, maintenanceMode: checked});
+                        toast({
+                          title: "Maintenance Mode " + (checked ? "Enabled" : "Disabled"),
+                          description: checked ? "Site is now in maintenance mode" : "Site is now accessible to all users",
+                          variant: checked ? "destructive" : "default"
+                        });
+                      }}
                     />
                   </div>
                 </div>
@@ -182,6 +209,17 @@ const AdminSettings = () => {
                     </div>
                   </div>
                 </div>
+
+                <Button 
+                  onClick={() => {
+                    toast({
+                      title: "Theme Updated",
+                      description: "The appearance settings have been applied"
+                    });
+                  }}
+                >
+                  Apply Theme Changes
+                </Button>
               </div>
             </TabsContent>
 
@@ -194,7 +232,20 @@ const AdminSettings = () => {
                   </div>
                   <Switch 
                     checked={notifications.emailNotifications} 
-                    onCheckedChange={(checked) => setNotifications({...notifications, emailNotifications: checked})}
+                    onCheckedChange={(checked) => {
+                      setNotifications({
+                        ...notifications, 
+                        emailNotifications: checked,
+                        // If main switch is off, disable all child switches
+                        welcomeEmail: checked ? notifications.welcomeEmail : false,
+                        jobAlerts: checked ? notifications.jobAlerts : false
+                      });
+                      
+                      toast({
+                        title: "Email Notifications " + (checked ? "Enabled" : "Disabled"),
+                        description: checked ? "All email notifications are now active" : "All email notifications have been disabled"
+                      });
+                    }}
                   />
                 </div>
 
@@ -232,6 +283,17 @@ const AdminSettings = () => {
                     onCheckedChange={(checked) => setNotifications({...notifications, newsletterEnabled: checked})}
                   />
                 </div>
+
+                <Button 
+                  onClick={() => {
+                    toast({
+                      title: "Notification Settings Saved",
+                      description: "Your notification preferences have been updated"
+                    });
+                  }}
+                >
+                  Apply Notification Settings
+                </Button>
               </div>
             </TabsContent>
           </Tabs>

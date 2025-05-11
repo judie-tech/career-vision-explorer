@@ -1,12 +1,13 @@
 
-import { ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { ReactNode, useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, Users, Briefcase, BookOpen, BarChart, Settings, 
   MessageSquare, FileText, LogOut, Menu, X 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -14,7 +15,15 @@ interface AdminLayoutProps {
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const isMobile = useIsMobile();
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+
+  // Update sidebar state when screen size changes
+  useEffect(() => {
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
 
   const navigationItems = [
     { name: "Dashboard", icon: LayoutDashboard, href: "/admin" },
@@ -32,6 +41,14 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       return true;
     }
     return location.pathname.startsWith(path) && path !== "/admin";
+  };
+
+  const handleExitAdmin = () => {
+    toast({
+      title: "Exiting Admin Panel",
+      description: "Returning to the main site",
+    });
+    navigate('/');
   };
 
   return (
@@ -77,12 +94,14 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           </div>
           
           <div className="p-4 border-t border-gray-200">
-            <Link to="/">
-              <Button variant="outline" className="w-full flex items-center justify-center text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200">
-                <LogOut className="mr-2 h-4 w-4" />
-                Back to Site
-              </Button>
-            </Link>
+            <Button 
+              variant="outline" 
+              className="w-full flex items-center justify-center text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200"
+              onClick={handleExitAdmin}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Back to Site
+            </Button>
           </div>
         </div>
       </div>

@@ -1,17 +1,27 @@
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { AdminButton } from "@/components/ui/custom-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { BarChart, Users, Briefcase, BookOpen, Settings } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminDashboard = () => {
+  const { toast } = useToast();
   const [stats] = useState({
     users: 1456,
     jobs: 378,
     careerPaths: 25,
     skills: 124
   });
+
+  const handleQuickAction = (action: string) => {
+    toast({
+      title: `Action Initiated: ${action}`,
+      description: `You're now managing ${action.toLowerCase()}`,
+    });
+  };
 
   return (
     <AdminLayout>
@@ -66,11 +76,31 @@ const AdminDashboard = () => {
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button variant="admin" className="w-full">Manage Users</Button>
-              <Button variant="admin" className="w-full">Manage Jobs</Button>
-              <Button variant="admin" className="w-full">Manage Career Paths</Button>
-              <Button variant="admin" className="w-full">Manage Skills</Button>
-              <Button variant="admin" className="w-full">Site Settings</Button>
+              <Link to="/admin/users">
+                <AdminButton variant="primary" className="w-full" onClick={() => handleQuickAction("Users")}>
+                  Manage Users
+                </AdminButton>
+              </Link>
+              <Link to="/admin/jobs">
+                <AdminButton variant="primary" className="w-full" onClick={() => handleQuickAction("Jobs")}>
+                  Manage Jobs
+                </AdminButton>
+              </Link>
+              <Link to="/admin/career-paths">
+                <AdminButton variant="primary" className="w-full" onClick={() => handleQuickAction("Career Paths")}>
+                  Manage Career Paths
+                </AdminButton>
+              </Link>
+              <Link to="/admin/skills">
+                <AdminButton variant="primary" className="w-full" onClick={() => handleQuickAction("Skills")}>
+                  Manage Skills
+                </AdminButton>
+              </Link>
+              <Link to="/admin/settings">
+                <AdminButton variant="primary" className="w-full" onClick={() => handleQuickAction("Settings")}>
+                  Site Settings
+                </AdminButton>
+              </Link>
             </CardContent>
           </Card>
           
@@ -96,10 +126,12 @@ const AdminDashboard = () => {
                   <span>Storage</span>
                   <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">85% Available</span>
                 </div>
-                <Button variant="outline" className="w-full flex gap-2 items-center">
-                  <Settings className="h-4 w-4" />
-                  <span>System Settings</span>
-                </Button>
+                <Link to="/admin/settings">
+                  <AdminButton variant="outline" className="w-full flex gap-2 items-center">
+                    <Settings className="h-4 w-4" />
+                    <span>System Settings</span>
+                  </AdminButton>
+                </Link>
               </div>
             </CardContent>
           </Card>
