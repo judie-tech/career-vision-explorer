@@ -15,6 +15,12 @@ import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 
+// Admin pages
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminJobs from "./pages/admin/AdminJobs";
+import AdminSettings from "./pages/admin/AdminSettings";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -46,6 +52,12 @@ const App = () => (
           {/* User routes */}
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/:section" element={<Profile />} />
+          
+          {/* Admin routes */}
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/jobs" element={<AdminJobs />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
           
           {/* Fallbacks */}
           <Route path="/404" element={<NotFound />} />

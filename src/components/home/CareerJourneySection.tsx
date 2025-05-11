@@ -35,7 +35,7 @@ const CareerJourneySection = () => {
             </p>
             <div className="mt-6">
               <Link to="/signup">
-                <Button className="futuristic-btn">Get Started</Button>
+                <Button className="bg-career-blue text-white hover:bg-career-blue/90 shadow-md">Get Started</Button>
               </Link>
             </div>
           </div>
@@ -58,7 +58,7 @@ const CareerJourneySection = () => {
             </p>
             <div className="mt-6">
               <Link to="/profile">
-                <Button className="futuristic-btn">View Dashboard</Button>
+                <Button className="bg-career-blue text-white hover:bg-career-blue/90 shadow-md">View Dashboard</Button>
               </Link>
             </div>
           </div>
@@ -81,7 +81,7 @@ const CareerJourneySection = () => {
             </p>
             <div className="mt-6">
               <Link to="/jobs">
-                <Button className="futuristic-btn">Find Jobs</Button>
+                <Button className="bg-career-blue text-white hover:bg-career-blue/90 shadow-md">Find Jobs</Button>
               </Link>
             </div>
           </div>

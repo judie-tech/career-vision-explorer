@@ -15,7 +15,7 @@ const CTASection = () => {
         </p>
         <div className="mt-8">
           <Link to="/signup">
-            <Button className="bg-white text-career-blue hover:bg-gray-100 futuristic-btn high-contrast-text">
+            <Button className="bg-white text-career-blue hover:bg-gray-100 font-bold text-lg py-3 px-8 shadow-lg">
               <Rocket className="h-5 w-5 mr-2" />
               Get Started Now
             </Button>

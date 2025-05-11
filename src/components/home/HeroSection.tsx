@@ -20,14 +20,14 @@ const HeroSection = () => {
             <div className="mt-8 sm:mt-10 sm:flex sm:justify-center lg:justify-start">
               <div className="rounded-md shadow">
                 <Link to="/signup">
-                  <Button className="w-full px-8 py-6 text-lg bg-white text-career-blue hover:bg-gray-100 futuristic-btn high-contrast-text">
+                  <Button className="w-full px-8 py-6 text-lg bg-white text-career-blue hover:bg-gray-100 font-bold shadow-lg">
                     Create Your Profile
                   </Button>
                 </Link>
               </div>
               <div className="mt-3 sm:mt-0 sm:ml-3">
                 <Link to="/jobs">
-                  <Button variant="outline" className="w-full px-8 py-6 text-lg border-white text-white hover:bg-white/10 glowing-border high-contrast-text">
+                  <Button variant="outline" className="w-full px-8 py-6 text-lg border-white bg-transparent text-white hover:bg-white/20 font-bold">
                     Explore Jobs
                   </Button>
                 </Link>
