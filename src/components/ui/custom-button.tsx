@@ -3,7 +3,7 @@ import { Button, ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { forwardRef } from "react";
 
-interface AdminButtonProps extends ButtonProps {
+interface AdminButtonProps extends Omit<ButtonProps, 'variant'> {
   variant?: "primary" | "secondary" | "outline" | "danger";
   icon?: React.ReactNode;
 }
@@ -11,6 +11,17 @@ interface AdminButtonProps extends ButtonProps {
 export const AdminButton = forwardRef<HTMLButtonElement, AdminButtonProps>(
   ({ className, variant = "primary", icon, children, ...props }, ref) => {
     const baseStyles = "font-medium shadow-sm";
+    
+    // Map our custom variants to the ButtonProps variants
+    const getButtonVariant = () => {
+      switch (variant) {
+        case "primary": return "default";
+        case "secondary": return "secondary";
+        case "outline": return "outline";
+        case "danger": return "destructive";
+        default: return "default";
+      }
+    };
     
     const variantStyles = {
       primary: "bg-career-blue text-white hover:bg-career-blue/90",
@@ -22,6 +33,7 @@ export const AdminButton = forwardRef<HTMLButtonElement, AdminButtonProps>(
     return (
       <Button
         ref={ref}
+        variant={getButtonVariant()}
         className={cn(baseStyles, variantStyles[variant], className)}
         {...props}
       >
