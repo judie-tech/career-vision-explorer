@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Jobs from "./pages/Jobs";
 import CareerPaths from "./pages/CareerPaths";
@@ -61,17 +62,41 @@ const App = () => (
             {/* Admin Authentication */}
             <Route path="/admin/login" element={<AdminLogin />} />
             
-            {/* Admin routes */}
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/users" element={<AdminUsers />} />
-            <Route path="/admin/jobs" element={<AdminJobs />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
+            {/* Admin routes - protected with role requirement */}
+            <Route path="/admin" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminUsers />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/jobs" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminJobs />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/settings" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminSettings />
+              </ProtectedRoute>
+            } />
             
-            {/* Employer routes */}
-            <Route path="/employer/dashboard" element={<EmployerDashboard />} />
+            {/* Employer routes - protected with role requirement */}
+            <Route path="/employer/dashboard" element={
+              <ProtectedRoute requiredRole="employer">
+                <EmployerDashboard />
+              </ProtectedRoute>
+            } />
             
-            {/* Job Seeker routes */}
-            <Route path="/jobseeker/dashboard" element={<JobSeekerDashboard />} />
+            {/* Job Seeker routes - protected with role requirement */}
+            <Route path="/jobseeker/dashboard" element={
+              <ProtectedRoute requiredRole="jobseeker">
+                <JobSeekerDashboard />
+              </ProtectedRoute>
+            } />
             
             {/* Fallbacks */}
             <Route path="/404" element={<NotFound />} />
