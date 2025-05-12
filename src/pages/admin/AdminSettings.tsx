@@ -34,9 +34,17 @@ const AdminSettings = () => {
   });
 
   const saveSettings = () => {
+    // In a real app, you would save to a database or API here
     toast({
       title: "Settings Saved",
       description: "Your changes have been successfully applied"
+    });
+    
+    // Log settings to console for debugging
+    console.log({
+      generalSettings,
+      appearance,
+      notifications
     });
   };
 
