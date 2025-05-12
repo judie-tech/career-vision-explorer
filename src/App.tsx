@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/hooks/use-auth";
 import Index from "./pages/Index";
 import Jobs from "./pages/Jobs";
 import CareerPaths from "./pages/CareerPaths";
@@ -20,6 +21,9 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminJobs from "./pages/admin/AdminJobs";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminLogin from "./pages/admin/AdminLogin";
+import EmployerDashboard from "./pages/admin/EmployerDashboard";
+import JobSeekerDashboard from "./pages/admin/JobSeekerDashboard";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,39 +36,50 @@ const queryClient = new QueryClient({
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner position="top-right" closeButton />
-      <BrowserRouter>
-        <Routes>
-          {/* Main routes */}
-          <Route path="/" element={<Index />} />
-          <Route path="/jobs" element={<Jobs />} />
-          <Route path="/career-paths" element={<CareerPaths />} />
-          <Route path="/skills" element={<Skills />} />
-          <Route path="/insights" element={<Insights />} />
-          <Route path="/partners" element={<Partners />} />
-          
-          {/* Auth routes */}
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/login" element={<Login />} />
-          
-          {/* User routes */}
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/profile/:section" element={<Profile />} />
-          
-          {/* Admin routes */}
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/users" element={<AdminUsers />} />
-          <Route path="/admin/jobs" element={<AdminJobs />} />
-          <Route path="/admin/settings" element={<AdminSettings />} />
-          
-          {/* Fallbacks */}
-          <Route path="/404" element={<NotFound />} />
-          <Route path="*" element={<Navigate to="/404" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner position="top-right" closeButton />
+        <BrowserRouter>
+          <Routes>
+            {/* Main routes */}
+            <Route path="/" element={<Index />} />
+            <Route path="/jobs" element={<Jobs />} />
+            <Route path="/career-paths" element={<CareerPaths />} />
+            <Route path="/skills" element={<Skills />} />
+            <Route path="/insights" element={<Insights />} />
+            <Route path="/partners" element={<Partners />} />
+            
+            {/* Auth routes */}
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/login" element={<Login />} />
+            
+            {/* User routes */}
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/:section" element={<Profile />} />
+            
+            {/* Admin Authentication */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            
+            {/* Admin routes */}
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/jobs" element={<AdminJobs />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
+            
+            {/* Employer routes */}
+            <Route path="/employer/dashboard" element={<EmployerDashboard />} />
+            
+            {/* Job Seeker routes */}
+            <Route path="/jobseeker/dashboard" element={<JobSeekerDashboard />} />
+            
+            {/* Fallbacks */}
+            <Route path="/404" element={<NotFound />} />
+            <Route path="*" element={<Navigate to="/404" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
