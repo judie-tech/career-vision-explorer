@@ -1,9 +1,10 @@
 
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, User, Shield } from "lucide-react";
+import { Menu, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { AdminNavItem } from "./AdminNavItem";
 
 const Navbar = () => {
   const isMobile = useIsMobile();
@@ -53,12 +54,7 @@ const Navbar = () => {
           </div>
 
           <div className="hidden md:flex md:items-center md:space-x-2">
-            <Link to="/admin">
-              <Button variant="outline" size="sm" className="flex items-center">
-                <Shield className="mr-1 h-4 w-4" />
-                Admin
-              </Button>
-            </Link>
+            <AdminNavItem />
             <Link to="/login">
               <Button variant="outline" size="sm">
                 Log in
@@ -104,12 +100,7 @@ const Navbar = () => {
             ))}
             <div className="pt-4 pb-3 border-t border-gray-200">
               <div className="flex items-center px-3 space-x-2">
-                <Link to="/admin" className="w-full" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="outline" className="w-full flex justify-center items-center">
-                    <Shield className="mr-1 h-4 w-4" />
-                    Admin Panel
-                  </Button>
-                </Link>
+                <AdminNavItem />
               </div>
               <div className="mt-3 px-2 space-y-1">
                 <Link

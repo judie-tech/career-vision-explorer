@@ -33,7 +33,7 @@ export const AdminNavItem = () => {
   };
   
   return (
-    <Button variant="ghost" asChild className="text-sm font-medium">
+    <Button variant="admin" asChild className="text-sm font-medium">
       <Link to={getDashboardUrl()}>
         <Shield className="mr-2 h-4 w-4" />
         {user?.role === 'admin' ? 'Admin Dashboard' : 

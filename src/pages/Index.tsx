@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import HeroSection from "@/components/home/HeroSection";
 import FeatureSection from "@/components/home/FeatureSection";
@@ -9,9 +10,15 @@ import TestimonialSection from "@/components/home/TestimonialSection";
 import JobListingSection from "@/components/home/JobListingSection";
 import CareerPathSection from "@/components/home/CareerPathSection";
 import CTASection from "@/components/home/CTASection";
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+import { Shield, Briefcase, User } from "lucide-react";
+import { toast } from "@/components/ui/sonner";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
   
   const featuredJobs = [
     {
@@ -82,8 +89,57 @@ const Index = () => {
     },
   ];
   
+  const handleQuickAccess = () => {
+    if (!isAuthenticated) {
+      toast.info("Login Required", {
+        description: "Please login to access your dashboard",
+      });
+      navigate("/admin/login");
+      return;
+    }
+    
+    // Navigate based on user role
+    switch (user?.role) {
+      case "admin":
+        navigate("/admin");
+        break;
+      case "employer":
+        navigate("/employer/dashboard");
+        break;
+      case "jobseeker":
+        navigate("/jobseeker/dashboard");
+        break;
+      default:
+        navigate("/admin/login");
+    }
+  };
+  
   return (
     <Layout>
+      {isAuthenticated && user && (
+        <div className="bg-blue-50 py-2 px-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="text-sm">
+              Welcome back, <span className="font-medium">{user.name}</span>!
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleQuickAccess}
+              className="flex items-center gap-1"
+            >
+              {user.role === "admin" ? (
+                <Shield className="h-4 w-4" />
+              ) : user.role === "employer" ? (
+                <Briefcase className="h-4 w-4" />
+              ) : (
+                <User className="h-4 w-4" />
+              )}
+              Go to Dashboard
+            </Button>
+          </div>
+        </div>
+      )}
       <HeroSection />
       <FeatureSection />
       <CareerJourneySection />
