@@ -1,8 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { 
   Card, 
   CardContent, 
@@ -11,23 +9,16 @@ import {
   CardTitle,
   CardFooter
 } from "@/components/ui/card";
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
-} from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "@/components/ui/sonner";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useAuth } from "@/hooks/use-auth";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Briefcase, User, Shield, ArrowLeft } from "lucide-react";
+import { Shield, Briefcase, User, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { LoginForm } from "@/components/auth/LoginForm";
+import { LoginTabs } from "@/components/auth/LoginTabs";
+import { DemoCredentials } from "@/components/auth/DemoCredentials";
 
 const loginSchema = z.object({
   email: z.string().email({
@@ -62,13 +53,41 @@ const AdminLogin = () => {
     }
   }, [isAuthenticated, user, navigate]);
   
-  const form = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
+  // Helper function to get the dashboard URL based on role
+  const getDashboardForRole = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return '/admin';
+      case 'employer':
+        return '/employer/dashboard';
+      case 'jobseeker':
+        return '/jobseeker/dashboard';
+      default:
+        return '/';
+    }
+  };
+  
+  const getLoginCredentials = () => {
+    switch (loginType) {
+      case 'admin':
+        return { email: 'admin@visiondrill.com', password: 'admin123' };
+      case 'employer':
+        return { email: 'employer@visiondrill.com', password: 'employer123' };
+      case 'jobseeker':
+        return { email: 'jobseeker@visiondrill.com', password: 'jobseeker123' };
+    }
+  };
+  
+  const getRoleIcon = () => {
+    switch (loginType) {
+      case 'admin':
+        return <Shield className="h-6 w-6 text-blue-600" />;
+      case 'employer':
+        return <Briefcase className="h-6 w-6 text-purple-600" />;
+      case 'jobseeker':
+        return <User className="h-6 w-6 text-green-600" />;
+    }
+  };
   
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
@@ -167,50 +186,7 @@ const AdminLogin = () => {
       setIsLoading(false);
     }
   };
-  
-  // Helper function to get the dashboard URL based on role
-  const getDashboardForRole = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return '/admin';
-      case 'employer':
-        return '/employer/dashboard';
-      case 'jobseeker':
-        return '/jobseeker/dashboard';
-      default:
-        return '/';
-    }
-  };
-  
-  const getLoginCredentials = () => {
-    switch (loginType) {
-      case 'admin':
-        return { email: 'admin@visiondrill.com', password: 'admin123' };
-      case 'employer':
-        return { email: 'employer@visiondrill.com', password: 'employer123' };
-      case 'jobseeker':
-        return { email: 'jobseeker@visiondrill.com', password: 'jobseeker123' };
-    }
-  };
-  
-  // Pre-fill form based on selected tab
-  useEffect(() => {
-    const credentials = getLoginCredentials();
-    form.setValue('email', credentials.email);
-    form.setValue('password', credentials.password);
-  }, [loginType, form]);
-  
-  const getRoleIcon = () => {
-    switch (loginType) {
-      case 'admin':
-        return <Shield className="h-6 w-6 text-blue-600" />;
-      case 'employer':
-        return <Briefcase className="h-6 w-6 text-purple-600" />;
-      case 'jobseeker':
-        return <User className="h-6 w-6 text-green-600" />;
-    }
-  };
-  
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
       <div className="w-full max-w-md">
@@ -235,68 +211,17 @@ const AdminLogin = () => {
           </CardHeader>
           
           <CardContent>
-            <Tabs value={loginType} onValueChange={(v) => setLoginType(v as any)} className="mb-6">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="admin" className="flex items-center space-x-2">
-                  <Shield className="h-4 w-4" />
-                  <span>Admin</span>
-                </TabsTrigger>
-                <TabsTrigger value="employer" className="flex items-center space-x-2">
-                  <Briefcase className="h-4 w-4" />
-                  <span>Employer</span>
-                </TabsTrigger>
-                <TabsTrigger value="jobseeker" className="flex items-center space-x-2">
-                  <User className="h-4 w-4" />
-                  <span>Job Seeker</span>
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-            
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="admin@visiondrill.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Signing in..." : "Sign In"}
-                </Button>
-              </form>
-            </Form>
+            <LoginTabs loginType={loginType} setLoginType={setLoginType} />
+            <LoginForm 
+              onSubmit={onSubmit}
+              isLoading={isLoading}
+              loginType={loginType}
+              defaultValues={getLoginCredentials()}
+            />
           </CardContent>
           
           <CardFooter>
-            <div className="w-full text-sm text-gray-500">
-              <p>Demo Credentials for {loginType} login:</p>
-              <div className="mt-1 p-2 bg-gray-50 rounded-md">
-                <p><strong>Email:</strong> {getLoginCredentials().email}</p>
-                <p><strong>Password:</strong> {getLoginCredentials().password}</p>
-              </div>
-            </div>
+            <DemoCredentials loginType={loginType} />
           </CardFooter>
         </Card>
       </div>
