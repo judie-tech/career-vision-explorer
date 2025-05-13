@@ -90,6 +90,36 @@ const App = () => (
                 <EmployerDashboard />
               </ProtectedRoute>
             } />
+            <Route path="/employer/jobs" element={
+              <ProtectedRoute requiredRole="employer">
+                <EmployerDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/employer/applicants" element={
+              <ProtectedRoute requiredRole="employer">
+                <EmployerDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/employer/interviews" element={
+              <ProtectedRoute requiredRole="employer">
+                <EmployerDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/employer/analytics" element={
+              <ProtectedRoute requiredRole="employer">
+                <EmployerDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/employer/jobs/:jobId/applicants" element={
+              <ProtectedRoute requiredRole="employer">
+                <EmployerDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/employer/interviews/schedule" element={
+              <ProtectedRoute requiredRole="employer">
+                <EmployerDashboard />
+              </ProtectedRoute>
+            } />
             
             {/* Job Seeker routes - protected with role requirement */}
             <Route path="/jobseeker/dashboard" element={

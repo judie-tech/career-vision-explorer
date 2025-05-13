@@ -1,7 +1,11 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, Users, LineChart, Clock } from "lucide-react";
+import { Briefcase, Users, Calendar, Clock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useJobPosts } from "@/hooks/use-job-posts";
+import { useApplicants } from "@/hooks/use-applicants";
+import { useInterviews } from "@/hooks/use-interviews";
 
 interface StatCardProps {
   title: string;
@@ -9,10 +13,11 @@ interface StatCardProps {
   subtitle: string;
   icon: React.ReactNode;
   iconColor: string;
+  onClick: () => void;
 }
 
-const StatCard = ({ title, value, subtitle, icon, iconColor }: StatCardProps) => (
-  <Card>
+const StatCard = ({ title, value, subtitle, icon, iconColor, onClick }: StatCardProps) => (
+  <Card onClick={onClick} className="cursor-pointer hover:shadow-md transition-shadow">
     <CardHeader className="pb-2">
       <CardTitle className="text-lg">{title}</CardTitle>
     </CardHeader>
@@ -29,35 +34,61 @@ const StatCard = ({ title, value, subtitle, icon, iconColor }: StatCardProps) =>
 );
 
 export const StatisticsCards = () => {
+  const navigate = useNavigate();
+  const { jobs } = useJobPosts();
+  const { applicants } = useApplicants();
+  const { interviews } = useInterviews();
+  
+  // Calculate boosted listings
+  const boostedListings = jobs.filter(job => job.isBoosted).length;
+  
+  // Calculate weekly new applicants
+  const weeklyNewApplicants = applicants.filter(app => 
+    app.appliedTime.includes("day") && parseInt(app.appliedTime) <= 7
+  ).length;
+  
+  // Calculate weekly interviews
+  const weeklyInterviews = interviews.filter(int => 
+    new Date(int.scheduledDate) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  ).length;
+  
+  // Calculate total views
+  const totalViews = jobs.reduce((total, job) => total + job.views, 0);
+  const viewsIncrease = "+18%"; // This would typically be calculated from historical data
+
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
       <StatCard
         title="Active Listings"
-        value={8}
-        subtitle="3 boosted listings"
+        value={jobs.length}
+        subtitle={`${boostedListings} boosted listings`}
         icon={<Briefcase className="h-8 w-8" />}
         iconColor="text-career-blue"
+        onClick={() => navigate("/employer/jobs")}
       />
       <StatCard
         title="Total Applicants"
-        value={64}
-        subtitle="+12 this week"
+        value={applicants.length}
+        subtitle={`+${weeklyNewApplicants} this week`}
         icon={<Users className="h-8 w-8" />}
         iconColor="text-career-purple"
+        onClick={() => navigate("/employer/applicants")}
       />
       <StatCard
         title="Interviews Scheduled"
-        value={15}
-        subtitle="5 this week"
-        icon={<Clock className="h-8 w-8" />}
+        value={interviews.filter(i => i.status === "Scheduled").length}
+        subtitle={`${weeklyInterviews} this week`}
+        icon={<Calendar className="h-8 w-8" />}
         iconColor="text-green-600"
+        onClick={() => navigate("/employer/interviews")}
       />
       <StatCard
         title="Listing Views"
-        value="1,248"
-        subtitle="+18% from last month"
-        icon={<LineChart className="h-8 w-8" />}
+        value={totalViews.toLocaleString()}
+        subtitle={`${viewsIncrease} from last month`}
+        icon={<Clock className="h-8 w-8" />}
         iconColor="text-amber-500"
+        onClick={() => navigate("/employer/analytics")}
       />
     </div>
   );
