@@ -8,7 +8,8 @@ import {
   CardContent, 
   CardDescription, 
   CardHeader, 
-  CardTitle 
+  CardTitle,
+  CardFooter
 } from "@/components/ui/card";
 import { 
   Form, 
@@ -25,6 +26,8 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Briefcase, User, Shield, ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const loginSchema = z.object({
   email: z.string().email({
@@ -197,67 +200,106 @@ const AdminLogin = () => {
     form.setValue('password', credentials.password);
   }, [loginType, form]);
   
+  const getRoleIcon = () => {
+    switch (loginType) {
+      case 'admin':
+        return <Shield className="h-6 w-6 text-blue-600" />;
+      case 'employer':
+        return <Briefcase className="h-6 w-6 text-purple-600" />;
+      case 'jobseeker':
+        return <User className="h-6 w-6 text-green-600" />;
+    }
+  };
+  
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
-          <CardDescription>
-            Sign in to access the Visiondrill administration panel
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={loginType} onValueChange={(v) => setLoginType(v as any)} className="mb-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="admin">Main Admin</TabsTrigger>
-              <TabsTrigger value="employer">Employer</TabsTrigger>
-              <TabsTrigger value="jobseeker">Job Seeker</TabsTrigger>
-            </TabsList>
-          </Tabs>
+      <div className="w-full max-w-md">
+        <div className="mb-6">
+          <Button variant="ghost" size="sm" asChild className="mb-4">
+            <Link to="/">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Home
+            </Link>
+          </Button>
+        </div>
+        
+        <Card className="w-full">
+          <CardHeader className="space-y-2">
+            <div className="flex items-center space-x-2">
+              {getRoleIcon()}
+              <CardTitle className="text-2xl font-bold">Visiondrill Portal</CardTitle>
+            </div>
+            <CardDescription>
+              Sign in to access your Visiondrill dashboard
+            </CardDescription>
+          </CardHeader>
           
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="admin@visiondrill.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Signing in..." : "Sign In"}
-              </Button>
-              
-              <div className="mt-4 text-sm text-gray-500">
-                <p>Demo Credentials for {loginType} login:</p>
+          <CardContent>
+            <Tabs value={loginType} onValueChange={(v) => setLoginType(v as any)} className="mb-6">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="admin" className="flex items-center space-x-2">
+                  <Shield className="h-4 w-4" />
+                  <span>Admin</span>
+                </TabsTrigger>
+                <TabsTrigger value="employer" className="flex items-center space-x-2">
+                  <Briefcase className="h-4 w-4" />
+                  <span>Employer</span>
+                </TabsTrigger>
+                <TabsTrigger value="jobseeker" className="flex items-center space-x-2">
+                  <User className="h-4 w-4" />
+                  <span>Job Seeker</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="admin@visiondrill.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Signing in..." : "Sign In"}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+          
+          <CardFooter>
+            <div className="w-full text-sm text-gray-500">
+              <p>Demo Credentials for {loginType} login:</p>
+              <div className="mt-1 p-2 bg-gray-50 rounded-md">
                 <p><strong>Email:</strong> {getLoginCredentials().email}</p>
                 <p><strong>Password:</strong> {getLoginCredentials().password}</p>
               </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 };

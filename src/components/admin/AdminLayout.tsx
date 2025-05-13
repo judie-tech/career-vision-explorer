@@ -3,11 +3,13 @@ import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, Users, Briefcase, BookOpen, BarChart, Settings, 
-  MessageSquare, FileText, LogOut, Menu, X 
+  MessageSquare, FileText, LogOut, Menu, X, Home
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { AdminBreadcrumb } from "./AdminBreadcrumb";
+import { useAuth } from "@/hooks/use-auth";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -19,6 +21,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+  const { user, logout } = useAuth();
 
   // Update sidebar state when screen size changes
   useEffect(() => {
@@ -50,6 +53,15 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     });
     navigate('/');
   };
+  
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out",
+    });
+    navigate('/admin/login');
+  };
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -74,6 +86,18 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             <h1 className="text-xl font-bold text-gray-800">Visiondrill Admin</h1>
           </div>
           
+          <div className="flex items-center px-4 py-2 border-b border-gray-200">
+            <div className="flex items-center space-x-2">
+              <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                <Users className="h-4 w-4 text-gray-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">{user?.name || "Admin User"}</p>
+                <p className="text-xs text-gray-500">{user?.role || "admin"}</p>
+              </div>
+            </div>
+          </div>
+          
           <div className="flex-1 overflow-y-auto py-4">
             <nav className="px-4 space-y-1">
               {navigationItems.map((item) => (
@@ -93,14 +117,23 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             </nav>
           </div>
           
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 border-t border-gray-200 space-y-2">
+            <Button 
+              variant="outline" 
+              className="w-full flex items-center justify-center text-gray-700 hover:bg-gray-100"
+              onClick={handleExitAdmin}
+            >
+              <Home className="mr-2 h-4 w-4" />
+              Back to Site
+            </Button>
+            
             <Button 
               variant="outline" 
               className="w-full flex items-center justify-center text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200"
-              onClick={handleExitAdmin}
+              onClick={handleLogout}
             >
               <LogOut className="mr-2 h-4 w-4" />
-              Back to Site
+              Logout
             </Button>
           </div>
         </div>
@@ -108,7 +141,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       
       {/* Main content */}
       <div className={`flex-1 transition-all duration-200 ${sidebarOpen ? "lg:ml-64" : "ml-0"}`}>
-        <main className="h-full overflow-y-auto bg-gray-100">
+        <main className="h-full overflow-y-auto bg-gray-100 p-6">
+          <AdminBreadcrumb />
           {children}
         </main>
       </div>

@@ -1,6 +1,7 @@
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { authenticateUser, logoutUser, getCurrentUser, isAuthenticated } from '@/lib/auth';
+import { authenticateUser, logoutUser, getCurrentUser } from '@/lib/auth';
+import { toast } from "@/components/ui/sonner";
 
 type UserRole = 'admin' | 'jobseeker' | 'employer';
 
@@ -58,6 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logoutUser();
     setUser(null);
     setIsAuthenticated(false);
+    toast.success("Logged out successfully");
   };
 
   const hasRole = (role: UserRole): boolean => {
