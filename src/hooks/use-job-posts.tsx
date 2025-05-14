@@ -15,12 +15,22 @@ export interface JobPost {
   views: number;
 }
 
+export interface JobFilters {
+  jobType?: string;
+  dateRange?: number;
+  boostedOnly?: boolean;
+  searchQuery?: string;
+}
+
 interface JobStore {
   jobs: JobPost[];
+  filteredJobs: JobPost[];
+  filters: JobFilters;
   addJob: (job: JobPost) => void;
   removeJob: (id: string) => void;
   updateJob: (id: string, updatedJob: Partial<JobPost>) => void;
   getJob: (id: string) => JobPost | undefined;
+  updateFilters: (filters: Partial<JobFilters>) => void;
 }
 
 // Sample job data
@@ -77,17 +87,34 @@ const initialJobs: JobPost[] = [
 
 export const useJobPosts = create<JobStore>((set, get) => ({
   jobs: initialJobs,
+  filteredJobs: initialJobs,
+  filters: {
+    jobType: 'all',
+    dateRange: 30,
+    boostedOnly: false,
+    searchQuery: '',
+  },
   
-  addJob: (job) => set((state) => ({
-    jobs: [...state.jobs, job]
-  })),
+  addJob: (job) => {
+    set((state) => {
+      const newJobs = [...state.jobs, job];
+      return {
+        jobs: newJobs,
+        filteredJobs: applyFilters(newJobs, state.filters),
+      };
+    });
+  },
   
   removeJob: (id) => {
     const jobToRemove = get().jobs.find(job => job.id === id);
     if (jobToRemove) {
-      set((state) => ({
-        jobs: state.jobs.filter(job => job.id !== id)
-      }));
+      set((state) => {
+        const newJobs = state.jobs.filter(job => job.id !== id);
+        return {
+          jobs: newJobs,
+          filteredJobs: applyFilters(newJobs, state.filters),
+        };
+      });
       toast.success(`Job "${jobToRemove.title}" has been deleted.`);
     }
   },
@@ -100,12 +127,61 @@ export const useJobPosts = create<JobStore>((set, get) => ({
       const updatedJobs = [...jobs];
       updatedJobs[jobIndex] = { ...updatedJobs[jobIndex], ...updatedJob };
       
-      set({ jobs: updatedJobs });
+      set((state) => ({
+        jobs: updatedJobs,
+        filteredJobs: applyFilters(updatedJobs, state.filters),
+      }));
       toast.success(`Job updated successfully.`);
     }
   },
   
   getJob: (id) => {
     return get().jobs.find(job => job.id === id);
-  }
+  },
+  
+  updateFilters: (newFilters) => {
+    set((state) => {
+      const updatedFilters = { ...state.filters, ...newFilters };
+      return {
+        filters: updatedFilters,
+        filteredJobs: applyFilters(state.jobs, updatedFilters),
+      };
+    });
+  },
 }));
+
+// Helper function to apply filters to jobs
+function applyFilters(jobs: JobPost[], filters: JobFilters): JobPost[] {
+  return jobs.filter(job => {
+    // Filter by job type
+    if (filters.jobType && filters.jobType !== 'all' && job.type !== filters.jobType) {
+      return false;
+    }
+    
+    // Filter by date range
+    if (filters.dateRange) {
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - filters.dateRange);
+      if (new Date(job.datePosted) < cutoffDate) {
+        return false;
+      }
+    }
+    
+    // Filter by boosted status
+    if (filters.boostedOnly && !job.isBoosted) {
+      return false;
+    }
+    
+    // Filter by search query
+    if (filters.searchQuery && filters.searchQuery.trim() !== '') {
+      const query = filters.searchQuery.toLowerCase();
+      return (
+        job.title.toLowerCase().includes(query) ||
+        job.description.toLowerCase().includes(query) ||
+        job.location.toLowerCase().includes(query)
+      );
+    }
+    
+    return true;
+  });
+}

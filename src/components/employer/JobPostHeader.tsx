@@ -2,11 +2,23 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Filter } from "lucide-react";
+import { Search } from "lucide-react";
 import { NewJobPostDialog } from "./NewJobPostDialog";
+import { FilterDropdown, FilterSettings } from "./FilterDropdown";
+import { useJobPosts } from "@/hooks/use-job-posts";
 
 export const JobPostHeader = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const { updateFilters } = useJobPosts();
+  
+  const handleFilterChange = (filters: FilterSettings) => {
+    updateFilters(filters);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    updateFilters({ searchQuery: e.target.value });
+  };
 
   return (
     <div className="mb-6 space-y-4">
@@ -22,13 +34,10 @@ export const JobPostHeader = () => {
             placeholder="Search job listings..."
             className="pl-8"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchChange}
           />
         </div>
-        <Button variant="outline" className="flex gap-2">
-          <Filter className="h-4 w-4" />
-          Filter
-        </Button>
+        <FilterDropdown onFilterChange={handleFilterChange} />
       </div>
     </div>
   );
