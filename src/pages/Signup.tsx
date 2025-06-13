@@ -77,64 +77,77 @@ const Signup = () => {
   
   return (
     <Layout>
-      <div className="max-w-md mx-auto px-4 py-12">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-            <CardDescription>
-              Join VisionDrill to explore career opportunities tailored to your skills and goals.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="john@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <Button type="submit" className="w-full">Create Account</Button>
-                
-                <div className="text-center">
-                  <p className="text-sm text-gray-500">Or sign up with</p>
-                  <div className="mt-2">
+      <div className="min-h-screen flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          <Card className="cyber-card fade-in-scale">
+            <CardHeader className="text-center space-y-4">
+              <CardTitle className="text-3xl font-bold gradient-text">Join Visiondrill</CardTitle>
+              <CardDescription className="text-gray-600">
+                Create your account to explore career opportunities tailored to your skills and goals.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-semibold">Full Name</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="John Doe" 
+                            className="futuristic-input"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-semibold">Email</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="john@example.com" 
+                            className="futuristic-input"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-semibold">Password</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="password" 
+                            placeholder="••••••••" 
+                            className="futuristic-input"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Button type="submit" className="w-full futuristic-btn">Create Account</Button>
+                  
+                  <div className="text-center space-y-4">
+                    <p className="text-sm text-gray-500">Or sign up with</p>
                     <Button 
                       variant="outline" 
                       onClick={() => setLinkedInImportOpen(true)}
@@ -144,59 +157,59 @@ const Signup = () => {
                       LinkedIn
                     </Button>
                   </div>
-                </div>
-                
-                <div className="text-center mt-4">
-                  <p className="text-sm text-gray-500">
-                    Already have an account?{" "}
-                    <Link to="/login" className="text-career-blue hover:underline">
-                      Log in
-                    </Link>
-                  </p>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-        
-        {showOnboarding && <OnboardingWizard onComplete={() => setShowOnboarding(false)} />}
-        
-        <Dialog open={linkedInImportOpen} onOpenChange={setLinkedInImportOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Import LinkedIn Profile</DialogTitle>
-              <DialogDescription>
-                We'll use your LinkedIn profile data to automatically create your VisionDrill profile.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <p>Authorize VisionDrill to access your LinkedIn profile data:</p>
-              <Button 
-                className="w-full bg-[#0077B5] hover:bg-[#0077B5]/90"
-                onClick={() => {
-                  toast({
-                    title: "LinkedIn Import Initiated",
-                    description: "Please complete authorization in the popup window.",
-                  });
-                  // In a real app, this would trigger OAuth flow
-                  setTimeout(() => {
-                    setLinkedInImportOpen(false);
-                    setShowOnboarding(true);
-                  }, 1500);
-                }}
-              >
-                <Linkedin className="mr-2 h-4 w-4" /> Connect with LinkedIn
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full" 
-                onClick={() => setLinkedInImportOpen(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+                  
+                  <div className="text-center mt-6">
+                    <p className="text-sm text-gray-500">
+                      Already have an account?{" "}
+                      <Link to="/login" className="text-blue-600 hover:text-blue-700 font-semibold hover:underline">
+                        Log in
+                      </Link>
+                    </p>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+          
+          {showOnboarding && <OnboardingWizard onComplete={() => setShowOnboarding(false)} />}
+          
+          <Dialog open={linkedInImportOpen} onOpenChange={setLinkedInImportOpen}>
+            <DialogContent className="cyber-card">
+              <DialogHeader>
+                <DialogTitle className="gradient-text">Import LinkedIn Profile</DialogTitle>
+                <DialogDescription>
+                  We'll use your LinkedIn profile data to automatically create your Visiondrill profile.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <p className="text-gray-600">Authorize Visiondrill to access your LinkedIn profile data:</p>
+                <Button 
+                  className="w-full bg-[#0077B5] hover:bg-[#0077B5]/90 futuristic-btn"
+                  onClick={() => {
+                    toast({
+                      title: "LinkedIn Import Initiated",
+                      description: "Please complete authorization in the popup window.",
+                    });
+                    // In a real app, this would trigger OAuth flow
+                    setTimeout(() => {
+                      setLinkedInImportOpen(false);
+                      setShowOnboarding(true);
+                    }, 1500);
+                  }}
+                >
+                  <Linkedin className="mr-2 h-4 w-4" /> Connect with LinkedIn
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={() => setLinkedInImportOpen(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
     </Layout>
   );

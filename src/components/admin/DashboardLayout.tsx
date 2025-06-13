@@ -52,23 +52,23 @@ const DashboardLayout = ({ children, title, role }: DashboardLayoutProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-sm">
+    <div className="min-h-screen animated-bg">
+      <nav className="glassmorphism border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">{title}</h1>
+              <h1 className="text-xl font-bold gradient-text">{title}</h1>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-700">
-                Logged in as: <span className="font-medium">{user?.name}</span>
+                Logged in as: <span className="font-semibold gradient-text">{user?.name}</span>
               </span>
               <div className="flex space-x-2">
-                <Button variant="ghost" size="sm" onClick={handleBackToSite}>
+                <Button variant="ghost" size="sm" onClick={handleBackToSite} className="hover:bg-white/10">
                   <Home className="h-4 w-4 mr-2" />
                   Back to Site
                 </Button>
-                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <Button variant="ghost" size="sm" onClick={handleLogout} className="hover:bg-white/10">
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
                 </Button>
@@ -81,7 +81,9 @@ const DashboardLayout = ({ children, title, role }: DashboardLayoutProps) => {
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-2">
           <AdminBreadcrumb />
-          {children}
+          <div className="cyber-card fade-in-up">
+            {children}
+          </div>
         </div>
       </div>
     </div>

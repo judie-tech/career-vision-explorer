@@ -117,16 +117,16 @@ const Index = () => {
   return (
     <Layout>
       {isAuthenticated && user && (
-        <div className="bg-blue-50 py-2 px-4">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="text-sm">
-              Welcome back, <span className="font-medium">{user.name}</span>!
+        <div className="glassmorphism border-b border-white/20">
+          <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
+            <div className="text-sm font-medium">
+              Welcome back, <span className="gradient-text font-bold">{user.name}</span>!
             </div>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={handleQuickAccess}
-              className="flex items-center gap-1"
+              className="flex items-center gap-2 futuristic-btn bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20"
             >
               {user.role === "admin" ? (
                 <Shield className="h-4 w-4" />
@@ -140,14 +140,16 @@ const Index = () => {
           </div>
         </div>
       )}
-      <HeroSection />
-      <FeatureSection />
-      <CareerJourneySection />
-      <JobListingSection featuredJobs={featuredJobs} />
-      <CareerPathSection careerPaths={careerPaths} />
-      <ToolsSection />
-      <TestimonialSection testimonials={testimonials} />
-      <CTASection />
+      <div className="space-y-0">
+        <HeroSection />
+        <FeatureSection />
+        <CareerJourneySection />
+        <JobListingSection featuredJobs={featuredJobs} />
+        <CareerPathSection careerPaths={careerPaths} />
+        <ToolsSection />
+        <TestimonialSection testimonials={testimonials} />
+        <CTASection />
+      </div>
     </Layout>
   );
 };
