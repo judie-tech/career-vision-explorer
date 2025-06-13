@@ -60,15 +60,32 @@ const Login = () => {
       navigate("/jobs");
     }, 1000);
   };
+
+  const handleLinkedInLogin = () => {
+    setIsLoading(true);
+    toast({
+      title: "LinkedIn Authentication",
+      description: "Please complete authorization in the popup window.",
+    });
+    // In a real app, this would trigger OAuth flow
+    setTimeout(() => {
+      setIsLoading(false);
+      toast({
+        title: "Login Successful",
+        description: "You've been logged in with LinkedIn.",
+      });
+      navigate("/jobs");
+    }, 1500);
+  };
   
   return (
     <Layout>
       <div className="max-w-md mx-auto px-4 py-12">
-        <Card>
+        <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">Log In</CardTitle>
-            <CardDescription>
-              Sign in to your VisionDrill account to continue your career journey.
+            <CardTitle className="text-2xl font-bold text-center">Log In</CardTitle>
+            <CardDescription className="text-center">
+              Sign in to your Visiondrill account to continue your career journey.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -81,7 +98,11 @@ const Login = () => {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="john@example.com" {...field} />
+                        <Input 
+                          placeholder="john@example.com" 
+                          {...field}
+                          className="transition-all focus:ring-2 focus:ring-career-blue"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -95,14 +116,23 @@ const Login = () => {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
+                        <Input 
+                          type="password" 
+                          placeholder="••••••••" 
+                          {...field}
+                          className="transition-all focus:ring-2 focus:ring-career-blue"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button 
+                  type="submit" 
+                  className="w-full bg-career-blue hover:bg-career-blue/90 transition-colors" 
+                  disabled={isLoading}
+                >
                   {isLoading ? "Logging in..." : "Log In"}
                 </Button>
                 
@@ -111,21 +141,9 @@ const Login = () => {
                   <div className="mt-2">
                     <Button 
                       variant="outline" 
-                      className="w-full flex items-center justify-center gap-2"
-                      onClick={() => {
-                        toast({
-                          title: "LinkedIn Authentication",
-                          description: "Please complete authorization in the popup window.",
-                        });
-                        // In a real app, this would trigger OAuth flow
-                        setTimeout(() => {
-                          toast({
-                            title: "Login Successful",
-                            description: "You've been logged in with LinkedIn.",
-                          });
-                          navigate("/jobs");
-                        }, 1500);
-                      }}
+                      className="w-full flex items-center justify-center gap-2 transition-colors hover:bg-gray-50"
+                      onClick={handleLinkedInLogin}
+                      disabled={isLoading}
                     >
                       <Linkedin className="h-4 w-4" />
                       LinkedIn
@@ -133,15 +151,15 @@ const Login = () => {
                   </div>
                 </div>
                 
-                <div className="text-center mt-4">
+                <div className="text-center mt-4 space-y-2">
                   <p className="text-sm text-gray-500">
                     Don't have an account?{" "}
-                    <Link to="/signup" className="text-career-blue hover:underline">
+                    <Link to="/signup" className="text-career-blue hover:underline transition-colors">
                       Sign up
                     </Link>
                   </p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    <Link to="/forgot-password" className="text-career-blue hover:underline">
+                  <p className="text-sm text-gray-500">
+                    <Link to="/forgot-password" className="text-career-blue hover:underline transition-colors">
                       Forgot your password?
                     </Link>
                   </p>

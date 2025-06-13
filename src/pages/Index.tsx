@@ -117,16 +117,16 @@ const Index = () => {
   return (
     <Layout>
       {isAuthenticated && user && (
-        <div className="bg-blue-50 py-2 px-4">
+        <div className="bg-blue-50 py-3 px-4 border-b border-blue-100">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="text-sm">
+            <div className="text-sm text-blue-800">
               Welcome back, <span className="font-medium">{user.name}</span>!
             </div>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={handleQuickAccess}
-              className="flex items-center gap-1"
+              className="flex items-center gap-2 bg-white hover:bg-blue-50 border-blue-200 text-blue-700 hover:text-blue-800 transition-colors"
             >
               {user.role === "admin" ? (
                 <Shield className="h-4 w-4" />

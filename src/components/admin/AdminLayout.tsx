@@ -3,7 +3,7 @@ import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, Users, Briefcase, BookOpen, BarChart, Settings, 
-  MessageSquare, FileText, LogOut, Menu, X, Home
+  MessageSquare, FileText, LogOut, Menu, X, Home, Bell
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -64,14 +64,22 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-50">
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && isMobile && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Mobile sidebar toggle */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button 
           variant="outline" 
           size="icon" 
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="bg-white"
+          className="bg-white shadow-md hover:shadow-lg transition-shadow"
         >
           {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
         </Button>
@@ -80,20 +88,20 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       {/* Sidebar */}
       <div className={`${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
-      } fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transition-transform duration-200 ease-in-out lg:translate-x-0`}>
+      } fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transition-transform duration-200 ease-in-out lg:translate-x-0 shadow-lg`}>
         <div className="flex flex-col h-full">
-          <div className="flex items-center justify-center h-16 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-gray-800">Visiondrill Admin</h1>
+          <div className="flex items-center justify-center h-16 border-b border-gray-200 bg-gradient-to-r from-career-blue to-career-purple">
+            <h1 className="text-xl font-bold text-white">Visiondrill Admin</h1>
           </div>
           
-          <div className="flex items-center px-4 py-2 border-b border-gray-200">
-            <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                <Users className="h-4 w-4 text-gray-600" />
+          <div className="flex items-center px-4 py-3 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center space-x-3">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-career-blue to-career-purple flex items-center justify-center">
+                <Users className="h-5 w-5 text-white" />
               </div>
               <div>
-                <p className="text-sm font-medium">{user?.name || "Admin User"}</p>
-                <p className="text-xs text-gray-500">{user?.role || "admin"}</p>
+                <p className="text-sm font-medium text-gray-900">{user?.name || "Admin User"}</p>
+                <p className="text-xs text-gray-500 capitalize">{user?.role || "admin"}</p>
               </div>
             </div>
           </div>
@@ -104,10 +112,10 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center px-4 py-3 text-sm rounded-md ${
+                  className={`flex items-center px-4 py-3 text-sm rounded-lg transition-all duration-200 ${
                     isActiveRoute(item.href)
-                      ? "bg-career-blue text-white"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-gradient-to-r from-career-blue to-career-purple text-white shadow-md"
+                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                   }`}
                 >
                   <item.icon className="mr-3 h-5 w-5" />
@@ -117,10 +125,10 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             </nav>
           </div>
           
-          <div className="p-4 border-t border-gray-200 space-y-2">
+          <div className="p-4 border-t border-gray-200 space-y-2 bg-gray-50">
             <Button 
               variant="outline" 
-              className="w-full flex items-center justify-center text-gray-700 hover:bg-gray-100"
+              className="w-full flex items-center justify-center text-gray-700 hover:bg-gray-100 transition-colors"
               onClick={handleExitAdmin}
             >
               <Home className="mr-2 h-4 w-4" />
@@ -129,7 +137,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             
             <Button 
               variant="outline" 
-              className="w-full flex items-center justify-center text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200"
+              className="w-full flex items-center justify-center text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200 transition-colors"
               onClick={handleLogout}
             >
               <LogOut className="mr-2 h-4 w-4" />
@@ -141,9 +149,13 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       
       {/* Main content */}
       <div className={`flex-1 transition-all duration-200 ${sidebarOpen ? "lg:ml-64" : "ml-0"}`}>
-        <main className="h-full overflow-y-auto bg-gray-100 p-6">
-          <AdminBreadcrumb />
-          {children}
+        <main className="h-full overflow-y-auto bg-gray-50">
+          <div className="p-6">
+            <AdminBreadcrumb />
+            <div className="bg-white rounded-lg shadow-sm p-6 mt-4">
+              {children}
+            </div>
+          </div>
         </main>
       </div>
     </div>

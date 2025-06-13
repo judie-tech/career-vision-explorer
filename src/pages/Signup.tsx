@@ -56,6 +56,7 @@ const Signup = () => {
   const { toast } = useToast();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [linkedInImportOpen, setLinkedInImportOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
@@ -67,22 +68,46 @@ const Signup = () => {
   });
   
   const onSubmit = (values: z.infer<typeof signupSchema>) => {
+    setIsLoading(true);
     console.log(values);
+    
+    // Simulate account creation
+    setTimeout(() => {
+      setIsLoading(false);
+      toast({
+        title: "Account created!",
+        description: "Let's set up your profile to find the perfect opportunities.",
+      });
+      setShowOnboarding(true);
+    }, 1000);
+  };
+
+  const handleLinkedInSignup = () => {
+    setLinkedInImportOpen(true);
+  };
+
+  const handleLinkedInConnect = () => {
+    setIsLoading(true);
     toast({
-      title: "Account created!",
-      description: "Let's set up your profile to find the perfect opportunities.",
+      title: "LinkedIn Import Initiated",
+      description: "Please complete authorization in the popup window.",
     });
-    setShowOnboarding(true);
+    // In a real app, this would trigger OAuth flow
+    setTimeout(() => {
+      setIsLoading(false);
+      setLinkedInImportOpen(false);
+      setShowOnboarding(true);
+    }, 1500);
   };
   
   return (
     <Layout>
       <div className="max-w-md mx-auto px-4 py-12">
-        <Card>
+        <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-            <CardDescription>
-              Join VisionDrill to explore career opportunities tailored to your skills and goals.
+            <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
+            <CardDescription className="text-center">
+              Join Visiondrill to explore career opportunities tailored to your skills and goals.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -95,7 +120,11 @@ const Signup = () => {
                     <FormItem>
                       <FormLabel>Full Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="John Doe" {...field} />
+                        <Input 
+                          placeholder="John Doe" 
+                          {...field}
+                          className="transition-all focus:ring-2 focus:ring-career-blue"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -109,7 +138,11 @@ const Signup = () => {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="john@example.com" {...field} />
+                        <Input 
+                          placeholder="john@example.com" 
+                          {...field}
+                          className="transition-all focus:ring-2 focus:ring-career-blue"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -123,22 +156,34 @@ const Signup = () => {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
+                        <Input 
+                          type="password" 
+                          placeholder="••••••••" 
+                          {...field}
+                          className="transition-all focus:ring-2 focus:ring-career-blue"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 
-                <Button type="submit" className="w-full">Create Account</Button>
+                <Button 
+                  type="submit" 
+                  className="w-full bg-career-blue hover:bg-career-blue/90 transition-colors"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Creating Account..." : "Create Account"}
+                </Button>
                 
                 <div className="text-center">
                   <p className="text-sm text-gray-500">Or sign up with</p>
                   <div className="mt-2">
                     <Button 
                       variant="outline" 
-                      onClick={() => setLinkedInImportOpen(true)}
-                      className="w-full flex items-center justify-center gap-2"
+                      onClick={handleLinkedInSignup}
+                      className="w-full flex items-center justify-center gap-2 transition-colors hover:bg-gray-50"
+                      disabled={isLoading}
                     >
                       <Linkedin className="h-4 w-4" />
                       LinkedIn
@@ -149,7 +194,7 @@ const Signup = () => {
                 <div className="text-center mt-4">
                   <p className="text-sm text-gray-500">
                     Already have an account?{" "}
-                    <Link to="/login" className="text-career-blue hover:underline">
+                    <Link to="/login" className="text-career-blue hover:underline transition-colors">
                       Log in
                     </Link>
                   </p>
@@ -162,35 +207,30 @@ const Signup = () => {
         {showOnboarding && <OnboardingWizard onComplete={() => setShowOnboarding(false)} />}
         
         <Dialog open={linkedInImportOpen} onOpenChange={setLinkedInImportOpen}>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Import LinkedIn Profile</DialogTitle>
               <DialogDescription>
-                We'll use your LinkedIn profile data to automatically create your VisionDrill profile.
+                We'll use your LinkedIn profile data to automatically create your Visiondrill profile.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <p>Authorize VisionDrill to access your LinkedIn profile data:</p>
+              <p className="text-sm text-gray-600">
+                Authorize Visiondrill to access your LinkedIn profile data:
+              </p>
               <Button 
-                className="w-full bg-[#0077B5] hover:bg-[#0077B5]/90"
-                onClick={() => {
-                  toast({
-                    title: "LinkedIn Import Initiated",
-                    description: "Please complete authorization in the popup window.",
-                  });
-                  // In a real app, this would trigger OAuth flow
-                  setTimeout(() => {
-                    setLinkedInImportOpen(false);
-                    setShowOnboarding(true);
-                  }, 1500);
-                }}
+                className="w-full bg-[#0077B5] hover:bg-[#0077B5]/90 transition-colors"
+                onClick={handleLinkedInConnect}
+                disabled={isLoading}
               >
-                <Linkedin className="mr-2 h-4 w-4" /> Connect with LinkedIn
+                <Linkedin className="mr-2 h-4 w-4" /> 
+                {isLoading ? "Connecting..." : "Connect with LinkedIn"}
               </Button>
               <Button 
                 variant="outline" 
-                className="w-full" 
+                className="w-full transition-colors" 
                 onClick={() => setLinkedInImportOpen(false)}
+                disabled={isLoading}
               >
                 Cancel
               </Button>
