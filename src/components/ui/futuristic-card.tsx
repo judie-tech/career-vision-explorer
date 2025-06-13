@@ -1,5 +1,5 @@
 
-import { ReactNode } from "react";
+import { ReactNode, CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 
 interface FuturisticCardProps {
@@ -8,6 +8,7 @@ interface FuturisticCardProps {
   hover?: boolean;
   glow?: boolean;
   animated?: boolean;
+  style?: CSSProperties;
 }
 
 export const FuturisticCard = ({ 
@@ -15,7 +16,8 @@ export const FuturisticCard = ({
   className, 
   hover = true, 
   glow = false, 
-  animated = false 
+  animated = false,
+  style 
 }: FuturisticCardProps) => {
   return (
     <div
@@ -26,6 +28,7 @@ export const FuturisticCard = ({
         animated && "floating-animation",
         className
       )}
+      style={style}
     >
       {children}
     </div>
