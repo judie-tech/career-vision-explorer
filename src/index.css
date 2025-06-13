@@ -33,7 +33,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -93,238 +93,77 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
   }
 }
 
 @layer components {
-  /* Futuristic Glassmorphism Components */
-  .glass-card {
-    @apply bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+  .career-card {
+    @apply bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-5 border border-gray-100;
   }
   
-  .glass-nav {
-    @apply bg-white/5 backdrop-blur-xl border-b border-white/20;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-career-blue to-career-purple;
   }
   
-  .glass-input {
-    @apply bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-3 text-white placeholder-white/70 focus:bg-white/20 focus:border-white/50 transition-all duration-300;
-    backdrop-filter: blur(10px);
+  .hover-scale {
+    @apply hover:scale-105 transition-transform duration-300;
   }
   
-  .glass-button {
-    @apply bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm border border-white/30 rounded-xl px-6 py-3 text-white font-medium hover:from-blue-500/30 hover:to-purple-500/30 hover:border-white/50 transition-all duration-300 shadow-lg hover:shadow-xl;
-    backdrop-filter: blur(10px);
+  .career-btn {
+    @apply px-4 py-2 rounded-md font-medium transition-all duration-300;
   }
   
-  .glass-button-primary {
-    @apply bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl px-6 py-3 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300;
+  .career-btn-primary {
+    @apply career-btn bg-career-blue text-white hover:bg-career-blue/90;
   }
   
-  .neon-border {
-    @apply relative;
+  .career-btn-secondary {
+    @apply career-btn bg-career-purple text-white hover:bg-career-purple/90;
+  }
+
+  /* New futuristic UI components */
+  .glassmorphism {
+    @apply bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-lg;
   }
   
-  .neon-border::before {
-    content: '';
-    @apply absolute inset-0 rounded-xl;
-    padding: 2px;
-    background: linear-gradient(45deg, #3b82f6, #8b5cf6, #6366f1, #3b82f6);
-    background-size: 300% 300%;
-    animation: gradient-shift 4s ease infinite;
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: xor;
+  .futuristic-card {
+    @apply bg-gradient-to-br from-white/80 to-white/60 shadow-xl backdrop-blur-sm border border-white/20 rounded-xl p-6 transition-all duration-300;
   }
   
-  .floating-animation {
-    animation: floating 6s ease-in-out infinite;
+  .glowing-border {
+    @apply border-2 border-transparent transition-all duration-300;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #6366f1, #3b82f6) border-box;
+    background-size: 300% 100%;
+    animation: border-glow 4s linear infinite;
   }
   
-  .pulse-glow {
-    @apply shadow-lg;
-    animation: pulse-glow 2s ease-in-out infinite alternate;
+  .futuristic-btn {
+    @apply px-6 py-3 rounded-full font-medium transition-all duration-300 bg-gradient-to-r from-career-blue to-career-purple text-white hover:shadow-lg hover:shadow-career-purple/20 focus:ring-2 focus:ring-career-purple/50 outline-none;
   }
   
-  .slide-in-bottom {
-    animation: slide-in-bottom 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  .futuristic-input {
+    @apply bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-career-blue/50 focus:border-transparent transition-all duration-300 outline-none;
   }
   
-  .slide-in-left {
-    animation: slide-in-left 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  .neon-text {
+    @apply font-bold;
+    text-shadow: 0 0 5px rgba(59, 130, 246, 0.5), 0 0 10px rgba(139, 92, 246, 0.3);
   }
   
-  .slide-in-right {
-    animation: slide-in-right 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-  }
-  
-  .fade-in-up {
-    animation: fade-in-up 0.8s ease-out both;
-  }
-  
-  .scale-in {
-    animation: scale-in 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-  }
-  
-  .text-glow {
-    text-shadow: 0 0 20px rgba(59, 130, 246, 0.5), 0 0 40px rgba(139, 92, 246, 0.3);
-  }
-  
-  .cyber-grid {
-    background-image: 
-      linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
-    background-size: 50px 50px;
-  }
-  
-  .holographic {
-    background: linear-gradient(45deg, 
-      rgba(59, 130, 246, 0.1) 0%, 
-      rgba(139, 92, 246, 0.1) 25%, 
-      rgba(99, 102, 241, 0.1) 50%, 
-      rgba(168, 85, 247, 0.1) 75%, 
-      rgba(59, 130, 246, 0.1) 100%);
+  .animated-bg {
+    background: linear-gradient(-45deg, #3b82f6, #8b5cf6, #6366f1, #a855f7);
     background-size: 400% 400%;
-    animation: holographic 8s ease infinite;
+    animation: gradient 15s ease infinite;
   }
 }
 
-@keyframes gradient-shift {
-  0%, 100% { background-position: 0% 50%; }
+@keyframes border-glow {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 0%; }
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
-}
-
-@keyframes floating {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
-}
-
-@keyframes pulse-glow {
-  0% { 
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), 
-                0 0 40px rgba(139, 92, 246, 0.2); 
-  }
-  100% { 
-    box-shadow: 0 0 30px rgba(59, 130, 246, 0.6), 
-                0 0 60px rgba(139, 92, 246, 0.4); 
-  }
-}
-
-@keyframes slide-in-bottom {
-  0% {
-    transform: translateY(100px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slide-in-left {
-  0% {
-    transform: translateX(-100px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slide-in-right {
-  0% {
-    transform: translateX(100px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes fade-in-up {
-  0% {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scale-in {
-  0% {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes holographic {
-  0%, 100% { background-position: 0% 50%; }
-  25% { background-position: 100% 0%; }
-  50% { background-position: 100% 100%; }
-  75% { background-position: 0% 100%; }
-}
-
-/* Dark mode toggle animation */
-.dark-mode-toggle {
-  @apply relative w-16 h-8 rounded-full bg-gray-300 dark:bg-gray-600 transition-colors duration-300;
-}
-
-.dark-mode-toggle::before {
-  content: '';
-  @apply absolute top-1 left-1 w-6 h-6 rounded-full bg-white transform transition-transform duration-300;
-}
-
-.dark .dark-mode-toggle::before {
-  @apply translate-x-8;
-}
-
-/* Responsive breakpoints */
-@media (max-width: 640px) {
-  .glass-card {
-    @apply mx-4 p-4;
-  }
-  
-  .glass-button {
-    @apply px-4 py-2 text-sm;
-  }
-}
-
-/* Loading animation */
-.loading-spinner {
-  @apply w-6 h-6 border-2 border-white/30 border-t-white rounded-full;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-gray-100 dark:bg-gray-800;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-gradient-to-b from-blue-500 to-purple-600 rounded-full;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply from-blue-600 to-purple-700;
+  100% { background-position: 0% 50%; }
 }
