@@ -1,151 +1,89 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
-import HeroSection from "@/components/home/HeroSection";
+import FuturisticHeroSection from "@/components/home/FuturisticHeroSection";
 import FeatureSection from "@/components/home/FeatureSection";
-import CareerJourneySection from "@/components/home/CareerJourneySection";
-import ToolsSection from "@/components/home/ToolsSection";
-import TestimonialSection from "@/components/home/TestimonialSection";
 import JobListingSection from "@/components/home/JobListingSection";
 import CareerPathSection from "@/components/home/CareerPathSection";
+import TestimonialSection from "@/components/home/TestimonialSection";
 import CTASection from "@/components/home/CTASection";
-import { useAuth } from "@/hooks/use-auth";
-import { Button } from "@/components/ui/button";
-import { Shield, Briefcase, User } from "lucide-react";
-import { toast } from "@/components/ui/sonner";
 
 const Index = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const { isAuthenticated, user } = useAuth();
-  const navigate = useNavigate();
-  
+  // Sample data
   const featuredJobs = [
     {
       id: 1,
-      title: "Senior Frontend Developer",
-      company: "TechCorp Inc.",
+      title: "Senior AI Engineer",
+      company: "TechFlow Inc.",
       location: "San Francisco, CA",
-      salary: "$120,000 - $150,000",
-      tags: ["React", "TypeScript", "UI/UX"],
+      salary: "$150,000 - $200,000",
+      tags: ["AI/ML", "Python", "Remote"],
     },
     {
       id: 2,
-      title: "Product Manager",
-      company: "InnovateSoft",
+      title: "UX Designer",
+      company: "Design Studios",
       location: "New York, NY",
-      salary: "$110,000 - $135,000",
-      tags: ["Product Strategy", "Agile", "UX Research"],
+      salary: "$90,000 - $120,000",
+      tags: ["Figma", "Prototyping", "Design Systems"],
     },
     {
       id: 3,
-      title: "Data Scientist",
-      company: "DataViz Analytics",
+      title: "DevOps Engineer",
+      company: "CloudTech",
       location: "Remote",
-      salary: "$125,000 - $160,000",
-      tags: ["Python", "Machine Learning", "Statistics"],
+      salary: "$120,000 - $160,000",
+      tags: ["AWS", "Kubernetes", "CI/CD"],
     },
   ];
-  
+
   const careerPaths = [
     {
       id: 1,
-      title: "Software Development",
-      description: "From junior developer to CTO, explore the software development career path",
-      image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=300&h=200",
+      title: "AI & Machine Learning",
+      description: "Build intelligent systems that shape the future",
+      image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=600&h=400",
     },
     {
       id: 2,
       title: "Data Science",
-      description: "Navigate the world of data, from analyst to chief data officer",
-      image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=300&h=200",
+      description: "Transform data into actionable insights",
+      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&h=400",
     },
     {
       id: 3,
-      title: "Product Management",
-      description: "Build the roadmap from product associate to VP of Product",
-      image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=300&h=200",
+      title: "Cybersecurity",
+      description: "Protect digital assets in an interconnected world",
+      image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=600&h=400",
     },
   ];
-  
+
   const testimonials = [
     {
       id: 1,
-      quote: "Visiondrill helped me understand my career options and find a job that perfectly matches my skills and aspirations.",
-      author: "Maria Rodriguez",
-      role: "UX Designer at DesignHub",
+      quote: "VisionDrill's AI matched me with my dream job in just 2 weeks. The platform is incredibly intuitive.",
+      author: "Sarah Chen",
+      role: "Software Engineer at Google",
     },
     {
       id: 2,
-      quote: "The career path visualization feature is incredible. It gave me a clear roadmap of skills I need to develop to reach my goals.",
-      author: "James Wilson",
-      role: "Software Engineer at TechGiant",
+      quote: "The career path recommendations were spot-on. I transitioned from marketing to data science seamlessly.",
+      author: "Michael Rodriguez",
+      role: "Data Scientist at Netflix",
     },
     {
       id: 3,
-      quote: "Using Visiondrill's skills assessment helped me identify gaps in my knowledge and focus my learning efforts effectively.",
-      author: "Sarah Johnson",
-      role: "Product Manager at InnovateNow",
+      quote: "As an employer, VisionDrill helps us find candidates who are genuinely passionate about our mission.",
+      author: "Emily Johnson",
+      role: "HR Director at Tesla",
     },
   ];
-  
-  const handleQuickAccess = () => {
-    if (!isAuthenticated) {
-      toast.info("Login Required", {
-        description: "Please login to access your dashboard",
-      });
-      navigate("/admin/login");
-      return;
-    }
-    
-    // Navigate based on user role
-    switch (user?.role) {
-      case "admin":
-        navigate("/admin");
-        break;
-      case "employer":
-        navigate("/employer/dashboard");
-        break;
-      case "jobseeker":
-        navigate("/jobseeker/dashboard");
-        break;
-      default:
-        navigate("/admin/login");
-    }
-  };
-  
+
   return (
     <Layout>
-      {isAuthenticated && user && (
-        <div className="bg-blue-50 py-2 px-4">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="text-sm">
-              Welcome back, <span className="font-medium">{user.name}</span>!
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleQuickAccess}
-              className="flex items-center gap-1"
-            >
-              {user.role === "admin" ? (
-                <Shield className="h-4 w-4" />
-              ) : user.role === "employer" ? (
-                <Briefcase className="h-4 w-4" />
-              ) : (
-                <User className="h-4 w-4" />
-              )}
-              Go to Dashboard
-            </Button>
-          </div>
-        </div>
-      )}
-      <HeroSection />
+      <FuturisticHeroSection />
       <FeatureSection />
-      <CareerJourneySection />
       <JobListingSection featuredJobs={featuredJobs} />
       <CareerPathSection careerPaths={careerPaths} />
-      <ToolsSection />
       <TestimonialSection testimonials={testimonials} />
       <CTASection />
     </Layout>
