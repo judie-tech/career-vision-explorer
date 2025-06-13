@@ -9,12 +9,9 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   return (
-    <div className="flex flex-col min-h-screen animated-bg">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
       <Navbar />
-      <main className="flex-grow relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-purple-50/50 to-indigo-50/50 pointer-events-none" />
-        <div className="relative z-10">{children}</div>
-      </main>
+      <main className="flex-grow">{children}</main>
       <Footer />
     </div>
   );

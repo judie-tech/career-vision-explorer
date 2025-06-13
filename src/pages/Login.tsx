@@ -63,61 +63,52 @@ const Login = () => {
   
   return (
     <Layout>
-      <div className="min-h-screen flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md">
-          <Card className="cyber-card fade-in-scale">
-            <CardHeader className="text-center space-y-4">
-              <CardTitle className="text-3xl font-bold gradient-text">Welcome Back</CardTitle>
-              <CardDescription className="text-gray-600">
-                Sign in to your Visiondrill account to continue your career journey.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-semibold">Email</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="john@example.com" 
-                            className="futuristic-input"
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-semibold">Password</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="password" 
-                            placeholder="••••••••" 
-                            className="futuristic-input"
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <Button type="submit" className="w-full futuristic-btn" disabled={isLoading}>
-                    {isLoading ? "Logging in..." : "Log In"}
-                  </Button>
-                  
-                  <div className="text-center space-y-4">
-                    <p className="text-sm text-gray-500">Or sign in with</p>
+      <div className="max-w-md mx-auto px-4 py-12">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold">Log In</CardTitle>
+            <CardDescription>
+              Sign in to your VisionDrill account to continue your career journey.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="john@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Logging in..." : "Log In"}
+                </Button>
+                
+                <div className="text-center">
+                  <p className="text-sm text-gray-500">Or sign in with</p>
+                  <div className="mt-2">
                     <Button 
                       variant="outline" 
                       className="w-full flex items-center justify-center gap-2"
@@ -140,25 +131,25 @@ const Login = () => {
                       LinkedIn
                     </Button>
                   </div>
-                  
-                  <div className="text-center mt-6 space-y-2">
-                    <p className="text-sm text-gray-500">
-                      Don't have an account?{" "}
-                      <Link to="/signup" className="text-blue-600 hover:text-blue-700 font-semibold hover:underline">
-                        Sign up
-                      </Link>
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      <Link to="/forgot-password" className="text-blue-600 hover:text-blue-700 font-semibold hover:underline">
-                        Forgot your password?
-                      </Link>
-                    </p>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
+                </div>
+                
+                <div className="text-center mt-4">
+                  <p className="text-sm text-gray-500">
+                    Don't have an account?{" "}
+                    <Link to="/signup" className="text-career-blue hover:underline">
+                      Sign up
+                    </Link>
+                  </p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    <Link to="/forgot-password" className="text-career-blue hover:underline">
+                      Forgot your password?
+                    </Link>
+                  </p>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );

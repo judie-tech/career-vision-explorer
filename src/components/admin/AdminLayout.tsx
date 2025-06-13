@@ -64,14 +64,14 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   };
 
   return (
-    <div className="flex h-screen animated-bg">
+    <div className="flex h-screen bg-gray-100">
       {/* Mobile sidebar toggle */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button 
           variant="outline" 
           size="icon" 
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="glassmorphism border-white/20"
+          className="bg-white"
         >
           {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
         </Button>
@@ -80,34 +80,34 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       {/* Sidebar */}
       <div className={`${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
-      } fixed inset-y-0 left-0 z-40 w-64 glassmorphism border-r border-white/20 transition-transform duration-300 ease-in-out lg:translate-x-0`}>
+      } fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transition-transform duration-200 ease-in-out lg:translate-x-0`}>
         <div className="flex flex-col h-full">
-          <div className="flex items-center justify-center h-16 border-b border-white/20">
-            <h1 className="text-xl font-bold gradient-text neon-text">Visiondrill Admin</h1>
+          <div className="flex items-center justify-center h-16 border-b border-gray-200">
+            <h1 className="text-xl font-bold text-gray-800">Visiondrill Admin</h1>
           </div>
           
-          <div className="flex items-center px-4 py-4 border-b border-white/20">
-            <div className="flex items-center space-x-3">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-                <Users className="h-5 w-5 text-white" />
+          <div className="flex items-center px-4 py-2 border-b border-gray-200">
+            <div className="flex items-center space-x-2">
+              <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                <Users className="h-4 w-4 text-gray-600" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-800">{user?.name || "Admin User"}</p>
-                <p className="text-xs text-gray-500 capitalize">{user?.role || "admin"}</p>
+                <p className="text-sm font-medium">{user?.name || "Admin User"}</p>
+                <p className="text-xs text-gray-500">{user?.role || "admin"}</p>
               </div>
             </div>
           </div>
           
           <div className="flex-1 overflow-y-auto py-4">
-            <nav className="px-4 space-y-2">
+            <nav className="px-4 space-y-1">
               {navigationItems.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 ${
+                  className={`flex items-center px-4 py-3 text-sm rounded-md ${
                     isActiveRoute(item.href)
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                      : "text-gray-700 hover:bg-white/20 hover:text-blue-600 hover:shadow-md"
+                      ? "bg-career-blue text-white"
+                      : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
                   <item.icon className="mr-3 h-5 w-5" />
@@ -117,10 +117,10 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             </nav>
           </div>
           
-          <div className="p-4 border-t border-white/20 space-y-2">
+          <div className="p-4 border-t border-gray-200 space-y-2">
             <Button 
               variant="outline" 
-              className="w-full flex items-center justify-center text-gray-700 hover:text-blue-600 hover:bg-white/20 border-white/20"
+              className="w-full flex items-center justify-center text-gray-700 hover:bg-gray-100"
               onClick={handleExitAdmin}
             >
               <Home className="mr-2 h-4 w-4" />
@@ -129,7 +129,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             
             <Button 
               variant="outline" 
-              className="w-full flex items-center justify-center text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200 hover:border-red-300"
+              className="w-full flex items-center justify-center text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200"
               onClick={handleLogout}
             >
               <LogOut className="mr-2 h-4 w-4" />
@@ -140,12 +140,10 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       </div>
       
       {/* Main content */}
-      <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? "lg:ml-64" : "ml-0"}`}>
-        <main className="h-full overflow-y-auto p-6">
+      <div className={`flex-1 transition-all duration-200 ${sidebarOpen ? "lg:ml-64" : "ml-0"}`}>
+        <main className="h-full overflow-y-auto bg-gray-100 p-6">
           <AdminBreadcrumb />
-          <div className="cyber-card">
-            {children}
-          </div>
+          {children}
         </main>
       </div>
     </div>
