@@ -34,7 +34,7 @@ import AllApplicants from "./pages/employer/AllApplicants";
 import InterviewSchedule from "./pages/employer/InterviewSchedule";
 import EmployerInterviews from "./pages/employer/EmployerInterviews";
 
-import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
