@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { User, Settings, Briefcase } from "lucide-react";
+import { Settings, Briefcase, Edit } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface ProfileHeaderProps {
@@ -8,9 +8,10 @@ interface ProfileHeaderProps {
   userRole: string;
   userEducation: string;
   userExperience: string;
+  onEditProfile?: () => void;
 }
 
-const ProfileHeader = ({ userName, userRole, userEducation, userExperience }: ProfileHeaderProps) => {
+const ProfileHeader = ({ userName, userRole, userEducation, userExperience, onEditProfile }: ProfileHeaderProps) => {
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
       <div>
@@ -24,8 +25,12 @@ const ProfileHeader = ({ userName, userRole, userEducation, userExperience }: Pr
             Dashboard
           </Button>
         </Link>
-        <Button variant="outline" className="flex items-center">
-          <Settings className="mr-2 h-4 w-4" />
+        <Button 
+          variant="outline" 
+          className="flex items-center"
+          onClick={onEditProfile}
+        >
+          <Edit className="mr-2 h-4 w-4" />
           Edit Profile
         </Button>
       </div>

@@ -12,11 +12,13 @@ import SkillsAssessment from "@/components/assessments/SkillsAssessment";
 import { useJobApplications } from "@/hooks/use-job-applications";
 import { useSkillsAssessment } from "@/hooks/use-skills-assessment";
 import { useInterviewSchedule } from "@/hooks/use-interview-schedule";
+import { useUserProfile } from "@/hooks/use-user-profile";
 import { JobApplicationDialog } from "@/components/jobseeker/JobApplicationDialog";
 import { SkillAssessmentDialog } from "@/components/jobseeker/SkillAssessmentDialog";
 import { InterviewScheduleDialog } from "@/components/jobseeker/InterviewScheduleDialog";
+import EditProfileDialog from "@/components/profile/EditProfileDialog";
 
-// New refactored components
+// Profile components
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileInfoCard from "@/components/profile/ProfileInfoCard";
 import ProfileCompletionCard from "@/components/profile/ProfileCompletionCard";
@@ -34,20 +36,15 @@ const Profile = () => {
   const [showApplicationDialog, setShowApplicationDialog] = useState(false);
   const [showSkillsDialog, setShowSkillsDialog] = useState(false);
   const [showInterviewDialog, setShowInterviewDialog] = useState(false);
+  const [showEditProfileDialog, setShowEditProfileDialog] = useState(false);
   
   // Get data from hooks
   const { applications, getApplicationsByStatus } = useJobApplications();
   const { skills, verifiedSkills, totalSkills, updateSkillProficiency, verifySkill } = useSkillsAssessment();
   const { getUpcomingInterviews } = useInterviewSchedule();
+  const { userProfile, updateProfile } = useUserProfile();
   
   const upcomingInterviews = getUpcomingInterviews();
-  
-  // Calculate profile completion
-  const profileCompletionScore = Math.round(
-    ((verifiedSkills / totalSkills) * 40) + // 40% for skills
-    (applications.length > 0 ? 30 : 0) + // 30% for having applications
-    25 // 25% base for basic profile info
-  );
   
   const recentAssessments = [
     {
@@ -100,34 +97,37 @@ const Profile = () => {
     verifySkill(skillId);
   };
 
-  // User data (could be fetched from auth context or API)
-  const userData = {
-    name: "John Doe",
-    role: "Senior Software Engineer",
-    education: "BSc Computer Science, University of Nairobi",
-    experience: "5+ years experience"
+  const handleProfileSave = async (profileData: any) => {
+    await updateProfile(profileData);
   };
+
+  if (!userProfile) {
+    return <div>Loading...</div>;
+  }
   
   return (
     <Layout>
       <div className="container py-8">
         <ProfileHeader
-          userName={userData.name}
-          userRole={userData.role}
-          userEducation={userData.education}
-          userExperience={userData.experience}
+          userName={userProfile.name}
+          userRole={userProfile.role}
+          userEducation={userProfile.education}
+          userExperience={userProfile.experience}
+          onEditProfile={() => setShowEditProfileDialog(true)}
         />
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <ProfileInfoCard
-            userName={userData.name}
-            userRole={userData.role}
-            userEducation={userData.education}
-            userExperience={userData.experience}
+            userName={userProfile.name}
+            userRole={userProfile.role}
+            userEducation={userProfile.education}
+            userExperience={userProfile.experience}
+            userLocation={userProfile.location}
+            userBio={userProfile.bio}
           />
           
           <ProfileCompletionCard
-            profileCompletionScore={profileCompletionScore}
+            profileCompletionScore={userProfile.profileComplete}
             verifiedSkills={verifiedSkills}
             totalSkills={totalSkills}
           />
@@ -201,6 +201,13 @@ const Profile = () => {
         <InterviewScheduleDialog
           open={showInterviewDialog}
           onOpenChange={setShowInterviewDialog}
+        />
+
+        <EditProfileDialog
+          open={showEditProfileDialog}
+          onOpenChange={setShowEditProfileDialog}
+          userData={userProfile}
+          onSave={handleProfileSave}
         />
       </div>
     </Layout>
