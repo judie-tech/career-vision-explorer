@@ -128,14 +128,14 @@ const JobDetails = () => {
   
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+      <div className="min-h-screen bg-background">
         <div className="container py-8">
           {/* Back Button */}
           <div className="mb-8">
             <Button 
               variant="ghost" 
               onClick={() => navigate('/jobs')} 
-              className="mb-4 text-slate-300 hover:text-white hover:bg-slate-800/50 border border-slate-700/50 rounded-xl transition-all duration-300"
+              className="mb-4"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Jobs
