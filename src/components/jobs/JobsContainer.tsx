@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { JobApplicationDialog } from "@/components/jobseeker/JobApplicationDialog";
 import { useJobApplications } from "@/hooks/use-job-applications";
+import { useWishlist } from "@/hooks/use-wishlist";
 import { JobsHeader } from "./JobsHeader";
 import { JobsSearchBar } from "./JobsSearchBar";
 import { JobsFilters } from "./JobsFilters";
@@ -30,9 +31,9 @@ interface JobsContainerProps {
 export const JobsContainer = ({ jobs }: JobsContainerProps) => {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [applicationDialogOpen, setApplicationDialogOpen] = useState(false);
-  const [savedJobs, setSavedJobs] = useState<string[]>([]);
   
   const { getApplicationForJob } = useJobApplications();
+  const { addToWishlist, removeFromWishlist, isJobInWishlist } = useWishlist();
   
   const {
     searchTerm,
@@ -56,12 +57,13 @@ export const JobsContainer = ({ jobs }: JobsContainerProps) => {
   };
 
   const handleSaveJob = (jobId: string) => {
-    if (savedJobs.includes(jobId)) {
-      setSavedJobs(savedJobs.filter(id => id !== jobId));
-      toast.success("Job removed from saved jobs");
+    const job = jobs.find(j => j.id === jobId);
+    if (!job) return;
+
+    if (isJobInWishlist(jobId)) {
+      removeFromWishlist(jobId);
     } else {
-      setSavedJobs([...savedJobs, jobId]);
-      toast.success("Job saved successfully");
+      addToWishlist(job);
     }
   };
 
@@ -70,7 +72,7 @@ export const JobsContainer = ({ jobs }: JobsContainerProps) => {
   };
 
   const isJobSaved = (jobId: string) => {
-    return savedJobs.includes(jobId);
+    return isJobInWishlist(jobId);
   };
 
   return (
