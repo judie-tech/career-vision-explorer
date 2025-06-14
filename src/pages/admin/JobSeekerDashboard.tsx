@@ -1,9 +1,33 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, FileText, CheckSquare, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { User, FileText, CheckSquare, Calendar, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 import DashboardLayout from "@/components/admin/DashboardLayout";
+import { useJobPosts } from "@/hooks/use-job-posts";
+import { useState } from "react";
 
 const JobSeekerDashboard = () => {
+  const { jobs } = useJobPosts();
+  const [applications] = useState(12); // This would come from an applications store in a real app
+  const [interviews] = useState(2);
+  const [skillsVerified] = useState(8);
+  const [totalSkills] = useState(15);
+  
+  // Calculate profile completion based on various factors
+  const profileCompletion = Math.round(
+    ((skillsVerified / totalSkills) * 40) + // 40% for skills
+    (applications > 0 ? 30 : 0) + // 30% for having applications
+    25 // 25% base for basic profile info
+  );
+
+  // Get top 3 jobs as recommendations (in a real app, this would be based on user profile matching)
+  const recommendedJobs = jobs.slice(0, 3).map(job => {
+    // Simulate match scores
+    const matchScore = Math.floor(Math.random() * 15) + 85; // 85-100% match
+    return { ...job, matchScore };
+  });
+
   return (
     <DashboardLayout title="Job Seeker Dashboard" role="jobseeker">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -15,9 +39,18 @@ const JobSeekerDashboard = () => {
             <div className="flex items-center">
               <User className="h-8 w-8 text-career-blue mr-2" />
               <div>
-                <p className="text-2xl font-bold">85%</p>
-                <p className="text-sm text-gray-500">Add missing skills to complete</p>
+                <p className="text-2xl font-bold">{profileCompletion}%</p>
+                <p className="text-sm text-gray-500">
+                  {profileCompletion < 90 ? "Add missing skills to complete" : "Profile complete!"}
+                </p>
               </div>
+            </div>
+            <div className="mt-3">
+              <Link to="/profile">
+                <Button variant="outline" size="sm" className="w-full">
+                  Update Profile
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
@@ -30,9 +63,16 @@ const JobSeekerDashboard = () => {
             <div className="flex items-center">
               <FileText className="h-8 w-8 text-career-purple mr-2" />
               <div>
-                <p className="text-2xl font-bold">12</p>
+                <p className="text-2xl font-bold">{applications}</p>
                 <p className="text-sm text-gray-500">3 awaiting response</p>
               </div>
+            </div>
+            <div className="mt-3">
+              <Link to="/jobs">
+                <Button variant="outline" size="sm" className="w-full">
+                  Browse Jobs
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
@@ -45,9 +85,14 @@ const JobSeekerDashboard = () => {
             <div className="flex items-center">
               <Calendar className="h-8 w-8 text-green-600 mr-2" />
               <div>
-                <p className="text-2xl font-bold">2</p>
+                <p className="text-2xl font-bold">{interviews}</p>
                 <p className="text-sm text-gray-500">Next: Tomorrow, 2PM</p>
               </div>
+            </div>
+            <div className="mt-3">
+              <Button variant="outline" size="sm" className="w-full">
+                View Schedule
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -60,9 +105,16 @@ const JobSeekerDashboard = () => {
             <div className="flex items-center">
               <CheckSquare className="h-8 w-8 text-amber-500 mr-2" />
               <div>
-                <p className="text-2xl font-bold">8/15</p>
+                <p className="text-2xl font-bold">{skillsVerified}/{totalSkills}</p>
                 <p className="text-sm text-gray-500">Complete assessments</p>
               </div>
+            </div>
+            <div className="mt-3">
+              <Link to="/skills">
+                <Button variant="outline" size="sm" className="w-full">
+                  Take Assessment
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
@@ -75,32 +127,55 @@ const JobSeekerDashboard = () => {
             <CardDescription>Tailored matches based on your profile</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="border-b pb-4">
-              <h3 className="font-medium text-lg">Senior Frontend Developer</h3>
-              <p className="text-sm text-gray-500">TechCorp Inc. • Remote • $120k-$150k</p>
-              <div className="flex mt-2">
-                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded mr-2">95% Match</span>
-                <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">Posted 2 days ago</span>
+            {recommendedJobs.length > 0 ? (
+              <>
+                {recommendedJobs.map((job, index) => (
+                  <div key={job.id} className={`${index < recommendedJobs.length - 1 ? 'border-b pb-4' : ''}`}>
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-lg">{job.title}</h3>
+                        <p className="text-sm text-gray-500">{job.location} • {job.type} • {job.salary}</p>
+                        <div className="flex mt-2">
+                          <span className={`text-xs px-2 py-1 rounded mr-2 ${
+                            job.matchScore >= 95 ? 'bg-green-100 text-green-800' : 
+                            job.matchScore >= 90 ? 'bg-yellow-100 text-yellow-800' : 
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {job.matchScore}% Match
+                          </span>
+                          <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                            {job.isBoosted ? 'Featured' : `Posted ${new Date(job.datePosted).toLocaleDateString()}`}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="ml-4 flex gap-2">
+                        <Button size="sm" variant="outline">
+                          View Details
+                        </Button>
+                        <Button size="sm">
+                          Apply Now
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <div className="pt-4">
+                  <Link to="/jobs">
+                    <Button variant="ghost" className="w-full">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      View All Jobs
+                    </Button>
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 mb-4">No job recommendations available yet.</p>
+                <Link to="/jobs">
+                  <Button>Browse Available Jobs</Button>
+                </Link>
               </div>
-            </div>
-            
-            <div className="border-b pb-4">
-              <h3 className="font-medium text-lg">React Team Lead</h3>
-              <p className="text-sm text-gray-500">InnovateX • Hybrid • $130k-$160k</p>
-              <div className="flex mt-2">
-                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded mr-2">92% Match</span>
-                <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">Posted 1 week ago</span>
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="font-medium text-lg">Full Stack Engineer</h3>
-              <p className="text-sm text-gray-500">GrowthStartup • On-site • $110k-$140k</p>
-              <div className="flex mt-2">
-                <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded mr-2">87% Match</span>
-                <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">Posted today</span>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
