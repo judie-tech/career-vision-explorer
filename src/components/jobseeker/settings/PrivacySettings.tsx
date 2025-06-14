@@ -13,8 +13,19 @@ export const PrivacySettings = () => {
   const [profileVisibility, setProfileVisibility] = useState(true);
   const [contactInfo, setContactInfo] = useState(true);
   const [anonymousApplications, setAnonymousApplications] = useState(false);
+  const [dataSharing, setDataSharing] = useState(true);
+  const [searchableProfile, setSearchableProfile] = useState(true);
 
   const handleSavePrivacy = () => {
+    // Here you would normally save to backend
+    console.log("Saving privacy settings:", {
+      profileVisibility,
+      contactInfo,
+      anonymousApplications,
+      dataSharing,
+      searchableProfile,
+    });
+
     toast({
       title: "Privacy Settings Updated",
       description: "Your privacy settings have been updated successfully.",
@@ -34,7 +45,7 @@ export const PrivacySettings = () => {
           <div className="space-y-0.5">
             <Label>Profile Visibility</Label>
             <p className="text-sm text-muted-foreground">
-              Make your profile visible to employers
+              Make your profile visible to employers and recruiters
             </p>
           </div>
           <Switch
@@ -45,9 +56,22 @@ export const PrivacySettings = () => {
         <Separator />
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
+            <Label>Searchable Profile</Label>
+            <p className="text-sm text-muted-foreground">
+              Allow your profile to appear in employer searches
+            </p>
+          </div>
+          <Switch
+            checked={searchableProfile}
+            onCheckedChange={setSearchableProfile}
+          />
+        </div>
+        <Separator />
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
             <Label>Contact Information</Label>
             <p className="text-sm text-muted-foreground">
-              Allow employers to contact you directly
+              Allow employers to contact you directly through the platform
             </p>
           </div>
           <Switch
@@ -68,7 +92,20 @@ export const PrivacySettings = () => {
             onCheckedChange={setAnonymousApplications}
           />
         </div>
-        <Button onClick={handleSavePrivacy}>
+        <Separator />
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label>Data Sharing</Label>
+            <p className="text-sm text-muted-foreground">
+              Allow anonymized data to be used for improving recommendations
+            </p>
+          </div>
+          <Switch
+            checked={dataSharing}
+            onCheckedChange={setDataSharing}
+          />
+        </div>
+        <Button onClick={handleSavePrivacy} className="w-full">
           Save Privacy Settings
         </Button>
       </CardContent>
