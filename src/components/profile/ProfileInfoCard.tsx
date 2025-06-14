@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Edit, MapPin, GraduationCap, Briefcase, Upload, User } from "lucide-react";
+import { Edit, MapPin, GraduationCap, Briefcase, Upload, User, Star } from "lucide-react";
 
 interface ProfileInfoCardProps {
   userName: string;
@@ -41,22 +41,27 @@ const ProfileInfoCard = ({
   };
 
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-6">
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Profile Image Section */}
+    <Card className="overflow-hidden shadow-lg border-0 bg-gradient-to-br from-white to-blue-50/20 backdrop-blur-sm">
+      <CardContent className="p-8">
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Enhanced Profile Image Section */}
           <div className="flex flex-col items-center space-y-4">
-            <Avatar className="h-32 w-32">
-              <AvatarImage src={profileImage} alt={userName} />
-              <AvatarFallback className="text-2xl">
-                <User className="h-16 w-16" />
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative group">
+              <Avatar className="h-36 w-36 ring-4 ring-blue-100 shadow-xl transition-all duration-300 group-hover:ring-blue-200">
+                <AvatarImage src={profileImage} alt={userName} className="object-cover" />
+                <AvatarFallback className="text-3xl bg-gradient-to-br from-blue-100 to-purple-100">
+                  <User className="h-20 w-20 text-blue-400" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute -top-2 -right-2 bg-green-500 rounded-full p-1.5 shadow-lg">
+                <Star className="h-4 w-4 text-white fill-current" />
+              </div>
+            </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => document.getElementById('profile-image-input')?.click()}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-white/80 hover:bg-white shadow-sm border-blue-200 hover:border-blue-300 transition-all duration-200"
             >
               <Upload className="h-4 w-4" />
               Upload Photo
@@ -70,45 +75,60 @@ const ProfileInfoCard = ({
             />
           </div>
 
-          {/* Profile Info Section */}
-          <div className="flex-1 space-y-4">
+          {/* Enhanced Profile Info Section */}
+          <div className="flex-1 space-y-6">
             <div className="flex justify-between items-start">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">{userName}</h1>
-                <p className="text-xl text-blue-600 font-medium">{userRole}</p>
+              <div className="space-y-2">
+                <h1 className="text-4xl font-bold text-gray-900 leading-tight">{userName}</h1>
+                <p className="text-xl text-blue-600 font-semibold">{userRole}</p>
               </div>
-              <Button onClick={onEditProfile} variant="outline" size="sm">
+              <Button 
+                onClick={onEditProfile} 
+                variant="outline" 
+                size="sm"
+                className="bg-white/80 hover:bg-white shadow-sm border-blue-200 hover:border-blue-300 transition-all duration-200"
+              >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Profile
               </Button>
             </div>
 
-            <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <GraduationCap className="h-4 w-4" />
-                <span>{userEducation}</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg">
+                <div className="p-2 bg-blue-100 rounded-full">
+                  <GraduationCap className="h-4 w-4 text-blue-600" />
+                </div>
+                <span className="font-medium text-gray-700">{userEducation}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Briefcase className="h-4 w-4" />
-                <span>{userExperience}</span>
+              <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg">
+                <div className="p-2 bg-purple-100 rounded-full">
+                  <Briefcase className="h-4 w-4 text-purple-600" />
+                </div>
+                <span className="font-medium text-gray-700">{userExperience}</span>
               </div>
               {userLocation && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  <span>{userLocation}</span>
+                <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg sm:col-span-2">
+                  <div className="p-2 bg-green-100 rounded-full">
+                    <MapPin className="h-4 w-4 text-green-600" />
+                  </div>
+                  <span className="font-medium text-gray-700">{userLocation}</span>
                 </div>
               )}
             </div>
 
             {userBio && (
-              <div className="pt-2">
-                <p className="text-gray-700 leading-relaxed">{userBio}</p>
+              <div className="p-4 bg-white/60 rounded-lg">
+                <p className="text-gray-700 leading-relaxed text-base">{userBio}</p>
               </div>
             )}
 
-            <div className="flex gap-2 pt-2">
-              <Badge variant="secondary">Available for work</Badge>
-              <Badge variant="outline">Open to opportunities</Badge>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-200 px-3 py-1">
+                Available for work
+              </Badge>
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 px-3 py-1">
+                Open to opportunities
+              </Badge>
             </div>
           </div>
         </div>
