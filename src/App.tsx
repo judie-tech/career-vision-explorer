@@ -27,6 +27,8 @@ import AdminContent from "./pages/admin/AdminContent";
 import AdminTestimonials from "./pages/admin/AdminTestimonials";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminInsights from "./pages/admin/AdminInsights";
+import AdminCareerPaths from "./pages/admin/AdminCareerPaths";
+import AdminSkills from "./pages/admin/AdminSkills";
 import EmployerDashboard from "./pages/admin/EmployerDashboard";
 import JobSeekerDashboard from "./pages/admin/JobSeekerDashboard";
 
@@ -72,6 +74,8 @@ function App() {
                       <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
                       <Route path="/admin/jobs" element={<ProtectedRoute requiredRole="admin"><AdminJobs /></ProtectedRoute>} />
                       <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><AdminUsers /></ProtectedRoute>} />
+                      <Route path="/admin/career-paths" element={<ProtectedRoute requiredRole="admin"><AdminCareerPaths /></ProtectedRoute>} />
+                      <Route path="/admin/skills" element={<ProtectedRoute requiredRole="admin"><AdminSkills /></ProtectedRoute>} />
                       <Route path="/admin/content" element={<ProtectedRoute requiredRole="admin"><AdminContent /></ProtectedRoute>} />
                       <Route path="/admin/testimonials" element={<ProtectedRoute requiredRole="admin"><AdminTestimonials /></ProtectedRoute>} />
                       <Route path="/admin/insights" element={<ProtectedRoute requiredRole="admin"><AdminInsights /></ProtectedRoute>} />
