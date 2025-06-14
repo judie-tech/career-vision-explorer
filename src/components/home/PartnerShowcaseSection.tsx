@@ -14,35 +14,35 @@ const PartnerShowcaseSection = () => {
     { 
       id: 2,
       name: "Global University", 
-      logo: "https://images.unsplash.com/photo-1568792923760-d70635a89fdd?auto=format&fit=crop&w=100&h=100",
+      logo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&h=100",
       website: "https://globaluniversity.edu",
       category: "education"
     },
     { 
       id: 3,
       name: "Future Staffing", 
-      logo: "https://images.unsplash.com/photo-1565372195458-9de0b320ef04?auto=format&fit=crop&w=100&h=100",
+      logo: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=100&h=100",
       website: "https://futurestaffing.com",
       category: "recruiting"
     },
     { 
       id: 4,
       name: "InnovateHR", 
-      logo: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?auto=format&fit=crop&w=100&h=100",
+      logo: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=100&h=100",
       website: "https://innovatehr.com",
       category: "recruiting"
     },
     { 
       id: 5,
       name: "Career Academy", 
-      logo: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=100&h=100",
+      logo: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=100&h=100",
       website: "https://careeracademy.edu",
       category: "education"
     },
     { 
       id: 6,
       name: "Elite Corp", 
-      logo: "https://images.unsplash.com/photo-1560441347-3a9c2e1e7e5c?auto=format&fit=crop&w=100&h=100",
+      logo: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=100&h=100",
       website: "https://elitecorp.com",
       category: "employer"
     },
