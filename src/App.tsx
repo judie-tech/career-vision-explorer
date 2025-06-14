@@ -1,4 +1,5 @@
 
+
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -26,72 +27,75 @@ import EmployerDashboard from "@/pages/admin/EmployerDashboard";
 import JobSeekerDashboard from "@/pages/admin/JobSeekerDashboard";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AuthProvider } from "@/hooks/use-auth";
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <div className="min-h-screen bg-gray-50">
-          <Router>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/jobs" element={<Jobs />} />
-              <Route path="/skills" element={<Skills />} />
-              <Route path="/insights" element={<Insights />} />
-              <Route path="/career-paths" element={<CareerPaths />} />
-              <Route path="/partners" element={<Partners />} />
-              <Route path="/profile" element={<Profile />} />
-              
-              {/* Admin Routes */}
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route
-                path="/admin/*"
-                element={
-                  <ProtectedRoute requiredRole="admin">
-                    <Routes>
-                      <Route path="dashboard" element={<AdminDashboard />} />
-                      <Route path="jobs" element={<AdminJobs />} />
-                      <Route path="users" element={<AdminUsers />} />
-                      <Route path="settings" element={<AdminSettings />} />
-                    </Routes>
-                  </ProtectedRoute>
-                }
-              />
-              
-              {/* Employer Routes */}
-              <Route
-                path="/employer/*"
-                element={
-                  <ProtectedRoute requiredRole="employer">
-                    <Routes>
-                      <Route path="dashboard" element={<EmployerDashboard />} />
-                    </Routes>
-                  </ProtectedRoute>
-                }
-              />
-              
-              {/* Job Seeker Routes */}
-              <Route
-                path="/jobseeker/*"
-                element={
-                  <ProtectedRoute requiredRole="jobseeker">
-                    <Routes>
-                      <Route path="dashboard" element={<JobSeekerDashboard />} />
-                    </Routes>
-                  </ProtectedRoute>
-                }
-              />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Router>
-        </div>
-        <Toaster />
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+          <div className="min-h-screen bg-gray-50">
+            <Router>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/jobs" element={<Jobs />} />
+                <Route path="/skills" element={<Skills />} />
+                <Route path="/insights" element={<Insights />} />
+                <Route path="/career-paths" element={<CareerPaths />} />
+                <Route path="/partners" element={<Partners />} />
+                <Route path="/profile" element={<Profile />} />
+                
+                {/* Admin Routes */}
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route
+                  path="/admin/*"
+                  element={
+                    <ProtectedRoute requiredRole="admin">
+                      <Routes>
+                        <Route path="dashboard" element={<AdminDashboard />} />
+                        <Route path="jobs" element={<AdminJobs />} />
+                        <Route path="users" element={<AdminUsers />} />
+                        <Route path="settings" element={<AdminSettings />} />
+                      </Routes>
+                    </ProtectedRoute>
+                  }
+                />
+                
+                {/* Employer Routes */}
+                <Route
+                  path="/employer/*"
+                  element={
+                    <ProtectedRoute requiredRole="employer">
+                      <Routes>
+                        <Route path="dashboard" element={<EmployerDashboard />} />
+                      </Routes>
+                    </ProtectedRoute>
+                  }
+                />
+                
+                {/* Job Seeker Routes */}
+                <Route
+                  path="/jobseeker/*"
+                  element={
+                    <ProtectedRoute requiredRole="jobseeker">
+                      <Routes>
+                        <Route path="dashboard" element={<JobSeekerDashboard />} />
+                      </Routes>
+                    </ProtectedRoute>
+                  }
+                />
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Router>
+          </div>
+          <Toaster />
+        </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
