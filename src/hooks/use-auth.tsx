@@ -31,6 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Check for existing user on mount
     const currentUser = getCurrentUser();
+    console.log('Checking existing user:', currentUser);
     if (currentUser) {
       setUser(currentUser);
       setIsAuthenticated(true);
@@ -40,12 +41,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
+    console.log('Login attempt:', email);
+    
     // Simulate API request delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    const user = authenticateUser(email, password);
-    if (user) {
-      setUser(user);
+    const authenticatedUser = authenticateUser(email, password);
+    console.log('Authentication result:', authenticatedUser);
+    
+    if (authenticatedUser) {
+      setUser(authenticatedUser);
       setIsAuthenticated(true);
       setIsLoading(false);
       return true;

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -43,6 +43,13 @@ export const LoginForm = ({
     resolver: zodResolver(loginSchema),
     defaultValues,
   });
+
+  // Update form values when loginType changes
+  useEffect(() => {
+    if (defaultValues) {
+      form.reset(defaultValues);
+    }
+  }, [loginType, defaultValues, form]);
 
   return (
     <Form {...form}>

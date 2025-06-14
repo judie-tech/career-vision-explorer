@@ -41,7 +41,7 @@ const AdminLogin = () => {
   // Handle returnUrl from query params
   const returnUrl = searchParams.get('returnUrl') || null;
   
-  // Check if user is already authenticated
+  // Check if user is already authenticated and redirect appropriately
   useEffect(() => {
     if (isAuthenticated && user) {
       const dashboardUrl = getDashboardForRole(user.role);
@@ -57,9 +57,9 @@ const AdminLogin = () => {
   const getDashboardForRole = (role: string) => {
     switch (role) {
       case 'admin':
-        return '/admin';
+        return '/admin/dashboard';
       case 'employer':
-        return '/employer/dashboard';
+        return '/employer/jobs';
       case 'jobseeker':
         return '/jobseeker/dashboard';
       default:
@@ -93,52 +93,10 @@ const AdminLogin = () => {
     setIsLoading(true);
     
     try {
+      console.log('Attempting login with:', values.email, 'for role:', loginType);
       const success = await login(values.email, values.password);
       
       if (success) {
-        // Check if the user has the correct role for the selected login type
-        if (loginType === 'admin' && !hasRole('admin')) {
-          sonnerToast.error("Access Denied", {
-            description: "You don't have admin permissions",
-          });
-          
-          toast({
-            title: "Access Denied",
-            description: "You don't have admin permissions",
-            variant: "destructive",
-          });
-          setIsLoading(false);
-          return;
-        }
-        
-        if (loginType === 'employer' && !hasRole('employer')) {
-          sonnerToast.error("Access Denied", {
-            description: "You don't have employer permissions",
-          });
-          
-          toast({
-            title: "Access Denied",
-            description: "You don't have employer permissions",
-            variant: "destructive",
-          });
-          setIsLoading(false);
-          return;
-        }
-        
-        if (loginType === 'jobseeker' && !hasRole('jobseeker')) {
-          sonnerToast.error("Access Denied", {
-            description: "You don't have job seeker permissions",
-          });
-          
-          toast({
-            title: "Access Denied",
-            description: "You don't have job seeker permissions",
-            variant: "destructive",
-          });
-          setIsLoading(false);
-          return;
-        }
-        
         sonnerToast.success("Login Successful", {
           description: `Welcome to the ${loginType} dashboard`,
         });
@@ -148,18 +106,12 @@ const AdminLogin = () => {
           description: `Welcome to the ${loginType} dashboard`,
         });
         
-        // Redirect to returnUrl if available, otherwise to default dashboard
+        // Redirect based on returnUrl or default dashboard
         if (returnUrl) {
           navigate(returnUrl);
         } else {
-          // Redirect based on role
-          if (loginType === 'admin') {
-            navigate("/admin");
-          } else if (loginType === 'employer') {
-            navigate("/employer/dashboard");
-          } else {
-            navigate("/jobseeker/dashboard");
-          }
+          const dashboardUrl = getDashboardForRole(loginType);
+          navigate(dashboardUrl);
         }
       } else {
         sonnerToast.error("Login Failed", {
@@ -173,6 +125,7 @@ const AdminLogin = () => {
         });
       }
     } catch (error) {
+      console.error('Login error:', error);
       sonnerToast.error("Login Error", {
         description: "An error occurred while logging in",
       });
