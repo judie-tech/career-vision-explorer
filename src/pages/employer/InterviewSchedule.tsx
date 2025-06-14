@@ -12,30 +12,107 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, ArrowLeft, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useInterviews } from "@/hooks/use-interviews";
+import { useApplicants } from "@/hooks/use-applicants";
+import { useJobPosts } from "@/hooks/use-job-posts";
+import { toast } from "sonner";
 
 const InterviewSchedule = () => {
   const navigate = useNavigate();
+  const { scheduleInterview } = useInterviews();
+  const { updateApplicantStatus, getAllApplicants } = useApplicants();
+  const { jobs } = useJobPosts();
+  
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState("");
   const [candidateName, setCandidateName] = useState("");
   const [candidateEmail, setCandidateEmail] = useState("");
-  const [interviewType, setInterviewType] = useState("video");
+  const [selectedApplicantId, setSelectedApplicantId] = useState("");
+  const [selectedJobId, setSelectedJobId] = useState("");
+  const [interviewType, setInterviewType] = useState("Video");
   const [notes, setNotes] = useState("");
+  const [interviewer, setInterviewer] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const applicants = getAllApplicants();
+
+  const handleApplicantSelect = (applicantId: string) => {
+    const applicant = applicants.find(a => a.id === applicantId);
+    if (applicant) {
+      setSelectedApplicantId(applicantId);
+      setCandidateName(applicant.name);
+      setCandidateEmail(applicant.email);
+      setSelectedJobId(applicant.jobId);
+    }
+  };
+
+  const validateForm = () => {
+    if (!candidateName.trim()) {
+      toast.error("Please enter candidate name");
+      return false;
+    }
+    if (!candidateEmail.trim()) {
+      toast.error("Please enter candidate email");
+      return false;
+    }
+    if (!date) {
+      toast.error("Please select interview date");
+      return false;
+    }
+    if (!time) {
+      toast.error("Please select interview time");
+      return false;
+    }
+    if (!interviewer.trim()) {
+      toast.error("Please enter interviewer name");
+      return false;
+    }
+    if (!selectedJobId) {
+      toast.error("Please select a job position");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically save the interview data
-    console.log("Interview scheduled:", {
-      date,
-      time,
-      candidateName,
-      candidateEmail,
-      interviewType,
-      notes
-    });
     
-    // Navigate back or show success message
-    navigate("/employer/dashboard");
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const jobTitle = jobs.find(job => job.id === selectedJobId)?.title || "Unknown Position";
+
+      // Schedule the interview
+      scheduleInterview({
+        applicantId: selectedApplicantId || "manual",
+        applicantName: candidateName,
+        jobId: selectedJobId,
+        jobTitle,
+        scheduledDate: format(date!, "yyyy-MM-dd"),
+        scheduledTime: time,
+        status: "Scheduled",
+        interviewType: interviewType as "Phone" | "Video" | "In-Person",
+        notes,
+        interviewer
+      });
+
+      // Update applicant status if this is an existing applicant
+      if (selectedApplicantId) {
+        updateApplicantStatus(selectedApplicantId, "Interview");
+      }
+
+      toast.success("Interview scheduled successfully!");
+      
+      // Navigate back to dashboard
+      navigate("/employer/dashboard");
+    } catch (error) {
+      console.error("Error scheduling interview:", error);
+      toast.error("Failed to schedule interview. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -57,9 +134,26 @@ const InterviewSchedule = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="applicantSelect">Select Existing Applicant (Optional)</Label>
+                <select
+                  id="applicantSelect"
+                  value={selectedApplicantId}
+                  onChange={(e) => handleApplicantSelect(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select an applicant or enter manually below</option>
+                  {applicants.map((applicant) => (
+                    <option key={applicant.id} value={applicant.id}>
+                      {applicant.name} - {applicant.position}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="candidateName">Candidate Name</Label>
+                  <Label htmlFor="candidateName">Candidate Name *</Label>
                   <Input
                     id="candidateName"
                     value={candidateName}
@@ -69,7 +163,7 @@ const InterviewSchedule = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="candidateEmail">Candidate Email</Label>
+                  <Label htmlFor="candidateEmail">Candidate Email *</Label>
                   <Input
                     id="candidateEmail"
                     type="email"
@@ -81,9 +175,27 @@ const InterviewSchedule = () => {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="jobSelect">Job Position *</Label>
+                <select
+                  id="jobSelect"
+                  value={selectedJobId}
+                  onChange={(e) => setSelectedJobId(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select a job position</option>
+                  {jobs.map((job) => (
+                    <option key={job.id} value={job.id}>
+                      {job.title} - {job.location}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Interview Date</Label>
+                  <Label>Interview Date *</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -103,12 +215,13 @@ const InterviewSchedule = () => {
                         selected={date}
                         onSelect={setDate}
                         initialFocus
+                        disabled={(date) => date < new Date()}
                       />
                     </PopoverContent>
                   </Popover>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="time">Interview Time</Label>
+                  <Label htmlFor="time">Interview Time *</Label>
                   <div className="relative">
                     <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
                     <Input
@@ -123,18 +236,30 @@ const InterviewSchedule = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="interviewType">Interview Type</Label>
-                <select
-                  id="interviewType"
-                  value={interviewType}
-                  onChange={(e) => setInterviewType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="video">Video Call</option>
-                  <option value="phone">Phone Call</option>
-                  <option value="in-person">In Person</option>
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="interviewType">Interview Type</Label>
+                  <select
+                    id="interviewType"
+                    value={interviewType}
+                    onChange={(e) => setInterviewType(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="Video">Video Call</option>
+                    <option value="Phone">Phone Call</option>
+                    <option value="In-Person">In Person</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="interviewer">Interviewer *</Label>
+                  <Input
+                    id="interviewer"
+                    value={interviewer}
+                    onChange={(e) => setInterviewer(e.target.value)}
+                    placeholder="Enter interviewer name"
+                    required
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -149,13 +274,18 @@ const InterviewSchedule = () => {
               </div>
 
               <div className="flex gap-4 pt-4">
-                <Button type="submit" className="flex-1">
-                  Schedule Interview
+                <Button 
+                  type="submit" 
+                  className="flex-1"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Scheduling..." : "Schedule Interview"}
                 </Button>
                 <Button 
                   type="button" 
                   variant="outline" 
                   onClick={() => navigate("/employer/dashboard")}
+                  disabled={isSubmitting}
                 >
                   Cancel
                 </Button>
