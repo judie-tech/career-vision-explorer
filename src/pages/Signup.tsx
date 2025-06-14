@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -37,8 +38,21 @@ import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Linkedin, Upload, Video, User, Camera } from "lucide-react";
+import { Linkedin, Upload, Video, User, Camera, Phone } from "lucide-react";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
+
+const countryCodes = [
+  { code: "+1", country: "US", flag: "🇺🇸" },
+  { code: "+44", country: "UK", flag: "🇬🇧" },
+  { code: "+254", country: "KE", flag: "🇰🇪" },
+  { code: "+91", country: "IN", flag: "🇮🇳" },
+  { code: "+234", country: "NG", flag: "🇳🇬" },
+  { code: "+27", country: "ZA", flag: "🇿🇦" },
+  { code: "+49", country: "DE", flag: "🇩🇪" },
+  { code: "+33", country: "FR", flag: "🇫🇷" },
+  { code: "+81", country: "JP", flag: "🇯🇵" },
+  { code: "+86", country: "CN", flag: "🇨🇳" },
+];
 
 const signupSchema = z.object({
   name: z.string().min(2, {
@@ -49,6 +63,17 @@ const signupSchema = z.object({
   }),
   password: z.string().min(8, {
     message: "Password must be at least 8 characters.",
+  }),
+  role: z.enum(["jobseeker", "employer"], {
+    required_error: "Please select your role.",
+  }),
+  countryCode: z.string().min(1, {
+    message: "Please select a country code.",
+  }),
+  phoneNumber: z.string().min(1, {
+    message: "Phone number is required.",
+  }).regex(/^\d+$/, {
+    message: "Phone number must contain only digits.",
   }),
   profileImage: z.string().optional(),
 });
@@ -66,6 +91,9 @@ const Signup = () => {
       name: "",
       email: "",
       password: "",
+      role: "jobseeker",
+      countryCode: "+254",
+      phoneNumber: "",
       profileImage: "",
     },
   });
@@ -210,6 +238,78 @@ const Signup = () => {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>I am a</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="transition-all focus:ring-2 focus:ring-career-blue">
+                            <SelectValue placeholder="Select your role" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="jobseeker">Job Seeker</SelectItem>
+                          <SelectItem value="employer">Employer</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Phone Number Section */}
+                <div className="space-y-2">
+                  <FormLabel>Phone Number</FormLabel>
+                  <div className="flex gap-2">
+                    <FormField
+                      control={form.control}
+                      name="countryCode"
+                      render={({ field }) => (
+                        <FormItem className="flex-shrink-0">
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="w-24 transition-all focus:ring-2 focus:ring-career-blue">
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {countryCodes.map((country) => (
+                                <SelectItem key={country.code} value={country.code}>
+                                  <span className="flex items-center gap-2">
+                                    <span>{country.flag}</span>
+                                    <span>{country.code}</span>
+                                  </span>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="phoneNumber"
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormControl>
+                            <Input 
+                              placeholder="700123456" 
+                              {...field}
+                              className="transition-all focus:ring-2 focus:ring-career-blue"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="text-xs text-red-500">
+                    {form.formState.errors.countryCode?.message || form.formState.errors.phoneNumber?.message}
+                  </div>
+                </div>
                 
                 <FormField
                   control={form.control}
