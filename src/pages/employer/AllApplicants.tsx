@@ -39,11 +39,11 @@ const AllApplicants = () => {
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
-      case "Review":
+      case "Reviewing":
         return "bg-yellow-100 text-yellow-800";
       case "Interview":
         return "bg-blue-100 text-blue-800";
-      case "Accepted":
+      case "Hired":
         return "bg-green-100 text-green-800";
       case "Rejected":
         return "bg-gray-100 text-gray-800";
@@ -59,9 +59,9 @@ const AllApplicants = () => {
 
   const statusCounts = {
     total: allApplicants.length,
-    review: allApplicants.filter(a => a.status === "Review").length,
+    review: allApplicants.filter(a => a.status === "Reviewing").length,
     interview: allApplicants.filter(a => a.status === "Interview").length,
-    accepted: allApplicants.filter(a => a.status === "Accepted").length,
+    accepted: allApplicants.filter(a => a.status === "Hired").length,
     rejected: allApplicants.filter(a => a.status === "Rejected").length,
   };
 
@@ -137,9 +137,10 @@ const AllApplicants = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="Review">Review</SelectItem>
+                    <SelectItem value="Applied">Applied</SelectItem>
+                    <SelectItem value="Reviewing">Reviewing</SelectItem>
                     <SelectItem value="Interview">Interview</SelectItem>
-                    <SelectItem value="Accepted">Accepted</SelectItem>
+                    <SelectItem value="Hired">Hired</SelectItem>
                     <SelectItem value="Rejected">Rejected</SelectItem>
                   </SelectContent>
                 </Select>
