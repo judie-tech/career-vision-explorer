@@ -1,10 +1,9 @@
 
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import AdminNavItem from "./AdminNavItem";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const Navbar = () => {
@@ -58,7 +57,17 @@ const Navbar = () => {
 
           <div className="hidden md:flex md:items-center md:space-x-2">
             <ThemeToggle />
-            <AdminNavItem />
+            <Link
+              to="/admin"
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                location.pathname.startsWith('/admin')
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+            >
+              <Shield className="h-4 w-4" />
+              Admin
+            </Link>
             <Link to="/login">
               <Button variant="ghost" size="sm">
                 Log in
@@ -105,7 +114,18 @@ const Navbar = () => {
             ))}
             <div className="pt-4 pb-3 border-t border-border">
               <div className="flex items-center px-3 space-x-2">
-                <AdminNavItem />
+                <Link
+                  to="/admin"
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base font-medium transition-colors ${
+                    location.pathname.startsWith('/admin')
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Shield className="h-4 w-4" />
+                  Admin
+                </Link>
               </div>
               <div className="mt-3 px-2 space-y-1">
                 <Link
