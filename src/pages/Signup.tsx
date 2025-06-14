@@ -57,7 +57,9 @@ const signupSchema = z.object({
   }).regex(/^\d+$/, {
     message: "Phone number must contain only digits.",
   }),
-  profileImage: z.string().optional(),
+  profileImage: z.string().min(1, {
+    message: "Profile image is required.",
+  }),
 });
 
 const Signup = () => {
@@ -66,6 +68,7 @@ const Signup = () => {
   const [linkedInImportOpen, setLinkedInImportOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState<string>("");
+  const [linkedInDataImported, setLinkedInDataImported] = useState(false);
   
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
@@ -106,13 +109,24 @@ const Signup = () => {
   const handleLinkedInConnect = () => {
     setIsLoading(true);
     toast({
-      title: "LinkedIn Import Initiated",
-      description: "Please complete authorization in the popup window.",
+      title: "LinkedIn Data Imported",
+      description: "Please complete your profile with image and phone number.",
     });
+    
     setTimeout(() => {
       setIsLoading(false);
       setLinkedInImportOpen(false);
-      setShowOnboarding(true);
+      setLinkedInDataImported(true);
+      
+      // Pre-fill form with LinkedIn data
+      form.setValue('name', 'John Doe');
+      form.setValue('email', 'john.doe@example.com');
+      form.setValue('password', 'linkedinpass123');
+      
+      toast({
+        title: "LinkedIn Import Complete",
+        description: "Profile information imported. Please add your photo and phone number to continue.",
+      });
     }, 1500);
   };
   
@@ -123,7 +137,10 @@ const Signup = () => {
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
             <CardDescription className="text-center">
-              Join Visiondrill to explore career opportunities tailored to your skills and goals.
+              {linkedInDataImported 
+                ? "Complete your profile to finish registration" 
+                : "Join Visiondrill to explore career opportunities tailored to your skills and goals."
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -145,6 +162,7 @@ const Signup = () => {
                           placeholder="John Doe" 
                           {...field}
                           className="transition-all focus:ring-2 focus:ring-career-blue"
+                          disabled={linkedInDataImported}
                         />
                       </FormControl>
                       <FormMessage />
@@ -163,6 +181,7 @@ const Signup = () => {
                           placeholder="john@example.com" 
                           {...field}
                           className="transition-all focus:ring-2 focus:ring-career-blue"
+                          disabled={linkedInDataImported}
                         />
                       </FormControl>
                       <FormMessage />
@@ -176,7 +195,7 @@ const Signup = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>I am a</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={linkedInDataImported}>
                         <FormControl>
                           <SelectTrigger className="transition-all focus:ring-2 focus:ring-career-blue">
                             <SelectValue placeholder="Select your role" />
@@ -210,6 +229,7 @@ const Signup = () => {
                           placeholder="••••••••" 
                           {...field}
                           className="transition-all focus:ring-2 focus:ring-career-blue"
+                          disabled={linkedInDataImported}
                         />
                       </FormControl>
                       <FormMessage />
@@ -225,20 +245,22 @@ const Signup = () => {
                   {isLoading ? "Creating Account..." : "Create Account"}
                 </Button>
                 
-                <div className="text-center">
-                  <p className="text-sm text-gray-500">Or sign up with</p>
-                  <div className="mt-2">
-                    <Button 
-                      variant="outline" 
-                      onClick={handleLinkedInSignup}
-                      className="w-full flex items-center justify-center gap-2 transition-colors hover:bg-gray-50"
-                      disabled={isLoading}
-                    >
-                      <Linkedin className="h-4 w-4" />
-                      LinkedIn
-                    </Button>
+                {!linkedInDataImported && (
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500">Or sign up with</p>
+                    <div className="mt-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={handleLinkedInSignup}
+                        className="w-full flex items-center justify-center gap-2 transition-colors hover:bg-gray-50"
+                        disabled={isLoading}
+                      >
+                        <Linkedin className="h-4 w-4" />
+                        LinkedIn
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                )}
                 
                 <div className="text-center mt-4">
                   <p className="text-sm text-gray-500">

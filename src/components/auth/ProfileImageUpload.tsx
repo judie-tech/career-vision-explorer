@@ -65,7 +65,7 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
         </Button>
       </div>
       <p className="text-xs text-gray-500 text-center">
-        Add a profile photo (optional)
+        Add a profile photo (required)
       </p>
       <input
         id="signup-image-input"

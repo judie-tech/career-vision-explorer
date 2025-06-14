@@ -29,13 +29,17 @@ const LinkedInImportDialog: React.FC<LinkedInImportDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Import LinkedIn Profile</DialogTitle>
           <DialogDescription>
-            We'll use your LinkedIn profile data to automatically create your Visiondrill profile.
+            We'll import your LinkedIn profile data. You'll still need to add a profile photo and phone number to complete registration.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            Authorize Visiondrill to access your LinkedIn profile data:
+            After importing from LinkedIn, you will need to:
           </p>
+          <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+            <li>Upload a profile photo</li>
+            <li>Add your phone number</li>
+          </ul>
           <Button 
             className="w-full bg-[#0077B5] hover:bg-[#0077B5]/90 transition-colors"
             onClick={onConnect}
