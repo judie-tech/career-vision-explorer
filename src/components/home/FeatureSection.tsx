@@ -4,67 +4,82 @@ import { Button } from "@/components/ui/button";
 import { Search, User, Book, MessageCircle } from "lucide-react";
 
 const FeatureSection = () => {
+  const features = [
+    {
+      icon: Search,
+      title: "AI-Powered Job Matching",
+      description: "Our intelligent system finds the perfect job matches based on your skills, experience, and preferences.",
+      bgColor: "bg-blue-50",
+      iconColor: "text-blue-600",
+    },
+    {
+      icon: User,
+      title: "Skills Assessment",
+      description: "Identify your strengths and areas for improvement through integrated assessments and get a personalized readiness score.",
+      bgColor: "bg-purple-50",
+      iconColor: "text-purple-600",
+    },
+    {
+      icon: Book,
+      title: "Microlearning Paths",
+      description: "Fill skill gaps with personalized learning recommendations and track your progress toward career goals.",
+      bgColor: "bg-green-50",
+      iconColor: "text-green-600",
+    },
+    {
+      icon: MessageCircle,
+      title: "AI Interview Practice",
+      description: "Practice interviews with our AI coach that provides feedback on your responses, tone, and delivery.",
+      bgColor: "bg-orange-50",
+      iconColor: "text-orange-600",
+    },
+  ];
+
   return (
-    <section className="py-16 bg-white">
+    <section className="py-20 bg-gradient-to-br from-background via-muted/20 to-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
             How Visiondrill Careers Works
           </h2>
-          <p className="max-w-2xl mx-auto text-xl text-gray-500">
+          <p className="max-w-3xl mx-auto text-xl text-muted-foreground leading-relaxed">
             Our intelligent platform combines AI technology with personalized career development to help you find and succeed in your dream job.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* AI-Powered Job Matching */}
-          <div className="flex flex-col items-center text-center p-6 hover-scale glassmorphism">
-            <div className="bg-blue-50 p-4 rounded-lg mb-5">
-              <Search className="h-8 w-8 text-career-blue" />
-            </div>
-            <h3 className="text-xl font-bold mb-3">AI-Powered Job Matching</h3>
-            <p className="text-gray-600">
-              Our intelligent system finds the perfect job matches based on your skills, experience, and preferences.
-            </p>
-          </div>
-
-          {/* Skills Assessment */}
-          <div className="flex flex-col items-center text-center p-6 hover-scale glassmorphism">
-            <div className="bg-blue-50 p-4 rounded-lg mb-5">
-              <User className="h-8 w-8 text-career-blue" />
-            </div>
-            <h3 className="text-xl font-bold mb-3">Skills Assessment</h3>
-            <p className="text-gray-600">
-              Identify your strengths and areas for improvement through integrated assessments and get a personalized readiness score.
-            </p>
-          </div>
-
-          {/* Microlearning Paths */}
-          <div className="flex flex-col items-center text-center p-6 hover-scale glassmorphism">
-            <div className="bg-blue-50 p-4 rounded-lg mb-5">
-              <Book className="h-8 w-8 text-career-blue" />
-            </div>
-            <h3 className="text-xl font-bold mb-3">Microlearning Paths</h3>
-            <p className="text-gray-600">
-              Fill skill gaps with personalized learning recommendations and track your progress toward career goals.
-            </p>
-          </div>
-
-          {/* AI Interview Practice */}
-          <div className="flex flex-col items-center text-center p-6 hover-scale glassmorphism">
-            <div className="bg-blue-50 p-4 rounded-lg mb-5">
-              <MessageCircle className="h-8 w-8 text-career-blue" />
-            </div>
-            <h3 className="text-xl font-bold mb-3">AI Interview Practice</h3>
-            <p className="text-gray-600">
-              Practice interviews with our AI coach that provides feedback on your responses, tone, and delivery.
-            </p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          {features.map((feature, index) => {
+            const Icon = feature.icon;
+            return (
+              <div 
+                key={index}
+                className="group relative bg-card rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-primary/20 hover:-translate-y-1"
+              >
+                <div className={`${feature.bgColor} w-16 h-16 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                  <Icon className={`h-8 w-8 ${feature.iconColor}`} />
+                </div>
+                <h3 className="text-xl font-bold mb-4 text-foreground group-hover:text-primary transition-colors">
+                  {feature.title}
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  {feature.description}
+                </p>
+                
+                {/* Decorative element */}
+                <div className="absolute top-4 right-4 w-2 h-2 bg-primary/20 rounded-full group-hover:bg-primary/40 transition-colors"></div>
+              </div>
+            );
+          })}
         </div>
 
-        <div className="mt-12 text-center">
+        <div className="text-center">
           <Link to="/jobs">
-            <Button variant="outline" className="glowing-border">Discover More</Button>
+            <Button 
+              size="lg" 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-6 text-lg shadow-xl hover:shadow-2xl transition-all duration-300"
+            >
+              Discover More
+            </Button>
           </Link>
         </div>
       </div>
