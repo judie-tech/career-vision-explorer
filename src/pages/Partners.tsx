@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
-import { Briefcase, Building, GraduationCap, UserCheck, Globe } from "lucide-react";
+import { Building, GraduationCap, UserCheck } from "lucide-react";
 
 const Partners = () => {
   const partnerCategories = [
@@ -43,34 +43,62 @@ const Partners = () => {
         "Bulk job posting capability",
         "Client reporting tools"
       ]
-    },
-    {
-      id: 4,
-      title: "Technology Partners",
-      icon: <Globe className="h-10 w-10 text-primary" />,
-      description: "Integrate with our platform to expand your reach",
-      features: [
-        "Developer API access",
-        "Single sign-on integration",
-        "Custom data analysis tools",
-        "Co-marketing opportunities"
-      ]
     }
   ];
 
   const partnersShowcase = [
-    { name: "TechGiant Inc.", logo: "https://images.unsplash.com/photo-1549124864-b7d1ac7abb08?auto=format&fit=crop&w=100&h=100" },
-    { name: "Global University", logo: "https://images.unsplash.com/photo-1568792923760-d70635a89fdd?auto=format&fit=crop&w=100&h=100" },
-    { name: "Future Staffing", logo: "https://images.unsplash.com/photo-1565372195458-9de0b320ef04?auto=format&fit=crop&w=100&h=100" },
-    { name: "InnovateHR", logo: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?auto=format&fit=crop&w=100&h=100" },
-    { name: "Career Academy", logo: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=100&h=100" },
-    { name: "NextGen Technologies", logo: "https://images.unsplash.com/photo-1560441347-3a9c2e1e7e5c?auto=format&fit=crop&w=100&h=100" },
+    { 
+      id: 1,
+      name: "TechGiant Inc.", 
+      logo: "/lovable-uploads/37656cc1-be74-4d59-8843-b6729c619a2a.png",
+      website: "https://techgiant.com",
+      category: "employer"
+    },
+    { 
+      id: 2,
+      name: "Global University", 
+      logo: "https://images.unsplash.com/photo-1568792923760-d70635a89fdd?auto=format&fit=crop&w=100&h=100",
+      website: "https://globaluniversity.edu",
+      category: "education"
+    },
+    { 
+      id: 3,
+      name: "Future Staffing", 
+      logo: "https://images.unsplash.com/photo-1565372195458-9de0b320ef04?auto=format&fit=crop&w=100&h=100",
+      website: "https://futurestaffing.com",
+      category: "recruiting"
+    },
+    { 
+      id: 4,
+      name: "InnovateHR", 
+      logo: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?auto=format&fit=crop&w=100&h=100",
+      website: "https://innovatehr.com",
+      category: "recruiting"
+    },
+    { 
+      id: 5,
+      name: "Career Academy", 
+      logo: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=100&h=100",
+      website: "https://careeracademy.edu",
+      category: "education"
+    },
+    { 
+      id: 6,
+      name: "Elite Corp", 
+      logo: "https://images.unsplash.com/photo-1560441347-3a9c2e1e7e5c?auto=format&fit=crop&w=100&h=100",
+      website: "https://elitecorp.com",
+      category: "employer"
+    },
   ];
+
+  const handlePartnerClick = (partner: typeof partnersShowcase[0]) => {
+    window.open(partner.website, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary/5 via-background to-secondary/5 py-20 relative overflow-hidden">
+      <section className="bg-gradient-to-br from-primary/10 via-background to-secondary/10 py-20 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
             Partner with Visiondrill
@@ -101,11 +129,11 @@ const Partners = () => {
               Partnership Opportunities
             </h2>
             <p className="mt-4 max-w-2xl text-xl text-muted-foreground mx-auto">
-              Join our ecosystem of employers, educators, and technology partners to shape the future of career development
+              Join our ecosystem of employers, educators, and recruiting agencies to shape the future of career development
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
             {partnerCategories.map((category) => (
               <Card key={category.id} className="hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/30">
                 <CardContent className="p-6">
@@ -149,14 +177,20 @@ const Partners = () => {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center justify-items-center">
-            {partnersShowcase.map((partner, index) => (
-              <div key={index} className="hover:scale-105 transition-transform duration-200">
+            {partnersShowcase.map((partner) => (
+              <div 
+                key={partner.id} 
+                className="hover:scale-105 transition-transform duration-200 cursor-pointer group"
+                onClick={() => handlePartnerClick(partner)}
+              >
                 <img 
                   src={partner.logo} 
                   alt={`${partner.name} logo`} 
-                  className="h-20 w-20 object-contain rounded-full shadow-md"
+                  className="h-20 w-20 object-contain rounded-full shadow-md group-hover:shadow-lg transition-shadow"
                 />
-                <p className="text-center mt-2 text-sm font-medium text-muted-foreground">{partner.name}</p>
+                <p className="text-center mt-2 text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                  {partner.name}
+                </p>
               </div>
             ))}
           </div>
