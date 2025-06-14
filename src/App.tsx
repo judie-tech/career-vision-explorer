@@ -1,10 +1,11 @@
+
 import React from "react";
 import {
   BrowserRouter as Router,
   Route,
   Routes,
 } from "react-router-dom";
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@/components/theme/ThemeProvider"
 import { Toaster } from "@/components/ui/toaster"
 import Index from "@/pages/Index";
 import Login from "@/pages/Login";
@@ -23,12 +24,14 @@ import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminSettings from "@/pages/admin/AdminSettings";
 import EmployerDashboard from "@/pages/admin/EmployerDashboard";
 import JobSeekerDashboard from "@/pages/admin/JobSeekerDashboard";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { QueryClient } from "@tanstack/react-query";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClient>
+    <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
         <div className="min-h-screen bg-gray-50">
           <Router>
@@ -89,7 +92,7 @@ function App() {
         </div>
         <Toaster />
       </ThemeProvider>
-    </QueryClient>
+    </QueryClientProvider>
   );
 }
 
