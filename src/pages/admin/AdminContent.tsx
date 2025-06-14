@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -30,12 +29,13 @@ const AdminContent = () => {
     },
     {
       id: "2",
-      title: "How to Use Our Platform",
-      slug: "how-to-use-platform",
-      type: "article",
+      title: "Hero Section - AI-Driven job linkage",
+      slug: "hero-main-title",
+      type: "hero",
       status: "published",
-      content: "Learn how to navigate and make the most of VisionDrill's features.",
-      excerpt: "A comprehensive guide to using our platform effectively.",
+      content: "AI-Driven job linkage - Visiondrill Careers Navigator uses advanced AI to match your skills with the perfect job, identify growth opportunities, and guide your career journey.",
+      excerpt: "Main hero section text for the homepage",
+      location: "homepage-hero",
       authorId: "admin",
       authorName: "Admin User",
       createdAt: "2024-01-10",
@@ -43,16 +43,31 @@ const AdminContent = () => {
     },
     {
       id: "3",
-      title: "Career Tips for Success",
-      slug: "career-tips-success",
-      type: "blog",
-      status: "draft",
-      content: "Essential tips and strategies for advancing your career.",
-      excerpt: "Practical advice for career growth and development.",
+      title: "CTA Section - Transform Your Career",
+      slug: "cta-transform-career",
+      type: "cta",
+      status: "published",
+      content: "Ready to Transform Your Career? Join thousands of professionals who are navigating their career paths with confidence.",
+      excerpt: "Call-to-action section encouraging user engagement",
+      location: "homepage-cta",
       authorId: "admin",
       authorName: "Admin User",
       createdAt: "2024-01-20",
       updatedAt: "2024-01-20",
+    },
+    {
+      id: "4",
+      title: "Footer - Company Info",
+      slug: "footer-company-info",
+      type: "footer",
+      status: "published",
+      content: "© 2024 VisionDrill. All rights reserved. Your trusted partner in career development and job matching.",
+      excerpt: "Footer copyright and company information",
+      location: "global-footer",
+      authorId: "admin",
+      authorName: "Admin User",
+      createdAt: "2024-01-05",
+      updatedAt: "2024-01-05",
     },
   ]);
 
@@ -84,6 +99,7 @@ const AdminContent = () => {
       status: data.status,
       content: data.content,
       excerpt: data.excerpt,
+      location: data.location,
       authorId: "admin",
       authorName: "Admin User",
       createdAt: new Date().toISOString().split('T')[0],
@@ -112,6 +128,7 @@ const AdminContent = () => {
             status: data.status,
             content: data.content,
             excerpt: data.excerpt,
+            location: data.location,
             updatedAt: new Date().toISOString().split('T')[0]
           }
         : content
@@ -157,6 +174,7 @@ const AdminContent = () => {
       status: content.status,
       content: content.content,
       excerpt: content.excerpt,
+      location: content.location || "",
     });
   };
 
@@ -166,7 +184,7 @@ const AdminContent = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Content Management</h1>
-            <p className="text-gray-600 mt-2">Manage pages, articles, and blog posts</p>
+            <p className="text-gray-600 mt-2">Manage all website content including pages, sections, and text</p>
           </div>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>

@@ -37,6 +37,16 @@ const ContentTable = ({ contents, onEdit, onDelete, onStatusChange }: ContentTab
         return "bg-green-100 text-green-800";
       case "faq":
         return "bg-orange-100 text-orange-800";
+      case "header":
+      case "footer":
+      case "navigation":
+        return "bg-indigo-100 text-indigo-800";
+      case "hero":
+      case "cta":
+      case "feature":
+        return "bg-pink-100 text-pink-800";
+      case "testimonial-section":
+        return "bg-teal-100 text-teal-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -49,6 +59,7 @@ const ContentTable = ({ contents, onEdit, onDelete, onStatusChange }: ContentTab
           <TableRow>
             <TableHead>Title</TableHead>
             <TableHead>Type</TableHead>
+            <TableHead>Location</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Author</TableHead>
             <TableHead>Updated</TableHead>
@@ -68,6 +79,11 @@ const ContentTable = ({ contents, onEdit, onDelete, onStatusChange }: ContentTab
                 <Badge variant="outline" className={getTypeColor(content.type)}>
                   {content.type}
                 </Badge>
+              </TableCell>
+              <TableCell>
+                <div className="text-sm text-gray-600">
+                  {content.location || "-"}
+                </div>
               </TableCell>
               <TableCell>
                 <Select

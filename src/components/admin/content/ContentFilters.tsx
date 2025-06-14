@@ -61,6 +61,13 @@ const ContentFilters = ({
               <SelectItem value="article">Article</SelectItem>
               <SelectItem value="blog">Blog</SelectItem>
               <SelectItem value="faq">FAQ</SelectItem>
+              <SelectItem value="header">Header Text</SelectItem>
+              <SelectItem value="footer">Footer Text</SelectItem>
+              <SelectItem value="navigation">Navigation</SelectItem>
+              <SelectItem value="hero">Hero Section</SelectItem>
+              <SelectItem value="cta">Call to Action</SelectItem>
+              <SelectItem value="feature">Feature Section</SelectItem>
+              <SelectItem value="testimonial-section">Testimonial Section</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -11,7 +11,8 @@ export interface Content {
   authorName: string;
   createdAt: string;
   updatedAt: string;
+  location?: string; // For website sections like header, footer, etc.
 }
 
 export type ContentStatus = "draft" | "published" | "archived";
-export type ContentType = "page" | "article" | "blog" | "faq";
+export type ContentType = "page" | "article" | "blog" | "faq" | "header" | "footer" | "navigation" | "hero" | "cta" | "feature" | "testimonial-section";

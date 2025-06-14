@@ -6,10 +6,11 @@ import * as z from "zod";
 const contentSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters"),
   slug: z.string().min(2, "Slug must be at least 2 characters"),
-  type: z.enum(["page", "article", "blog", "faq"]),
+  type: z.enum(["page", "article", "blog", "faq", "header", "footer", "navigation", "hero", "cta", "feature", "testimonial-section"]),
   status: z.enum(["draft", "published", "archived"]),
   content: z.string().min(10, "Content must be at least 10 characters"),
   excerpt: z.string().min(5, "Excerpt must be at least 5 characters"),
+  location: z.string().optional(),
 });
 
 export type ContentFormData = z.infer<typeof contentSchema>;
@@ -24,6 +25,7 @@ export const useContentForm = () => {
       status: "draft",
       content: "",
       excerpt: "",
+      location: "",
     },
   });
 };
