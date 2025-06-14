@@ -76,6 +76,11 @@ function App() {
                     <AdminSettings />
                   </ProtectedRoute>
                 } />
+                <Route path="/admin/career-paths" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <CareerPaths />
+                  </ProtectedRoute>
+                } />
                 
                 {/* Employer Routes */}
                 <Route path="/employer/dashboard" element={
