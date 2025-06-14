@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Upload } from "lucide-react";
+import { Upload, X } from "lucide-react";
 
 interface AppearanceSettingsProps {
   initialAppearance: {
@@ -56,19 +56,28 @@ export const AppearanceSettings = ({
     setUploading(true);
 
     try {
-      // Create a URL for the uploaded file (simulating file upload)
-      const logoUrl = URL.createObjectURL(file);
-      
-      // In a real app, you would upload to your server/cloud storage here
-      // For now, we'll simulate the upload and use the object URL
-      setTimeout(() => {
-        handleChange('logoUrl', logoUrl);
+      // Convert file to base64 data URL for storage
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        handleChange('logoUrl', dataUrl);
         setUploading(false);
         toast({
-          title: "Logo Uploaded",
-          description: "Your logo has been successfully uploaded"
+          title: "Logo Uploaded Successfully",
+          description: "Your new logo has been applied to your site"
         });
-      }, 1000);
+      };
+      
+      reader.onerror = () => {
+        setUploading(false);
+        toast({
+          title: "Upload Failed",
+          description: "There was an error processing your image. Please try again.",
+          variant: "destructive"
+        });
+      };
+
+      reader.readAsDataURL(file);
 
     } catch (error) {
       setUploading(false);
@@ -78,6 +87,17 @@ export const AppearanceSettings = ({
         variant: "destructive"
       });
     }
+
+    // Reset the input value so the same file can be uploaded again if needed
+    event.target.value = '';
+  };
+
+  const handleLogoRemove = () => {
+    handleChange('logoUrl', '');
+    toast({
+      title: "Logo Removed",
+      description: "Your logo has been removed from the site"
+    });
   };
 
   return (
@@ -129,35 +149,52 @@ export const AppearanceSettings = ({
                 placeholder="Enter logo URL or upload a file"
                 className="flex-1"
               />
-              <div className="relative">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  disabled={uploading}
-                />
-                <Button 
-                  variant="outline" 
-                  disabled={uploading}
-                  className="relative"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  {uploading ? "Uploading..." : "Upload"}
-                </Button>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    disabled={uploading}
+                  />
+                  <Button 
+                    variant="outline" 
+                    disabled={uploading}
+                    className="relative"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    {uploading ? "Uploading..." : "Upload"}
+                  </Button>
+                </div>
+                {appearance.logoUrl && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleLogoRemove}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
             {appearance.logoUrl && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 p-3 border rounded-lg bg-gray-50">
                 <img 
                   src={appearance.logoUrl} 
                   alt="Current logo" 
-                  className="h-12 w-auto object-contain border rounded"
+                  className="h-12 w-auto max-w-32 object-contain border rounded bg-white"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                   }}
                 />
-                <span className="text-sm text-muted-foreground">Current logo</span>
+                <div className="flex-1">
+                  <span className="text-sm font-medium text-gray-700">Current logo</span>
+                  <p className="text-xs text-gray-500">
+                    {appearance.logoUrl.startsWith('data:') ? 'Uploaded file' : 'External URL'}
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -168,6 +205,7 @@ export const AppearanceSettings = ({
           <Input 
             value={appearance.faviconUrl} 
             onChange={(e) => handleChange('faviconUrl', e.target.value)}
+            placeholder="Enter favicon URL"
           />
         </div>
       </div>
@@ -176,7 +214,7 @@ export const AppearanceSettings = ({
         <label className="text-sm font-medium">Preview</label>
         <div className="p-4 border rounded-lg bg-gray-50">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded bg-gray-200 flex items-center justify-center text-xs overflow-hidden">
+            <div className="w-12 h-12 rounded bg-gray-200 flex items-center justify-center text-xs overflow-hidden border">
               {appearance.logoUrl ? (
                 <img 
                   src={appearance.logoUrl} 
@@ -184,7 +222,9 @@ export const AppearanceSettings = ({
                   className="w-full h-full object-contain"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
-                    e.currentTarget.parentElement!.textContent = 'Logo';
+                    if (e.currentTarget.parentElement) {
+                      e.currentTarget.parentElement.textContent = 'Logo';
+                    }
                   }}
                 />
               ) : (
@@ -192,8 +232,8 @@ export const AppearanceSettings = ({
               )}
             </div>
             <div>
-              <div className="h-4 w-32 rounded" style={{backgroundColor: appearance.primaryColor}}></div>
-              <div className="h-4 w-24 rounded mt-2" style={{backgroundColor: appearance.secondaryColor}}></div>
+              <div className="h-4 w-32 rounded mb-2" style={{backgroundColor: appearance.primaryColor}}></div>
+              <div className="h-4 w-24 rounded" style={{backgroundColor: appearance.secondaryColor}}></div>
             </div>
           </div>
         </div>
@@ -203,7 +243,7 @@ export const AppearanceSettings = ({
         onClick={() => {
           toast({
             title: "Theme Updated",
-            description: "The appearance settings have been applied"
+            description: "The appearance settings have been applied successfully"
           });
         }}
       >
