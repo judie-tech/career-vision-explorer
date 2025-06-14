@@ -14,7 +14,7 @@ export interface JobApplication {
 
 interface JobApplicationStore {
   applications: JobApplication[];
-  addApplication: (application: Omit<JobApplication, 'id' | 'appliedDate'>) => void;
+  addApplication: (application: Omit<JobApplication, 'id' | 'appliedDate' | 'status'> & { status?: JobApplication['status'] }) => void;
   updateApplicationStatus: (id: string, status: JobApplication['status']) => void;
   getApplicationsByStatus: (status: JobApplication['status']) => JobApplication[];
   getApplicationForJob: (jobId: string) => JobApplication | undefined;
@@ -55,7 +55,7 @@ export const useJobApplications = create<JobApplicationStore>((set, get) => ({
       ...application,
       id: Date.now().toString(),
       appliedDate: new Date().toISOString().split('T')[0],
-      status: "Applied",
+      status: application.status || "Applied",
     };
     
     set((state) => ({
