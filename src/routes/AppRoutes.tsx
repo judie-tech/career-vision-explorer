@@ -156,6 +156,11 @@ export const AppRoutes = () => {
             <JobSeekerDashboard />
           </ProtectedRoute>
         } />
+        <Route path="/jobseeker/settings" element={
+          <ProtectedRoute requiredRole="jobseeker">
+            <JobSeekerSettings />
+          </ProtectedRoute>
+        } />
         <Route path="/profile" element={
           <ProtectedRoute>
             <Profile />
