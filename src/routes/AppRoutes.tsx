@@ -24,6 +24,7 @@ import JobSeekerDashboard from "@/pages/admin/JobSeekerDashboard";
 import AdminLogin from "@/pages/admin/AdminLogin";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminJobseekers from "@/pages/admin/AdminJobseekers";
 import AdminJobs from "@/pages/admin/AdminJobs";
 import AdminSkills from "@/pages/admin/AdminSkills";
 import AdminCareerPaths from "@/pages/admin/AdminCareerPaths";
@@ -68,6 +69,11 @@ export const AppRoutes = () => {
         <Route path="/admin/users" element={
           <ProtectedRoute requiredRole="admin">
             <AdminUsers />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/jobseeker" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminJobseekers />
           </ProtectedRoute>
         } />
         <Route path="/admin/profiles" element={

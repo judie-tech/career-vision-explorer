@@ -1,6 +1,7 @@
 
 import { LearningPathsProvider } from "@/hooks/use-learning-paths";
 import { UserProfileProvider } from "@/hooks/use-user-profile";
+import { UsersProvider } from "@/hooks/use-users";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
@@ -12,13 +13,15 @@ export const AppProviders = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <UserProfileProvider>
-          <LearningPathsProvider>
-            {children}
-            <Toaster />
-            <Sonner />
-          </LearningPathsProvider>
-        </UserProfileProvider>
+        <UsersProvider>
+          <UserProfileProvider>
+            <LearningPathsProvider>
+              {children}
+              <Toaster />
+              <Sonner />
+            </LearningPathsProvider>
+          </UserProfileProvider>
+        </UsersProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
