@@ -25,26 +25,30 @@ const ProfileMetrics = ({
   applicationStats,
 }: ProfileMetricsProps) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <ProfileInfoCard
-        userName={userProfile.name}
-        userRole={userProfile.role}
-        userEducation={userProfile.education}
-        userExperience={userProfile.experience}
-        userLocation={userProfile.location}
-        userBio={userProfile.bio}
-        profileImage={userProfile.profileImage}
-      />
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+      <div className="lg:col-span-2">
+        <ProfileInfoCard
+          userName={userProfile.name}
+          userRole={userProfile.role}
+          userEducation={userProfile.education}
+          userExperience={userProfile.experience}
+          userLocation={userProfile.location}
+          userBio={userProfile.bio}
+          profileImage={userProfile.profileImage}
+        />
+      </div>
       
-      <ProfileCompletionCard
-        profileCompletionScore={userProfile.profileComplete}
-        verifiedSkills={verifiedSkills}
-        totalSkills={totalSkills}
-      />
-      
-      <ApplicationStatsCard
-        applicationStats={applicationStats}
-      />
+      <div className="space-y-6">
+        <ProfileCompletionCard
+          profileCompletionScore={userProfile.profileComplete}
+          verifiedSkills={verifiedSkills}
+          totalSkills={totalSkills}
+        />
+        
+        <ApplicationStatsCard
+          applicationStats={applicationStats}
+        />
+      </div>
     </div>
   );
 };

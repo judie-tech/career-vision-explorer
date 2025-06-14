@@ -109,60 +109,88 @@ const Profile = () => {
   
   return (
     <Layout>
-      <div className="container py-8">
-        <ProfileHeader
-          userName={currentProfile.name}
-          userRole={currentProfile.role}
-          userEducation={currentProfile.education}
-          userExperience={currentProfile.experience}
-          onEditProfile={() => setShowEditProfileDialog(true)}
-        />
-        
-        <div className="mb-8">
-          <ProfileImageUpload
-            currentImage={currentProfile.profileImage}
-            onImageUpload={handleImageUpload}
+      <div className="min-h-screen bg-gray-50">
+        <div className="container py-8 max-w-7xl mx-auto">
+          <ProfileHeader
+            userName={currentProfile.name}
+            userRole={currentProfile.role}
+            userEducation={currentProfile.education}
+            userExperience={currentProfile.experience}
+            onEditProfile={() => setShowEditProfileDialog(true)}
+          />
+          
+          <div className="mb-10">
+            <ProfileImageUpload
+              currentImage={currentProfile.profileImage}
+              onImageUpload={handleImageUpload}
+            />
+          </div>
+          
+          <ProfileMetrics
+            userProfile={currentProfile}
+            verifiedSkills={safeVerifiedSkills}
+            totalSkills={safeTotalSkills}
+            applicationStats={applicationStats}
+          />
+          
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <div className="border-b border-gray-200 bg-gray-50/50">
+                <TabsList className="w-full justify-start h-auto p-0 bg-transparent rounded-none">
+                  <TabsTrigger 
+                    value="overview" 
+                    className="px-8 py-4 rounded-none data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:shadow-none font-medium"
+                  >
+                    Overview
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="resume" 
+                    className="px-8 py-4 rounded-none data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:shadow-none font-medium"
+                  >
+                    Resume & Skills
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="assessments" 
+                    className="px-8 py-4 rounded-none data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:shadow-none font-medium"
+                  >
+                    Assessments
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="learning" 
+                    className="px-8 py-4 rounded-none data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:shadow-none font-medium"
+                  >
+                    Learning Paths
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              
+              <div className="p-8">
+                <ProfileTabsContent
+                  skills={safeSkills}
+                  recentAssessments={recentAssessments}
+                  upcomingInterviews={upcomingInterviews}
+                  onShowSkillsDialog={() => setShowSkillsDialog(true)}
+                  onShowInterviewDialog={() => setShowInterviewDialog(true)}
+                  onUpdateSkill={handleUpdateSkill}
+                  onVerifySkill={handleVerifySkill}
+                />
+              </div>
+            </Tabs>
+          </div>
+
+          <ProfileDialogs
+            showApplicationDialog={showApplicationDialog}
+            setShowApplicationDialog={setShowApplicationDialog}
+            showSkillsDialog={showSkillsDialog}
+            setShowSkillsDialog={setShowSkillsDialog}
+            showInterviewDialog={showInterviewDialog}
+            setShowInterviewDialog={setShowInterviewDialog}
+            showEditProfileDialog={showEditProfileDialog}
+            setShowEditProfileDialog={setShowEditProfileDialog}
+            userProfile={currentProfile}
+            onProfileSave={handleProfileSave}
           />
         </div>
-        
-        <ProfileMetrics
-          userProfile={currentProfile}
-          verifiedSkills={safeVerifiedSkills}
-          totalSkills={safeTotalSkills}
-          applicationStats={applicationStats}
-        />
-        
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-4 mb-8">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="resume">Resume & Skills</TabsTrigger>
-            <TabsTrigger value="assessments">Assessments</TabsTrigger>
-            <TabsTrigger value="learning">Learning Paths</TabsTrigger>
-          </TabsList>
-          
-          <ProfileTabsContent
-            skills={safeSkills}
-            recentAssessments={recentAssessments}
-            upcomingInterviews={upcomingInterviews}
-            onShowSkillsDialog={() => setShowSkillsDialog(true)}
-            onShowInterviewDialog={() => setShowInterviewDialog(true)}
-            onUpdateSkill={handleUpdateSkill}
-            onVerifySkill={handleVerifySkill}
-          />
-        </Tabs>
-
-        <ProfileDialogs
-          showApplicationDialog={showApplicationDialog}
-          setShowApplicationDialog={setShowApplicationDialog}
-          showSkillsDialog={showSkillsDialog}
-          setShowSkillsDialog={setShowSkillsDialog}
-          showInterviewDialog={showInterviewDialog}
-          setShowInterviewDialog={setShowInterviewDialog}
-          showEditProfileDialog={showEditProfileDialog}
-          setShowEditProfileDialog={setShowEditProfileDialog}
-          userProfile={currentProfile}
-          onProfileSave={handleProfileSave}
-        />
       </div>
     </Layout>
   );
