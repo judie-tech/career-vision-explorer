@@ -42,7 +42,7 @@ import InterviewSchedule from "./pages/employer/InterviewSchedule";
 import JobApplicants from "./pages/employer/JobApplicants";
 import AllApplicants from "./pages/employer/AllApplicants";
 
-import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
