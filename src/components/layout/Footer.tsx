@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -8,7 +7,7 @@ const Footer = () => {
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
           <div className="space-y-8 xl:col-span-1">
             <Link to="/" className="flex items-center">
-              <span className="text-2xl font-bold gradient-text">VisionDrill</span>
+              <span className="text-2xl font-bold gradient-text">Visiondrill</span>
             </Link>
             <p className="text-gray-500 text-base">
               Navigate your career journey with confidence and clarity.
@@ -130,7 +129,7 @@ const Footer = () => {
         </div>
         <div className="mt-12 border-t border-gray-200 pt-8">
           <p className="text-base text-gray-400 xl:text-center">
-            &copy; {new Date().getFullYear()} VisionDrill Career Explorer. All rights reserved.
+            &copy; {new Date().getFullYear()} Visiondrill Career Explorer. All rights reserved.
           </p>
         </div>
       </div>
