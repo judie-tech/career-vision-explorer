@@ -15,6 +15,7 @@ import NotFound from "@/pages/NotFound";
 import Profile from "@/pages/Profile";
 import Skills from "@/pages/Skills";
 import CareerPaths from "@/pages/CareerPaths";
+import LearningPaths from "@/pages/LearningPaths";
 import Partners from "@/pages/Partners";
 import Insights from "@/pages/Insights";
 import JobSeekerDashboard from "@/pages/admin/JobSeekerDashboard";
@@ -161,6 +162,11 @@ export const AppRoutes = () => {
         <Route path="/career-paths" element={
           <ProtectedRoute>
             <CareerPaths />
+          </ProtectedRoute>
+        } />
+        <Route path="/learning-paths" element={
+          <ProtectedRoute>
+            <LearningPaths />
           </ProtectedRoute>
         } />
         <Route path="/partners" element={
