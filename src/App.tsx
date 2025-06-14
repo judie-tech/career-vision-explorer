@@ -27,6 +27,7 @@ import AdminTestimonials from "@/pages/admin/AdminTestimonials";
 import AdminContent from "@/pages/admin/AdminContent";
 import EmployerDashboard from "@/pages/admin/EmployerDashboard";
 import JobSeekerDashboard from "@/pages/admin/JobSeekerDashboard";
+import EmployerJobs from "@/pages/employer/EmployerJobs";
 import JobApplicants from "@/pages/employer/JobApplicants";
 import AllApplicants from "@/pages/employer/AllApplicants";
 import InterviewSchedule from "@/pages/employer/InterviewSchedule";
@@ -106,6 +107,11 @@ function App() {
                 <Route path="/employer/dashboard" element={
                   <ProtectedRoute requiredRole="employer">
                     <EmployerDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/employer/jobs" element={
+                  <ProtectedRoute requiredRole="employer">
+                    <EmployerJobs />
                   </ProtectedRoute>
                 } />
                 <Route path="/employer/jobs/:jobId/applicants" element={
