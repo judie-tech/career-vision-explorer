@@ -4,36 +4,31 @@ import { AdminMetrics } from "@/components/admin/AdminMetrics";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/sonner";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { user, isAuthenticated, hasRole } = useAuth();
 
   useEffect(() => {
     console.log("AdminDashboard mounted", { user, isAuthenticated });
     
     if (!isAuthenticated) {
-      toast({
-        title: "Access Denied",
+      toast.error("Access Denied", {
         description: "Please log in to access the admin dashboard",
-        variant: "destructive",
       });
       navigate("/admin/login");
       return;
     }
 
     if (!hasRole("admin")) {
-      toast({
-        title: "Access Denied", 
+      toast.error("Access Denied", {
         description: "You don't have permission to access the admin dashboard",
-        variant: "destructive",
       });
       navigate("/");
       return;
     }
-  }, [isAuthenticated, hasRole, navigate, toast, user]);
+  }, [isAuthenticated, hasRole, navigate, user]);
 
   if (!isAuthenticated || !hasRole("admin")) {
     return null;

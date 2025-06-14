@@ -9,8 +9,7 @@ import {
   CardTitle,
   CardFooter
 } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { toast as sonnerToast } from "@/components/ui/sonner";
+import { toast } from "@/components/ui/sonner";
 import * as z from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { Shield, Briefcase, User, ArrowLeft } from "lucide-react";
@@ -33,7 +32,6 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { toast } = useToast();
   const { login, hasRole, isAuthenticated, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [loginType, setLoginType] = useState<'admin' | 'jobseeker' | 'employer'>('admin');
@@ -47,7 +45,7 @@ const AdminLogin = () => {
       const dashboardUrl = getDashboardForRole(user.role);
       navigate(dashboardUrl);
       
-      sonnerToast.success("Already Logged In", {
+      toast.success("Already Logged In", {
         description: `You're already logged in as ${user.name}`,
       });
     }
@@ -59,7 +57,7 @@ const AdminLogin = () => {
       case 'admin':
         return '/admin/dashboard';
       case 'employer':
-        return '/employer/jobs';
+        return '/employer/dashboard';
       case 'jobseeker':
         return '/jobseeker/dashboard';
       default:
@@ -97,12 +95,7 @@ const AdminLogin = () => {
       const success = await login(values.email, values.password);
       
       if (success) {
-        sonnerToast.success("Login Successful", {
-          description: `Welcome to the ${loginType} dashboard`,
-        });
-        
-        toast({
-          title: "Login Successful",
+        toast.success("Login Successful", {
           description: `Welcome to the ${loginType} dashboard`,
         });
         
@@ -114,26 +107,14 @@ const AdminLogin = () => {
           navigate(dashboardUrl);
         }
       } else {
-        sonnerToast.error("Login Failed", {
-          description: "Invalid email or password",
-        });
-        
-        toast({
-          title: "Login Failed",
-          description: "Invalid email or password",
-          variant: "destructive",
+        toast.error("Login Failed", {
+          description: "Invalid email or password. Please check your credentials.",
         });
       }
     } catch (error) {
       console.error('Login error:', error);
-      sonnerToast.error("Login Error", {
-        description: "An error occurred while logging in",
-      });
-      
-      toast({
-        title: "Login Error",
-        description: "An error occurred while logging in",
-        variant: "destructive",
+      toast.error("Login Error", {
+        description: "An unexpected error occurred. Please try again.",
       });
     } finally {
       setIsLoading(false);
