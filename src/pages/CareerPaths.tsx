@@ -8,51 +8,51 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Search, BarChart2, Route, Compass, Filter, Sparkles, TrendingUp, Clock } from "lucide-react";
 import CareerPathVisualizer from "@/components/career/CareerPathVisualizer";
+import { useCareerPaths } from "@/hooks/use-career-paths";
 
 const CareerPaths = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const { careerPaths } = useCareerPaths();
   
-  const popularPaths = [
-    {
-      title: "Software Development",
-      description: "Frontend, Backend, and Full-stack development careers",
-      duration: "6-12 months",
-      difficulty: "Beginner to Advanced",
-      steps: 4,
-      color: "bg-blue-500"
-    },
-    {
-      title: "Data Science",
-      description: "Analytics, Machine Learning, and AI careers",
-      duration: "8-18 months", 
-      difficulty: "Intermediate to Advanced",
-      steps: 5,
-      color: "bg-purple-500"
-    },
-    {
-      title: "Digital Marketing",
-      description: "SEO, Content, and Social Media marketing",
-      duration: "3-6 months",
-      difficulty: "Beginner to Intermediate", 
-      steps: 3,
-      color: "bg-green-500"
-    },
-    {
-      title: "Product Management",
-      description: "Product strategy, roadmapping, and leadership",
-      duration: "6-12 months",
-      difficulty: "Intermediate to Advanced",
-      steps: 4,
-      color: "bg-orange-500"
-    }
-  ];
+  // Create popular paths from the career paths data
+  const popularPaths = careerPaths.map(path => ({
+    title: path.title,
+    description: path.description,
+    duration: path.estimatedDuration,
+    difficulty: path.difficulty,
+    steps: path.steps.length,
+    color: path.category === 'Development' ? 'bg-blue-500' : 
+           path.category === 'Data Science' ? 'bg-purple-500' :
+           path.category === 'Design' ? 'bg-green-500' : 'bg-orange-500',
+    id: path.id,
+    category: path.category,
+    tags: path.tags
+  }));
 
-  const filteredPaths = popularPaths.filter(path => 
-    searchQuery === "" || 
-    path.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    path.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter paths based on search query and selected filter
+  const filteredPaths = popularPaths.filter(path => {
+    const matchesSearch = searchQuery === "" || 
+      path.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      path.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      path.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      path.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesFilter = selectedFilter === "all" || 
+      (selectedFilter === "trending" && ['Development', 'Data Science'].includes(path.category));
+    
+    return matchesSearch && matchesFilter;
+  });
+
+  const handlePathClick = (pathId: string) => {
+    console.log(`Selected career path: ${pathId}`);
+    // The CareerPathVisualizer will handle the detailed view
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setSelectedFilter("all");
+  };
   
   return (
     <Layout>
@@ -92,7 +92,7 @@ const CareerPaths = () => {
                     onClick={() => setSelectedFilter("all")}
                     className="h-12"
                   >
-                    All Paths
+                    All Paths ({popularPaths.length})
                   </Button>
                   <Button 
                     variant={selectedFilter === "trending" ? "default" : "outline"} 
@@ -100,10 +100,24 @@ const CareerPaths = () => {
                     className="h-12"
                   >
                     <TrendingUp className="h-4 w-4 mr-2" />
-                    Trending
+                    Trending ({popularPaths.filter(p => ['Development', 'Data Science'].includes(p.category)).length})
                   </Button>
+                  {(searchQuery || selectedFilter !== "all") && (
+                    <Button 
+                      variant="ghost" 
+                      onClick={handleClearSearch}
+                      className="h-12"
+                    >
+                      Clear
+                    </Button>
+                  )}
                 </div>
               </div>
+              {filteredPaths.length !== popularPaths.length && (
+                <div className="mt-4 text-sm text-muted-foreground">
+                  Showing {filteredPaths.length} of {popularPaths.length} career paths
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -111,44 +125,78 @@ const CareerPaths = () => {
           <div className="mb-12">
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
               <Route className="h-6 w-6 text-blue-600" />
-              Popular Career Paths
+              {selectedFilter === "trending" ? "Trending" : "Popular"} Career Paths
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {filteredPaths.map((path, index) => (
-                <Card key={index} className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 bg-white/90 backdrop-blur-sm hover:scale-105">
-                  <CardHeader className="pb-3">
-                    <div className={`w-12 h-12 rounded-lg ${path.color} flex items-center justify-center mb-3`}>
-                      <Route className="h-6 w-6 text-white" />
-                    </div>
-                    <CardTitle className="text-lg group-hover:text-blue-600 transition-colors">
-                      {path.title}
-                    </CardTitle>
-                    <CardDescription className="text-sm">
-                      {path.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Duration</span>
-                        <Badge variant="secondary" className="text-xs">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {path.duration}
-                        </Badge>
+            
+            {filteredPaths.length === 0 ? (
+              <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+                <CardContent className="p-12 text-center">
+                  <div className="max-w-md mx-auto">
+                    <Search className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">No career paths found</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Try adjusting your search terms or filters to find relevant career paths.
+                    </p>
+                    <Button onClick={handleClearSearch}>
+                      Clear all filters
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredPaths.map((path, index) => (
+                  <Card 
+                    key={path.id || index} 
+                    className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 bg-white/90 backdrop-blur-sm hover:scale-105"
+                    onClick={() => handlePathClick(path.id)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className={`w-12 h-12 rounded-lg ${path.color} flex items-center justify-center mb-3`}>
+                        <Route className="h-6 w-6 text-white" />
                       </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Difficulty</span>
-                        <span className="font-medium">{path.difficulty}</span>
+                      <CardTitle className="text-lg group-hover:text-blue-600 transition-colors">
+                        {path.title}
+                      </CardTitle>
+                      <CardDescription className="text-sm">
+                        {path.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Duration</span>
+                          <Badge variant="secondary" className="text-xs">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {path.duration}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Difficulty</span>
+                          <Badge 
+                            variant={path.difficulty === 'Beginner' ? 'secondary' : 
+                                   path.difficulty === 'Intermediate' ? 'default' : 'destructive'}
+                            className="text-xs"
+                          >
+                            {path.difficulty}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Steps</span>
+                          <span className="font-medium">{path.steps} stages</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Category</span>
+                          <Badge variant="outline" className="text-xs">
+                            {path.category}
+                          </Badge>
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Steps</span>
-                        <span className="font-medium">{path.steps} stages</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
           
           {/* Main Tabs Section */}
