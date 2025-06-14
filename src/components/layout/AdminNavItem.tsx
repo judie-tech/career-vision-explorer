@@ -22,9 +22,9 @@ export const AdminNavItem = () => {
   const getDashboardUrl = () => {
     switch (user?.role) {
       case 'admin':
-        return '/admin';
+        return '/admin/dashboard';
       case 'employer':
-        return '/employer/dashboard';
+        return '/employer/jobs';
       case 'jobseeker':
         return '/jobseeker/dashboard';
       default:

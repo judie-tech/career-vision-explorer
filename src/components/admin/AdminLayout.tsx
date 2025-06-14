@@ -29,7 +29,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   }, [isMobile]);
 
   const navigationItems = [
-    { name: "Dashboard", icon: LayoutDashboard, href: "/admin" },
+    { name: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
     { name: "Users", icon: Users, href: "/admin/users" },
     { name: "Jobs", icon: Briefcase, href: "/admin/jobs" },
     { name: "Career Paths", icon: BookOpen, href: "/admin/career-paths" },
@@ -41,10 +41,10 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   ];
   
   const isActiveRoute = (path: string) => {
-    if (path === "/admin" && location.pathname === "/admin") {
+    if (path === "/admin/dashboard" && (location.pathname === "/admin" || location.pathname === "/admin/dashboard")) {
       return true;
     }
-    return location.pathname.startsWith(path) && path !== "/admin";
+    return location.pathname.startsWith(path) && path !== "/admin/dashboard";
   };
 
   const handleExitAdmin = () => {
