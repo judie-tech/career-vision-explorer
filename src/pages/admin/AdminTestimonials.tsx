@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -24,6 +23,7 @@ const AdminTestimonials = () => {
       rating: 5,
       status: "approved",
       category: "job-seeker",
+      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=100&h=100",
       createdAt: "2024-01-15",
       updatedAt: "2024-01-16",
     },
@@ -36,6 +36,7 @@ const AdminTestimonials = () => {
       rating: 4,
       status: "approved",
       category: "employer",
+      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=100&h=100",
       createdAt: "2024-01-10",
       updatedAt: "2024-01-12",
     },
@@ -48,6 +49,7 @@ const AdminTestimonials = () => {
       rating: 5,
       status: "pending",
       category: "job-seeker",
+      image: "https://images.unsplash.com/photo-1494790108755-2616b612b3-a?auto=format&fit=crop&w=100&h=100",
       createdAt: "2024-01-20",
       updatedAt: "2024-01-20",
     },
@@ -82,6 +84,7 @@ const AdminTestimonials = () => {
       rating: Number(data.rating),
       status: data.status,
       category: data.category,
+      image: data.image,
       createdAt: new Date().toISOString().split('T')[0],
       updatedAt: new Date().toISOString().split('T')[0],
     };
@@ -109,6 +112,7 @@ const AdminTestimonials = () => {
             rating: Number(data.rating),
             status: data.status,
             category: data.category,
+            image: data.image,
             updatedAt: new Date().toISOString().split('T')[0]
           }
         : testimonial
@@ -155,6 +159,7 @@ const AdminTestimonials = () => {
       rating: testimonial.rating.toString(),
       status: testimonial.status,
       category: testimonial.category,
+      image: testimonial.image || "",
     });
   };
 

@@ -8,6 +8,7 @@ export interface Testimonial {
   rating: number;
   status: "pending" | "approved" | "rejected";
   category: "job-seeker" | "employer" | "career-coach" | "general";
+  image?: string;
   createdAt: string;
   updatedAt: string;
 }

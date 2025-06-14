@@ -11,6 +11,7 @@ const testimonialSchema = z.object({
   rating: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 1 && Number(val) <= 5, "Rating must be between 1 and 5"),
   status: z.enum(["pending", "approved", "rejected"]),
   category: z.enum(["job-seeker", "employer", "career-coach", "general"]),
+  image: z.string().optional(),
 });
 
 export type TestimonialFormData = z.infer<typeof testimonialSchema>;
@@ -26,6 +27,7 @@ export const useTestimonialForm = () => {
       rating: "5",
       status: "pending",
       category: "job-seeker",
+      image: "",
     },
   });
 };

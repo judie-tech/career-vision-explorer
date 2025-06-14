@@ -42,6 +42,7 @@ const TestimonialsTable = ({ testimonials, onEdit, onDelete, onStatusChange }: T
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Profile</TableHead>
               <TableHead>Name & Company</TableHead>
               <TableHead>Content</TableHead>
               <TableHead>Rating</TableHead>
@@ -54,6 +55,13 @@ const TestimonialsTable = ({ testimonials, onEdit, onDelete, onStatusChange }: T
           <TableBody>
             {testimonials.map((testimonial) => (
               <TableRow key={testimonial.id}>
+                <TableCell>
+                  <img 
+                    src={testimonial.image || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=40&h=40"} 
+                    alt={`${testimonial.name} profile`}
+                    className="w-10 h-10 rounded-full object-cover border border-border"
+                  />
+                </TableCell>
                 <TableCell>
                   <div>
                     <div className="font-medium">{testimonial.name}</div>
