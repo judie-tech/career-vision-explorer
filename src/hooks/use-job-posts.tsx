@@ -1,6 +1,5 @@
-
 import { create } from "zustand";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 export interface JobPost {
   id: string;

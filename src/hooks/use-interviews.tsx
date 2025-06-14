@@ -1,93 +1,100 @@
 
 import { create } from "zustand";
-import { toast } from "@/components/ui/sonner";
 
 export interface Interview {
   id: string;
   applicantId: string;
   applicantName: string;
-  position: string;
-  scheduledDate: string; // ISO string
+  jobId: string;
+  jobTitle: string;
+  scheduledDate: string;
+  scheduledTime: string;
   status: "Scheduled" | "Completed" | "Cancelled" | "Rescheduled";
+  interviewType: "Phone" | "Video" | "In-Person";
   notes?: string;
+  interviewer: string;
 }
 
 interface InterviewsStore {
   interviews: Interview[];
-  addInterview: (interview: Interview) => void;
-  getInterviewById: (id: string) => Interview | undefined;
-  cancelInterview: (id: string) => void;
-  updateInterview: (id: string, updates: Partial<Interview>) => void;
-  getAllInterviews: () => Interview[];
+  scheduleInterview: (interview: Omit<Interview, "id">) => void;
+  updateInterviewStatus: (id: string, status: Interview["status"]) => void;
+  getInterviewsByJobId: (jobId: string) => Interview[];
+  getUpcomingInterviews: () => Interview[];
 }
 
-// Sample interview data
 const initialInterviews: Interview[] = [
   {
     id: "1",
     applicantId: "2",
     applicantName: "Michael Chen",
-    position: "Full Stack Engineer",
-    scheduledDate: "2023-05-15T14:00:00Z",
+    jobId: "1",
+    jobTitle: "Senior Frontend Developer",
+    scheduledDate: "2024-06-17",
+    scheduledTime: "10:00",
     status: "Scheduled",
+    interviewType: "Video",
+    interviewer: "Sarah Davis"
   },
   {
     id: "2",
     applicantId: "5",
     applicantName: "Taylor Wilson",
-    position: "Senior Frontend Developer",
-    scheduledDate: "2023-05-16T10:30:00Z",
+    jobId: "1",
+    jobTitle: "Senior Frontend Developer",
+    scheduledDate: "2024-06-18",
+    scheduledTime: "14:00",
     status: "Scheduled",
+    interviewType: "Phone",
+    interviewer: "John Smith"
   },
   {
     id: "3",
-    applicantId: "6",
-    applicantName: "Jordan Lee",
-    position: "Backend Engineer",
-    scheduledDate: "2023-05-17T15:00:00Z",
-    status: "Scheduled",
-  },
+    applicantId: "3",
+    applicantName: "Alex Rodriguez",
+    jobId: "2",
+    jobTitle: "UX Designer",
+    scheduledDate: "2024-06-15",
+    scheduledTime: "11:00",
+    status: "Completed",
+    interviewType: "In-Person",
+    interviewer: "Emily Johnson"
+  }
 ];
 
 export const useInterviews = create<InterviewsStore>((set, get) => ({
   interviews: initialInterviews,
   
-  addInterview: (interview) => {
+  scheduleInterview: (interviewData) => {
+    const newInterview: Interview = {
+      ...interviewData,
+      id: crypto.randomUUID(),
+    };
+    
     set((state) => ({
-      interviews: [...state.interviews, interview]
+      interviews: [...state.interviews, newInterview],
     }));
-    toast.success(`Interview scheduled with ${interview.applicantName}`);
   },
   
-  getInterviewById: (id) => {
-    return get().interviews.find(interview => interview.id === id);
+  updateInterviewStatus: (id, status) => {
+    set((state) => ({
+      interviews: state.interviews.map(interview =>
+        interview.id === id 
+          ? { ...interview, status }
+          : interview
+      ),
+    }));
   },
   
-  cancelInterview: (id) => {
-    const interview = get().interviews.find(i => i.id === id);
-    if (interview) {
-      set((state) => ({
-        interviews: state.interviews.map(i => 
-          i.id === id ? { ...i, status: "Cancelled" } : i
-        )
-      }));
-      toast.success(`Interview with ${interview.applicantName} has been cancelled`);
-    }
+  getInterviewsByJobId: (jobId) => {
+    return get().interviews.filter(interview => interview.jobId === jobId);
   },
   
-  updateInterview: (id, updates) => {
-    const interview = get().interviews.find(i => i.id === id);
-    if (interview) {
-      set((state) => ({
-        interviews: state.interviews.map(i => 
-          i.id === id ? { ...i, ...updates } : i
-        )
-      }));
-      toast.success(`Interview with ${interview.applicantName} has been updated`);
-    }
+  getUpcomingInterviews: () => {
+    const now = new Date();
+    return get().interviews.filter(interview => {
+      const interviewDate = new Date(`${interview.scheduledDate}T${interview.scheduledTime}`);
+      return interviewDate > now && interview.status === "Scheduled";
+    });
   },
-  
-  getAllInterviews: () => {
-    return get().interviews;
-  }
 }));
