@@ -26,6 +26,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EditJobDialog } from "./EditJobDialog";
+import { BoostJobDialog } from "./BoostJobDialog";
 import { deleteJobDialog } from "@/lib/utils";
 import { Eye, Edit, Trash, List } from "lucide-react";
 import { useJobPosts, JobPost } from "@/hooks/use-job-posts";
@@ -48,6 +49,13 @@ export function JobListingsTable() {
     });
   };
 
+  // Sort jobs to show boosted ones first
+  const sortedJobs = [...filteredJobs].sort((a, b) => {
+    if (a.isBoosted && !b.isBoosted) return -1;
+    if (!a.isBoosted && b.isBoosted) return 1;
+    return 0;
+  });
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -59,7 +67,7 @@ export function JobListingsTable() {
         </div>
       </CardHeader>
       <CardContent>
-        {filteredJobs.length === 0 ? (
+        {sortedJobs.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             No job listings match your current filters
           </div>
@@ -77,10 +85,17 @@ export function JobListingsTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredJobs.map((job) => (
-                <TableRow key={job.id}>
+              {sortedJobs.map((job) => (
+                <TableRow key={job.id} className={job.isBoosted ? "bg-green-50 border-green-200" : ""}>
                   <TableCell>
-                    <div className="font-medium">{job.title}</div>
+                    <div className="font-medium flex items-center gap-2">
+                      {job.title}
+                      {job.isBoosted && (
+                        <Badge className="bg-green-100 text-green-800 text-xs">
+                          Boosted
+                        </Badge>
+                      )}
+                    </div>
                     <div className="text-sm text-muted-foreground">{job.type}</div>
                   </TableCell>
                   <TableCell>{job.location}</TableCell>
@@ -90,15 +105,15 @@ export function JobListingsTable() {
                   <TableCell>{job.applicants}</TableCell>
                   <TableCell>{job.views}</TableCell>
                   <TableCell>
-                    {job.isBoosted && (
+                    {job.isBoosted ? (
                       <Badge className="bg-green-100 text-green-800">Boosted</Badge>
-                    )}
-                    {!job.isBoosted && (
+                    ) : (
                       <Badge variant="outline">Standard</Badge>
                     )}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
+                      <BoostJobDialog job={job} />
                       <EditJobDialog job={job} />
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
