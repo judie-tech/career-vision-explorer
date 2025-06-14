@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -49,17 +48,22 @@ const signupSchema = z.object({
   role: z.enum(["jobseeker", "employer"], {
     required_error: "Please select your role.",
   }),
-  countryCode: z.string().min(1, {
-    message: "Please select a country code.",
-  }),
-  phoneNumber: z.string().min(1, {
-    message: "Phone number is required.",
-  }).regex(/^\d+$/, {
-    message: "Phone number must contain only digits.",
-  }),
+  countryCode: z.string().optional(),
+  phoneNumber: z.string().optional(),
   profileImage: z.string().min(1, {
     message: "Profile image is required.",
   }),
+}).refine((data) => {
+  // Phone number is required only for job seekers
+  if (data.role === "jobseeker") {
+    return data.countryCode && data.countryCode.length > 0 && 
+           data.phoneNumber && data.phoneNumber.length > 0 && 
+           /^\d+$/.test(data.phoneNumber);
+  }
+  return true;
+}, {
+  message: "Phone number is required for job seekers.",
+  path: ["phoneNumber"],
 });
 
 const Signup = () => {
@@ -82,6 +86,8 @@ const Signup = () => {
       profileImage: "",
     },
   });
+
+  const selectedRole = form.watch("role");
 
   const handleImageChange = (imageUrl: string) => {
     setProfileImage(imageUrl);
@@ -110,7 +116,9 @@ const Signup = () => {
     setIsLoading(true);
     toast({
       title: "LinkedIn Data Imported",
-      description: "Please complete your profile with image and phone number.",
+      description: selectedRole === "jobseeker" 
+        ? "Please complete your profile with image and phone number."
+        : "Please complete your profile with image.",
     });
     
     setTimeout(() => {
@@ -125,7 +133,9 @@ const Signup = () => {
       
       toast({
         title: "LinkedIn Import Complete",
-        description: "Profile information imported. Please add your photo and phone number to continue.",
+        description: selectedRole === "jobseeker"
+          ? "Profile information imported. Please add your photo and phone number to continue."
+          : "Profile information imported. Please add your photo to continue.",
       });
     }, 1500);
   };
@@ -211,11 +221,13 @@ const Signup = () => {
                   )}
                 />
 
-                <PhoneNumberInput
-                  control={form.control}
-                  countryCodeName="countryCode"
-                  phoneNumberName="phoneNumber"
-                />
+                {selectedRole === "jobseeker" && (
+                  <PhoneNumberInput
+                    control={form.control}
+                    countryCodeName="countryCode"
+                    phoneNumberName="phoneNumber"
+                  />
+                )}
                 
                 <FormField
                   control={form.control}
@@ -282,6 +294,7 @@ const Signup = () => {
           onOpenChange={setLinkedInImportOpen}
           onConnect={handleLinkedInConnect}
           isLoading={isLoading}
+          selectedRole={selectedRole}
         />
       </div>
     </Layout>
