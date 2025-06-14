@@ -1,0 +1,29 @@
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
+const contentSchema = z.object({
+  title: z.string().min(2, "Title must be at least 2 characters"),
+  slug: z.string().min(2, "Slug must be at least 2 characters"),
+  type: z.enum(["page", "article", "blog", "faq"]),
+  status: z.enum(["draft", "published", "archived"]),
+  content: z.string().min(10, "Content must be at least 10 characters"),
+  excerpt: z.string().min(5, "Excerpt must be at least 5 characters"),
+});
+
+export type ContentFormData = z.infer<typeof contentSchema>;
+
+export const useContentForm = () => {
+  return useForm<ContentFormData>({
+    resolver: zodResolver(contentSchema),
+    defaultValues: {
+      title: "",
+      slug: "",
+      type: "page",
+      status: "draft",
+      content: "",
+      excerpt: "",
+    },
+  });
+};
