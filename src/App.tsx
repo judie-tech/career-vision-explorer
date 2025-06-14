@@ -1,203 +1,103 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as SonnerToaster } from "@/components/ui/sonner";
-import { UserProfileProvider } from "@/hooks/use-user-profile";
-import { ProfilesProvider } from "@/hooks/use-profiles";
-import { UsersProvider } from "@/hooks/use-users";
-import { CareerPathsProvider } from "@/hooks/use-career-paths";
-import Index from "@/pages/Index";
-import Login from "@/pages/Login";
-import Signup from "@/pages/Signup";
-import Jobs from "@/pages/Jobs";
-import JobDetails from "@/pages/JobDetails";
-import Profile from "@/pages/Profile";
-import Skills from "@/pages/Skills";
-import CareerPaths from "@/pages/CareerPaths";
-import Partners from "@/pages/Partners";
-import Insights from "@/pages/Insights";
-import NotFound from "@/pages/NotFound";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
+import Index from "./pages/Index";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Jobs from "./pages/Jobs";
+import JobDetails from "./pages/JobDetails";
+import CareerPaths from "./pages/CareerPaths";
+import Skills from "./pages/Skills";
+import Insights from "./pages/Insights";
+import Profile from "./pages/Profile";
+import PublicProfile from "./pages/PublicProfile";
+import Partners from "./pages/Partners";
+import NotFound from "./pages/NotFound";
 
-// Admin Pages
-import AdminLogin from "@/pages/admin/AdminLogin";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
-import AdminUsers from "@/pages/admin/AdminUsers";
-import AdminJobs from "@/pages/admin/AdminJobs";
-import AdminSkills from "@/pages/admin/AdminSkills";
-import AdminCareerPaths from "@/pages/admin/AdminCareerPaths";
-import AdminTestimonials from "@/pages/admin/AdminTestimonials";
-import AdminContent from "@/pages/admin/AdminContent";
-import AdminInsights from "@/pages/admin/AdminInsights";
-import AdminSettings from "@/pages/admin/AdminSettings";
+// Admin pages
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminJobs from "./pages/admin/AdminJobs";
+import AdminCareerPaths from "./pages/admin/AdminCareerPaths";
+import AdminSkills from "./pages/admin/AdminSkills";
+import AdminInsights from "./pages/admin/AdminInsights";
+import AdminHomeImages from "./pages/admin/AdminHomeImages";
+import AdminTestimonials from "./pages/admin/AdminTestimonials";
+import AdminContent from "./pages/admin/AdminContent";
+import AdminSettings from "./pages/admin/AdminSettings";
+import AdminProfiles from "./pages/admin/AdminProfiles";
+import JobSeekerDashboard from "./pages/admin/JobSeekerDashboard";
+import EmployerDashboard from "./pages/admin/EmployerDashboard";
 
-// Employer Pages
-import EmployerDashboard from "@/pages/employer/EmployerDashboard";
-import EmployerJobs from "@/pages/employer/EmployerJobs";
-import JobApplicants from "@/pages/employer/JobApplicants";
-import AllApplicants from "@/pages/employer/AllApplicants";
-import EmployerInterviews from "@/pages/employer/EmployerInterviews";
-import InterviewSchedule from "@/pages/employer/InterviewSchedule";
+// Employer pages
+import EmployerDashboardPage from "./pages/employer/EmployerDashboard";
+import EmployerJobs from "./pages/employer/EmployerJobs";
+import EmployerInterviews from "./pages/employer/EmployerInterviews";
+import InterviewSchedule from "./pages/employer/InterviewSchedule";
+import JobApplicants from "./pages/employer/JobApplicants";
+import AllApplicants from "./pages/employer/AllApplicants";
 
-// Job Seeker Dashboard
-import JobSeekerDashboard from "@/pages/admin/JobSeekerDashboard";
-
-import PublicProfile from "@/pages/PublicProfile";
-import AdminProfiles from "@/pages/admin/AdminProfiles";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <UserProfileProvider>
-          <ProfilesProvider>
-            <UsersProvider>
-              <CareerPathsProvider>
-                <Router>
-                  <Routes>
-                    {/* Public Routes */}
-                    <Route path="/" element={<Index />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<Signup />} />
-                    <Route path="/profile/:id" element={<PublicProfile />} />
-                    
-                    {/* Job Routes */}
-                    <Route path="/jobs" element={<Jobs />} />
-                    <Route path="/jobs/:id" element={<JobDetails />} />
-                    
-                    {/* Protected Routes */}
-                    <Route path="/profile" element={
-                      <ProtectedRoute>
-                        <Profile />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/skills" element={
-                      <ProtectedRoute>
-                        <Skills />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/career-paths" element={
-                      <ProtectedRoute>
-                        <CareerPaths />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/partners" element={
-                      <ProtectedRoute>
-                        <Partners />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/insights" element={
-                      <ProtectedRoute>
-                        <Insights />
-                      </ProtectedRoute>
-                    } />
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/jobs" element={<Jobs />} />
+              <Route path="/jobs/:id" element={<JobDetails />} />
+              <Route path="/career-paths" element={<CareerPaths />} />
+              <Route path="/skills" element={<Skills />} />
+              <Route path="/insights" element={<Insights />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile/:id" element={<PublicProfile />} />
+              <Route path="/partners" element={<Partners />} />
 
-                    {/* Job Seeker Dashboard */}
-                    <Route path="/jobseeker/dashboard" element={
-                      <ProtectedRoute>
-                        <JobSeekerDashboard />
-                      </ProtectedRoute>
-                    } />
+              {/* Admin routes */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
+              <Route path="/admin/jobs" element={<ProtectedRoute><AdminJobs /></ProtectedRoute>} />
+              <Route path="/admin/career-paths" element={<ProtectedRoute><AdminCareerPaths /></ProtectedRoute>} />
+              <Route path="/admin/skills" element={<ProtectedRoute><AdminSkills /></ProtectedRoute>} />
+              <Route path="/admin/insights" element={<ProtectedRoute><AdminInsights /></ProtectedRoute>} />
+              <Route path="/admin/home-images" element={<ProtectedRoute><AdminHomeImages /></ProtectedRoute>} />
+              <Route path="/admin/testimonials" element={<ProtectedRoute><AdminTestimonials /></ProtectedRoute>} />
+              <Route path="/admin/content" element={<ProtectedRoute><AdminContent /></ProtectedRoute>} />
+              <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
+              <Route path="/admin/profiles" element={<ProtectedRoute><AdminProfiles /></ProtectedRoute>} />
+              <Route path="/admin/jobseeker-dashboard" element={<ProtectedRoute><JobSeekerDashboard /></ProtectedRoute>} />
+              <Route path="/admin/employer-dashboard" element={<ProtectedRoute><EmployerDashboard /></ProtectedRoute>} />
 
-                    {/* Admin Routes */}
-                    <Route path="/admin/login" element={<AdminLogin />} />
-                    <Route path="/admin" element={
-                      <ProtectedRoute>
-                        <AdminDashboard />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/admin/users" element={
-                      <ProtectedRoute>
-                        <AdminUsers />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/admin/profiles" element={
-                      <ProtectedRoute>
-                        <AdminProfiles />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/admin/jobs" element={
-                      <ProtectedRoute>
-                        <AdminJobs />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/admin/skills" element={
-                      <ProtectedRoute>
-                        <AdminSkills />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/admin/career-paths" element={
-                      <ProtectedRoute>
-                        <AdminCareerPaths />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/admin/testimonials" element={
-                      <ProtectedRoute>
-                        <AdminTestimonials />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/admin/content" element={
-                      <ProtectedRoute>
-                        <AdminContent />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/admin/insights" element={
-                      <ProtectedRoute>
-                        <AdminInsights />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/admin/settings" element={
-                      <ProtectedRoute>
-                        <AdminSettings />
-                      </ProtectedRoute>
-                    } />
+              {/* Employer routes */}
+              <Route path="/employer/dashboard" element={<ProtectedRoute><EmployerDashboardPage /></ProtectedRoute>} />
+              <Route path="/employer/jobs" element={<ProtectedRoute><EmployerJobs /></ProtectedRoute>} />
+              <Route path="/employer/interviews" element={<ProtectedRoute><EmployerInterviews /></ProtectedRoute>} />
+              <Route path="/employer/interviews/schedule" element={<ProtectedRoute><InterviewSchedule /></ProtectedRoute>} />
+              <Route path="/employer/jobs/:jobId/applicants" element={<ProtectedRoute><JobApplicants /></ProtectedRoute>} />
+              <Route path="/employer/applicants" element={<ProtectedRoute><AllApplicants /></ProtectedRoute>} />
 
-                    {/* Employer Routes */}
-                    <Route path="/employer/dashboard" element={
-                      <ProtectedRoute>
-                        <EmployerDashboard />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/employer/jobs" element={
-                      <ProtectedRoute>
-                        <EmployerJobs />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/employer/jobs/:id/applicants" element={
-                      <ProtectedRoute>
-                        <JobApplicants />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/employer/applicants" element={
-                      <ProtectedRoute>
-                        <AllApplicants />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/employer/interviews" element={
-                      <ProtectedRoute>
-                        <EmployerInterviews />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/employer/interviews/schedule" element={
-                      <ProtectedRoute>
-                        <InterviewSchedule />
-                      </ProtectedRoute>
-                    } />
-
-                    {/* Catch-all route */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Router>
-              </CareerPathsProvider>
-            </UsersProvider>
-          </ProfilesProvider>
-        </UserProfileProvider>
-        <Toaster />
-        <SonnerToaster />
+              {/* 404 route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

@@ -12,13 +12,15 @@ import CareerPathSection from "@/components/home/CareerPathSection";
 import CTASection from "@/components/home/CTASection";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Shield, Briefcase, User } from "lucide-react";
+import { Shield, Briefcase, User, Sparkles } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
+import { useHomeImages } from "@/hooks/use-home-images";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const { homeImages } = useHomeImages();
   
   const featuredJobs = [
     {
@@ -52,19 +54,22 @@ const Index = () => {
       id: 1,
       title: "Software Development",
       description: "From junior developer to CTO, explore the software development career path",
-      image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=300&h=200",
+      image: homeImages.find(img => img.category === 'career-paths' && img.title.includes('Software'))?.url || 
+             "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=300&h=200",
     },
     {
       id: 2,
       title: "Data Science",
       description: "Navigate the world of data, from analyst to chief data officer",
-      image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=300&h=200",
+      image: homeImages.find(img => img.category === 'career-paths' && img.title.includes('Data'))?.url || 
+             "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=300&h=200",
     },
     {
       id: 3,
       title: "Product Management",
       description: "Build the roadmap from product associate to VP of Product",
-      image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=300&h=200",
+      image: homeImages.find(img => img.category === 'career-paths' && img.title.includes('Product'))?.url || 
+             "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=300&h=200",
     },
   ];
   
@@ -74,18 +79,21 @@ const Index = () => {
       quote: "Visiondrill helped me understand my career options and find a job that perfectly matches my skills and aspirations.",
       author: "Maria Rodriguez",
       role: "UX Designer at DesignHub",
+      image: homeImages.find(img => img.category === 'testimonials' && img.title.includes('Maria'))?.url,
     },
     {
       id: 2,
       quote: "The career path visualization feature is incredible. It gave me a clear roadmap of skills I need to develop to reach my goals.",
       author: "James Wilson",
       role: "Software Engineer at TechGiant",
+      image: homeImages.find(img => img.category === 'testimonials' && img.title.includes('James'))?.url,
     },
     {
       id: 3,
       quote: "Using Visiondrill's skills assessment helped me identify gaps in my knowledge and focus my learning efforts effectively.",
       author: "Sarah Johnson",
       role: "Product Manager at InnovateNow",
+      image: homeImages.find(img => img.category === 'testimonials' && img.title.includes('Sarah'))?.url,
     },
   ];
   
@@ -117,16 +125,21 @@ const Index = () => {
   return (
     <Layout>
       {isAuthenticated && user && (
-        <div className="bg-primary/5 border-b border-primary/10">
-          <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
-            <div className="text-sm text-muted-foreground">
-              Welcome back, <span className="font-medium text-foreground">{user.name}</span>!
+        <div className="bg-gradient-to-r from-primary/5 via-blue-50 to-purple-50 border-b border-primary/10">
+          <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <div className="text-sm text-muted-foreground">
+                  Welcome back, <span className="font-medium text-foreground">{user.name}</span>!
+                </div>
+              </div>
             </div>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={handleQuickAccess}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-white/80 backdrop-blur-sm hover:bg-white border-primary/20 hover:border-primary/30 shadow-sm"
             >
               {user.role === "admin" ? (
                 <Shield className="h-4 w-4" />
