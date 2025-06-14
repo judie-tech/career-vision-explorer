@@ -23,13 +23,13 @@ export const SkillForm = ({ skill, open, onOpenChange }: SkillFormProps) => {
     name: "",
     category: "",
     description: "",
-    level: "Beginner" as const,
+    level: "Beginner" as "Beginner" | "Intermediate" | "Advanced",
     isActive: true,
     isVerified: false,
     prerequisites: [] as string[],
     learningResources: [] as string[],
     assessmentCriteria: [] as string[],
-    industryDemand: "Medium" as const,
+    industryDemand: "Medium" as "Low" | "Medium" | "High",
     averageSalaryImpact: 0
   });
 
@@ -147,7 +147,7 @@ export const SkillForm = ({ skill, open, onOpenChange }: SkillFormProps) => {
               <Label htmlFor="level">Difficulty Level</Label>
               <Select 
                 value={formData.level} 
-                onValueChange={(value: any) => setFormData(prev => ({ ...prev, level: value }))}
+                onValueChange={(value: "Beginner" | "Intermediate" | "Advanced") => setFormData(prev => ({ ...prev, level: value }))}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -164,7 +164,7 @@ export const SkillForm = ({ skill, open, onOpenChange }: SkillFormProps) => {
               <Label htmlFor="demand">Industry Demand</Label>
               <Select 
                 value={formData.industryDemand} 
-                onValueChange={(value: any) => setFormData(prev => ({ ...prev, industryDemand: value }))}
+                onValueChange={(value: "Low" | "Medium" | "High") => setFormData(prev => ({ ...prev, industryDemand: value }))}
               >
                 <SelectTrigger>
                   <SelectValue />
