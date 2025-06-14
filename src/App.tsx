@@ -70,6 +70,9 @@ function App() {
                 <Route path="/admin/employer" element={<ProtectedRoute><EmployerDashboard /></ProtectedRoute>} />
                 <Route path="/admin/jobseeker" element={<ProtectedRoute><JobSeekerDashboard /></ProtectedRoute>} />
                 
+                {/* Job seeker routes */}
+                <Route path="/jobseeker/dashboard" element={<ProtectedRoute requiredRole="jobseeker"><JobSeekerDashboard /></ProtectedRoute>} />
+                
                 {/* Employer routes */}
                 <Route path="/employer/jobs" element={<ProtectedRoute><EmployerJobs /></ProtectedRoute>} />
                 <Route path="/employer/jobs/:jobId/applicants" element={<ProtectedRoute><JobApplicants /></ProtectedRoute>} />
