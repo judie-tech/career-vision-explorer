@@ -95,6 +95,86 @@ const mockJobDetails = {
       website: "https://innovativesystems.co.ke"
     }
   },
+  "3": {
+    id: "3",
+    title: "UX Designer",
+    company: "Creative Digital Agency",
+    location: "Remote",
+    type: "Contract",
+    salary: "60K-90K KES/month",
+    posted: "3 days ago",
+    matchScore: 78,
+    experienceLevel: "Mid Level",
+    skills: ["Figma", "User Research", "Prototyping", "UI Design"],
+    description: "Looking for a UX Designer to create user-centered designs for web and mobile applications. Strong portfolio and Figma skills required.",
+    requirements: [
+      "3+ years of UX/UI design experience",
+      "Proficiency in Figma and design systems",
+      "Experience with user research methodologies",
+      "Strong portfolio demonstrating design process",
+      "Understanding of accessibility and usability principles"
+    ],
+    responsibilities: [
+      "Conduct user research and usability testing",
+      "Create wireframes, prototypes, and user flows",
+      "Design intuitive user interfaces for web and mobile",
+      "Collaborate with development teams on implementation",
+      "Maintain and evolve design systems"
+    ],
+    benefits: [
+      "Flexible remote work arrangement",
+      "Competitive contract rates",
+      "Creative project variety",
+      "Professional portfolio development",
+      "Networking opportunities"
+    ],
+    companyInfo: {
+      size: "20-50 employees",
+      industry: "Digital Agency",
+      founded: "2019",
+      website: "https://creativedigital.co.ke"
+    }
+  },
+  "4": {
+    id: "4",
+    title: "Data Analyst",
+    company: "Data Insights Co",
+    location: "Mombasa, Kenya",
+    type: "Full-time",
+    salary: "45K-70K KES/month",
+    posted: "Just now",
+    matchScore: 65,
+    experienceLevel: "Entry Level",
+    skills: ["SQL", "Excel", "Data Visualization", "Statistics"],
+    description: "Join our team as a Data Analyst to help extract insights from our growing datasets. Experience with SQL and data visualization tools preferred.",
+    requirements: [
+      "Bachelor's degree in Statistics, Mathematics, or related field",
+      "Proficiency in SQL and Excel",
+      "Experience with data visualization tools (Tableau, Power BI)",
+      "Strong analytical and problem-solving skills",
+      "Basic understanding of statistical concepts"
+    ],
+    responsibilities: [
+      "Analyze large datasets to identify trends and patterns",
+      "Create reports and dashboards for stakeholders",
+      "Perform statistical analysis and data modeling",
+      "Collaborate with teams to define data requirements",
+      "Maintain data quality and integrity standards"
+    ],
+    benefits: [
+      "Entry-level friendly environment",
+      "Comprehensive training program",
+      "Health insurance and benefits",
+      "Career advancement opportunities",
+      "Modern data tools and technologies"
+    ],
+    companyInfo: {
+      size: "30-70 employees",
+      industry: "Data Analytics",
+      founded: "2020",
+      website: "https://datainsights.co.ke"
+    }
+  },
   "5": {
     id: "5",
     title: "Senior Product Manager",
