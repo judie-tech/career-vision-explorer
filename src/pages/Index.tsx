@@ -74,7 +74,7 @@ const Index = () => {
       quote: "Visiondrill helped me understand my career options and find a job that perfectly matches my skills and aspirations.",
       author: "Maria Rodriguez",
       role: "UX Designer at DesignHub",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b3-a?auto=format&fit=crop&w=100&h=100",
+      image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=100&h=100&face=1",
       rating: 5,
     },
     {
@@ -82,7 +82,7 @@ const Index = () => {
       quote: "The career path visualization feature is incredible. It gave me a clear roadmap of skills I need to develop to reach my goals.",
       author: "James Wilson",
       role: "Software Engineer at TechGiant",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=100&h=100",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&h=100&face=1",
       rating: 5,
     },
     {
@@ -90,7 +90,7 @@ const Index = () => {
       quote: "Using Visiondrill's skills assessment helped me identify gaps in my knowledge and focus my learning efforts effectively.",
       author: "Sarah Johnson",
       role: "Product Manager at InnovateNow",
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=100&h=100",
+      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&face=1",
       rating: 4,
     },
   ];
