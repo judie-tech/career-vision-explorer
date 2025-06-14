@@ -49,12 +49,12 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   
   const simulateAiResponse = () => {
     const responses = [
-      "You can import your LinkedIn profile or start fresh. This helps us customize your experience.",
-      "Thank you for sharing your career goals! This helps us understand what you're looking for.",
-      "Great choice! We'll find opportunities that match your work style preference.",
-      "Thanks for sharing your salary expectations. This will help us match you with appropriate opportunities.",
-      "Perfect! We'll focus on opportunities in your preferred location.",
-      "Thanks for completing your profile! Based on your information, I've identified some initial career paths that might interest you."
+      "You can import your LinkedIn profile or start fresh. This will help us customize your experience to match your needs.",
+      "Thank you for sharing your career goals! This information helps us understand what you're looking for in your career journey.",
+      "Great choice! We'll find opportunities that match your preferred work style and environment.",
+      "Thank you for sharing your salary expectations. This will help us match you with appropriate opportunities within your range.",
+      "Perfect! We'll focus on finding opportunities in your preferred location and nearby areas.",
+      "Thank you for completing your profile! Based on your information, I've identified some initial career paths that might interest you and align with your goals."
     ];
     
     if (currentStep < responses.length) {
@@ -105,7 +105,7 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
     setTimeout(() => {
       setVideoAnalyzing(false);
       setVideoAnalysisResult(
-        "Our AI analysis indicates strong communication skills, clear articulation, and good eye contact. Your enthusiasm comes across well, which is a plus for client-facing roles."
+        "Our AI analysis indicates strong communication skills, clear articulation, and excellent eye contact. Your enthusiasm comes across very well, which is a significant advantage for client-facing roles and team collaboration."
       );
     }, 2000);
   };
