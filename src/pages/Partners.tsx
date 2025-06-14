@@ -11,7 +11,7 @@ const Partners = () => {
     {
       id: 1,
       title: "Employers",
-      icon: <Building className="h-10 w-10 text-career-blue" />,
+      icon: <Building className="h-10 w-10 text-primary" />,
       description: "Connect with top talent and showcase your company culture",
       features: [
         "AI-powered candidate matching",
@@ -23,7 +23,7 @@ const Partners = () => {
     {
       id: 2,
       title: "Educational Institutions",
-      icon: <GraduationCap className="h-10 w-10 text-career-blue" />,
+      icon: <GraduationCap className="h-10 w-10 text-primary" />,
       description: "Help your students launch successful careers",
       features: [
         "Student outcome tracking",
@@ -35,7 +35,7 @@ const Partners = () => {
     {
       id: 3,
       title: "Recruiting Agencies",
-      icon: <UserCheck className="h-10 w-10 text-career-blue" />,
+      icon: <UserCheck className="h-10 w-10 text-primary" />,
       description: "Streamline your recruiting process with AI",
       features: [
         "Candidate database integration",
@@ -47,7 +47,7 @@ const Partners = () => {
     {
       id: 4,
       title: "Technology Partners",
-      icon: <Globe className="h-10 w-10 text-career-blue" />,
+      icon: <Globe className="h-10 w-10 text-primary" />,
       description: "Integrate with our platform to expand your reach",
       features: [
         "Developer API access",
@@ -69,24 +69,23 @@ const Partners = () => {
 
   return (
     <Layout>
-      {/* Hero Section with Improved Contrast */}
-      <section className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/20"></div>
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-primary/5 via-background to-secondary/5 py-20 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white drop-shadow-lg">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
             Partner with Visiondrill
           </h1>
-          <p className="text-xl md:text-2xl max-w-3xl mx-auto mb-10 text-gray-100 drop-shadow-md leading-relaxed">
+          <p className="text-xl md:text-2xl max-w-3xl mx-auto mb-10 text-muted-foreground leading-relaxed">
             Join our ecosystem of forward-thinking organizations to revolutionize career development and talent acquisition
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/signup">
-              <Button size="lg" className="w-full sm:w-auto px-8 py-6 text-lg bg-white text-slate-900 hover:bg-gray-100 font-semibold shadow-xl border-2 border-white">
+              <Button size="lg" className="w-full sm:w-auto px-8 py-6 text-lg font-semibold shadow-xl">
                 Create Your Profile
               </Button>
             </Link>
             <Link to="/jobs">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto px-8 py-6 text-lg border-2 border-white bg-white/10 text-white hover:bg-white hover:text-slate-900 font-semibold shadow-xl backdrop-blur-sm">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto px-8 py-6 text-lg font-semibold shadow-xl">
                 Explore Opportunities
               </Button>
             </Link>
@@ -95,38 +94,38 @@ const Partners = () => {
       </section>
 
       {/* Partnership Categories */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl mb-4">
+            <h2 className="text-3xl font-extrabold text-foreground sm:text-4xl mb-4">
               Partnership Opportunities
             </h2>
-            <p className="mt-4 max-w-2xl text-xl text-gray-600 mx-auto">
+            <p className="mt-4 max-w-2xl text-xl text-muted-foreground mx-auto">
               Join our ecosystem of employers, educators, and technology partners to shape the future of career development
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
             {partnerCategories.map((category) => (
-              <Card key={category.id} className="hover:shadow-xl transition-all duration-300 border-2 hover:border-career-blue/30">
+              <Card key={category.id} className="hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/30">
                 <CardContent className="p-6">
                   <div className="flex flex-col items-center text-center">
-                    <div className="mb-4 p-3 rounded-full bg-blue-50">
+                    <div className="mb-4 p-3 rounded-full bg-primary/10">
                       {category.icon}
                     </div>
-                    <h3 className="text-xl font-bold mb-2 text-gray-900">{category.title}</h3>
-                    <p className="text-gray-600 mb-6">{category.description}</p>
+                    <h3 className="text-xl font-bold mb-2 text-foreground">{category.title}</h3>
+                    <p className="text-muted-foreground mb-6">{category.description}</p>
                     <ul className="space-y-2 text-left mb-6 w-full">
                       {category.features.map((feature, index) => (
                         <li key={index} className="flex items-start">
-                          <svg className="h-5 w-5 mr-2 text-career-blue mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg className="h-5 w-5 mr-2 text-primary mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
-                          <span className="text-gray-700">{feature}</span>
+                          <span className="text-muted-foreground">{feature}</span>
                         </li>
                       ))}
                     </ul>
-                    <Button className="mt-auto bg-career-blue hover:bg-career-blue/90 text-white font-medium">
+                    <Button className="mt-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium">
                       Learn More
                     </Button>
                   </div>
@@ -138,13 +137,13 @@ const Partners = () => {
       </section>
 
       {/* Success Stories */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl mb-4">
+            <h2 className="text-3xl font-extrabold text-foreground sm:text-4xl mb-4">
               Trusted by Industry Leaders
             </h2>
-            <p className="mt-4 max-w-2xl text-xl text-gray-600 mx-auto">
+            <p className="mt-4 max-w-2xl text-xl text-muted-foreground mx-auto">
               Join the organizations already transforming their talent acquisition and development
             </p>
           </div>
@@ -157,36 +156,36 @@ const Partners = () => {
                   alt={`${partner.name} logo`} 
                   className="h-20 w-20 object-contain rounded-full shadow-md"
                 />
-                <p className="text-center mt-2 text-sm font-medium text-gray-700">{partner.name}</p>
+                <p className="text-center mt-2 text-sm font-medium text-muted-foreground">{partner.name}</p>
               </div>
             ))}
           </div>
           
           <div className="mt-12 text-center">
-            <Button className="bg-career-blue hover:bg-career-blue/90 text-white font-medium px-8 py-3">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 py-3">
               View All Partners
             </Button>
           </div>
         </div>
       </section>
 
-      {/* CTA Section with Improved Contrast */}
-      <section className="py-16 bg-gradient-to-r from-slate-900 to-purple-900 text-white relative overflow-hidden">
+      {/* CTA Section */}
+      <section className="py-16 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground relative overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between relative z-10">
           <div className="text-center md:text-left mb-8 md:mb-0">
-            <h2 className="text-3xl font-bold mb-4 text-white drop-shadow-lg">
+            <h2 className="text-3xl font-bold mb-4 text-primary-foreground">
               Ready to Partner With Us?
             </h2>
-            <p className="text-lg text-gray-100 max-w-xl drop-shadow-md">
+            <p className="text-lg text-primary-foreground/90 max-w-xl">
               Schedule a demo to learn how Visiondrill can help your organization thrive in the modern talent landscape.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button className="bg-white text-slate-900 hover:bg-gray-100 font-semibold px-8 py-3 shadow-xl">
+            <Button className="bg-background text-foreground hover:bg-background/90 font-semibold px-8 py-3 shadow-xl">
               Request Demo
             </Button>
-            <Button variant="outline" className="border-2 border-white bg-white/10 text-white hover:bg-white hover:text-slate-900 font-semibold px-8 py-3 shadow-xl backdrop-blur-sm">
+            <Button variant="outline" className="border-2 border-primary-foreground bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground hover:text-primary font-semibold px-8 py-3 shadow-xl backdrop-blur-sm">
               Contact Sales
             </Button>
           </div>
