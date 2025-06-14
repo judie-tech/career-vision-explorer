@@ -1,32 +1,71 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, FileText, CheckSquare, Calendar, ExternalLink } from "lucide-react";
+import { User, FileText, CheckSquare, Calendar, ExternalLink, Briefcase } from "lucide-react";
 import { Link } from "react-router-dom";
 import DashboardLayout from "@/components/admin/DashboardLayout";
 import { useJobPosts } from "@/hooks/use-job-posts";
+import { useJobApplications } from "@/hooks/use-job-applications";
+import { useSkillsAssessment } from "@/hooks/use-skills-assessment";
+import { useInterviewSchedule } from "@/hooks/use-interview-schedule";
 import { useState } from "react";
+import { JobApplicationDialog } from "@/components/jobseeker/JobApplicationDialog";
+import { SkillAssessmentDialog } from "@/components/jobseeker/SkillAssessmentDialog";
+import { InterviewScheduleDialog } from "@/components/jobseeker/InterviewScheduleDialog";
 
 const JobSeekerDashboard = () => {
   const { jobs } = useJobPosts();
-  const [applications] = useState(12); // This would come from an applications store in a real app
-  const [interviews] = useState(2);
-  const [skillsVerified] = useState(8);
-  const [totalSkills] = useState(15);
+  const { applications, getApplicationsByStatus } = useJobApplications();
+  const { verifiedSkills, totalSkills } = useSkillsAssessment();
+  const { getUpcomingInterviews, getTodaysInterviews } = useInterviewSchedule();
+  
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [showApplicationDialog, setShowApplicationDialog] = useState(false);
+  const [showSkillsDialog, setShowSkillsDialog] = useState(false);
+  const [showInterviewDialog, setShowInterviewDialog] = useState(false);
   
   // Calculate profile completion based on various factors
   const profileCompletion = Math.round(
-    ((skillsVerified / totalSkills) * 40) + // 40% for skills
-    (applications > 0 ? 30 : 0) + // 30% for having applications
+    ((verifiedSkills / totalSkills) * 40) + // 40% for skills
+    (applications.length > 0 ? 30 : 0) + // 30% for having applications
     25 // 25% base for basic profile info
   );
 
+  // Get application stats
+  const pendingApplications = getApplicationsByStatus("Applied").length + getApplicationsByStatus("Reviewing").length;
+  const upcomingInterviews = getUpcomingInterviews();
+  const todaysInterviews = getTodaysInterviews();
+
   // Get top 3 jobs as recommendations (in a real app, this would be based on user profile matching)
   const recommendedJobs = jobs.slice(0, 3).map(job => {
-    // Simulate match scores
+    // Simulate match scores based on skills and job requirements
     const matchScore = Math.floor(Math.random() * 15) + 85; // 85-100% match
     return { ...job, matchScore };
   });
+
+  const handleApplyToJob = (job) => {
+    setSelectedJob(job);
+    setShowApplicationDialog(true);
+  };
+
+  const handleViewJobDetails = (job) => {
+    console.log("Viewing job details:", job);
+    // In a real app, this would navigate to job details page
+  };
+
+  const getNextInterview = () => {
+    if (todaysInterviews.length > 0) {
+      const interview = todaysInterviews[0];
+      return `Today, ${interview.time}`;
+    }
+    if (upcomingInterviews.length > 0) {
+      const interview = upcomingInterviews[0];
+      const date = new Date(interview.date);
+      const isTomorrow = date.toDateString() === new Date(Date.now() + 24 * 60 * 60 * 1000).toDateString();
+      return isTomorrow ? `Tomorrow, ${interview.time}` : `${date.toLocaleDateString()}, ${interview.time}`;
+    }
+    return "No interviews scheduled";
+  };
 
   return (
     <DashboardLayout title="Job Seeker Dashboard" role="jobseeker">
@@ -63,8 +102,8 @@ const JobSeekerDashboard = () => {
             <div className="flex items-center">
               <FileText className="h-8 w-8 text-career-purple mr-2" />
               <div>
-                <p className="text-2xl font-bold">{applications}</p>
-                <p className="text-sm text-gray-500">3 awaiting response</p>
+                <p className="text-2xl font-bold">{applications.length}</p>
+                <p className="text-sm text-gray-500">{pendingApplications} awaiting response</p>
               </div>
             </div>
             <div className="mt-3">
@@ -85,12 +124,17 @@ const JobSeekerDashboard = () => {
             <div className="flex items-center">
               <Calendar className="h-8 w-8 text-green-600 mr-2" />
               <div>
-                <p className="text-2xl font-bold">{interviews}</p>
-                <p className="text-sm text-gray-500">Next: Tomorrow, 2PM</p>
+                <p className="text-2xl font-bold">{upcomingInterviews.length}</p>
+                <p className="text-sm text-gray-500">Next: {getNextInterview()}</p>
               </div>
             </div>
             <div className="mt-3">
-              <Button variant="outline" size="sm" className="w-full">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                onClick={() => setShowInterviewDialog(true)}
+              >
                 View Schedule
               </Button>
             </div>
@@ -105,16 +149,19 @@ const JobSeekerDashboard = () => {
             <div className="flex items-center">
               <CheckSquare className="h-8 w-8 text-amber-500 mr-2" />
               <div>
-                <p className="text-2xl font-bold">{skillsVerified}/{totalSkills}</p>
+                <p className="text-2xl font-bold">{verifiedSkills}/{totalSkills}</p>
                 <p className="text-sm text-gray-500">Complete assessments</p>
               </div>
             </div>
             <div className="mt-3">
-              <Link to="/skills">
-                <Button variant="outline" size="sm" className="w-full">
-                  Take Assessment
-                </Button>
-              </Link>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                onClick={() => setShowSkillsDialog(true)}
+              >
+                Take Assessment
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -149,10 +196,18 @@ const JobSeekerDashboard = () => {
                         </div>
                       </div>
                       <div className="ml-4 flex gap-2">
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleViewJobDetails(job)}
+                        >
                           View Details
                         </Button>
-                        <Button size="sm">
+                        <Button 
+                          size="sm"
+                          onClick={() => handleApplyToJob(job)}
+                        >
+                          <Briefcase className="h-4 w-4 mr-1" />
                           Apply Now
                         </Button>
                       </div>
@@ -179,6 +234,23 @@ const JobSeekerDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Dialogs */}
+      <JobApplicationDialog
+        job={selectedJob}
+        open={showApplicationDialog}
+        onOpenChange={setShowApplicationDialog}
+      />
+      
+      <SkillAssessmentDialog
+        open={showSkillsDialog}
+        onOpenChange={setShowSkillsDialog}
+      />
+      
+      <InterviewScheduleDialog
+        open={showInterviewDialog}
+        onOpenChange={setShowInterviewDialog}
+      />
     </DashboardLayout>
   );
 };
