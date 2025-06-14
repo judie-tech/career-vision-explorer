@@ -84,7 +84,7 @@ const Profile = () => {
     }
   };
 
-  // Provide default user profile if not loaded
+  // Provide default user profile if not loaded - now with joinDate included
   const defaultProfile = {
     id: "1",
     name: "John Doe",
@@ -95,7 +95,8 @@ const Profile = () => {
     location: "Nairobi, Kenya",
     bio: "Passionate software developer with experience in React and Node.js",
     profileComplete: 85,
-    avatar: "/placeholder.svg"
+    joinDate: "2024-01-15",
+    profileImage: "/placeholder.svg"
   };
 
   const currentProfile = userProfile || defaultProfile;
