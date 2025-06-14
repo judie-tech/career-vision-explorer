@@ -59,21 +59,6 @@ const Profile = () => {
     interviews: getApplicationsByStatus("Interview").length,
     offers: getApplicationsByStatus("Hired").length
   };
-  
-  const learningPaths = [
-    {
-      title: "Full Stack Web Development",
-      progress: 68,
-      modules: 15,
-      modulesCompleted: 10
-    },
-    {
-      title: "UI/UX Design Fundamentals",
-      progress: 45,
-      modules: 12,
-      modulesCompleted: 5
-    }
-  ];
 
   const handleUpdateSkill = (skillId: string, level: number) => {
     updateSkillProficiency(skillId, level);
@@ -121,7 +106,6 @@ const Profile = () => {
             skills={skills}
             recentAssessments={recentAssessments}
             upcomingInterviews={upcomingInterviews}
-            learningPaths={learningPaths}
             onShowSkillsDialog={() => setShowSkillsDialog(true)}
             onShowInterviewDialog={() => setShowInterviewDialog(true)}
             onUpdateSkill={handleUpdateSkill}

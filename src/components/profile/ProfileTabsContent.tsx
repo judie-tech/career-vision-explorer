@@ -34,18 +34,10 @@ interface Interview {
   type: string;
 }
 
-interface LearningPath {
-  title: string;
-  progress: number;
-  modules: number;
-  modulesCompleted: number;
-}
-
 interface ProfileTabsContentProps {
   skills: Skill[];
   recentAssessments: Assessment[];
   upcomingInterviews: Interview[];
-  learningPaths: LearningPath[];
   onShowSkillsDialog: () => void;
   onShowInterviewDialog: () => void;
   onUpdateSkill: (skillId: string, level: number) => void;
@@ -56,7 +48,6 @@ const ProfileTabsContent = ({
   skills,
   recentAssessments,
   upcomingInterviews,
-  learningPaths,
   onShowSkillsDialog,
   onShowInterviewDialog,
   onUpdateSkill,
@@ -100,7 +91,7 @@ const ProfileTabsContent = ({
       </TabsContent>
       
       <TabsContent value="learning" className="space-y-8">
-        <LearningPathsCard learningPaths={learningPaths} />
+        <LearningPathsCard />
         <RecommendedCoursesCard />
       </TabsContent>
     </>
