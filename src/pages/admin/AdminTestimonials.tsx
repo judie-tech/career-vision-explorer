@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -116,8 +115,13 @@ const AdminTestimonials = () => {
   const handleCreateTestimonial = (data: TestimonialFormData) => {
     const newTestimonial: Testimonial = {
       id: Date.now().toString(),
-      ...data,
+      name: data.name,
+      role: data.role,
+      company: data.company,
+      content: data.content,
       rating: Number(data.rating),
+      status: data.status,
+      category: data.category,
       createdAt: new Date().toISOString().split('T')[0],
       updatedAt: new Date().toISOString().split('T')[0],
     };
@@ -138,8 +142,13 @@ const AdminTestimonials = () => {
       testimonial.id === editingTestimonial.id
         ? { 
             ...testimonial, 
-            ...data, 
+            name: data.name,
+            role: data.role,
+            company: data.company,
+            content: data.content,
             rating: Number(data.rating),
+            status: data.status,
+            category: data.category,
             updatedAt: new Date().toISOString().split('T')[0]
           }
         : testimonial
