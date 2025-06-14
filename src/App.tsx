@@ -30,6 +30,7 @@ import JobSeekerDashboard from "@/pages/admin/JobSeekerDashboard";
 import EmployerJobs from "@/pages/employer/EmployerJobs";
 import JobApplicants from "@/pages/employer/JobApplicants";
 import AllApplicants from "@/pages/employer/AllApplicants";
+import EmployerInterviews from "@/pages/employer/EmployerInterviews";
 import InterviewSchedule from "@/pages/employer/InterviewSchedule";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -122,6 +123,11 @@ function App() {
                 <Route path="/employer/applicants" element={
                   <ProtectedRoute requiredRole="employer">
                     <AllApplicants />
+                  </ProtectedRoute>
+                } />
+                <Route path="/employer/interviews" element={
+                  <ProtectedRoute requiredRole="employer">
+                    <EmployerInterviews />
                   </ProtectedRoute>
                 } />
                 <Route path="/employer/interviews/schedule" element={
