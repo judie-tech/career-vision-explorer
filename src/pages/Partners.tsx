@@ -69,26 +69,25 @@ const Partners = () => {
 
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="bg-gradient-to-b from-career-blue to-career-purple text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="animated-bg absolute inset-0 opacity-10"></div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 neon-text">
-            Unlock Your Career Potential with AI-Powered Guidance
+      {/* Hero Section with Improved Contrast */}
+      <section className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white drop-shadow-lg">
+            Partner with Visiondrill
           </h1>
-          <p className="text-xl md:text-2xl max-w-3xl mx-auto mb-10">
-            Visiondrill Careers Navigator uses advanced AI to match your skills with the
-            perfect job, identify growth opportunities, and guide your career journey.
+          <p className="text-xl md:text-2xl max-w-3xl mx-auto mb-10 text-gray-100 drop-shadow-md leading-relaxed">
+            Join our ecosystem of forward-thinking organizations to revolutionize career development and talent acquisition
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/signup">
-              <Button size="lg" className="w-full sm:w-auto px-8 py-6 text-lg bg-white text-career-blue hover:bg-gray-100 futuristic-btn">
+              <Button size="lg" className="w-full sm:w-auto px-8 py-6 text-lg bg-white text-slate-900 hover:bg-gray-100 font-semibold shadow-xl border-2 border-white">
                 Create Your Profile
               </Button>
             </Link>
             <Link to="/jobs">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto px-8 py-6 text-lg border-white text-white hover:bg-white/10 glowing-border">
-                Explore Jobs
+              <Button size="lg" variant="outline" className="w-full sm:w-auto px-8 py-6 text-lg border-2 border-white bg-white/10 text-white hover:bg-white hover:text-slate-900 font-semibold shadow-xl backdrop-blur-sm">
+                Explore Opportunities
               </Button>
             </Link>
           </div>
@@ -102,32 +101,34 @@ const Partners = () => {
             <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl mb-4">
               Partnership Opportunities
             </h2>
-            <p className="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+            <p className="mt-4 max-w-2xl text-xl text-gray-600 mx-auto">
               Join our ecosystem of employers, educators, and technology partners to shape the future of career development
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
             {partnerCategories.map((category) => (
-              <Card key={category.id} className="futuristic-card hover-scale">
+              <Card key={category.id} className="hover:shadow-xl transition-all duration-300 border-2 hover:border-career-blue/30">
                 <CardContent className="p-6">
                   <div className="flex flex-col items-center text-center">
                     <div className="mb-4 p-3 rounded-full bg-blue-50">
                       {category.icon}
                     </div>
-                    <h3 className="text-xl font-bold mb-2">{category.title}</h3>
+                    <h3 className="text-xl font-bold mb-2 text-gray-900">{category.title}</h3>
                     <p className="text-gray-600 mb-6">{category.description}</p>
                     <ul className="space-y-2 text-left mb-6 w-full">
                       {category.features.map((feature, index) => (
                         <li key={index} className="flex items-start">
-                          <svg className="h-5 w-5 mr-2 text-career-blue mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg className="h-5 w-5 mr-2 text-career-blue mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
-                          <span>{feature}</span>
+                          <span className="text-gray-700">{feature}</span>
                         </li>
                       ))}
                     </ul>
-                    <Button className="futuristic-btn mt-auto">Learn More</Button>
+                    <Button className="mt-auto bg-career-blue hover:bg-career-blue/90 text-white font-medium">
+                      Learn More
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -143,44 +144,49 @@ const Partners = () => {
             <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl mb-4">
               Trusted by Industry Leaders
             </h2>
-            <p className="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+            <p className="mt-4 max-w-2xl text-xl text-gray-600 mx-auto">
               Join the organizations already transforming their talent acquisition and development
             </p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center justify-items-center">
             {partnersShowcase.map((partner, index) => (
-              <div key={index} className="hover-scale">
+              <div key={index} className="hover:scale-105 transition-transform duration-200">
                 <img 
                   src={partner.logo} 
                   alt={`${partner.name} logo`} 
                   className="h-20 w-20 object-contain rounded-full shadow-md"
                 />
-                <p className="text-center mt-2 text-sm font-medium">{partner.name}</p>
+                <p className="text-center mt-2 text-sm font-medium text-gray-700">{partner.name}</p>
               </div>
             ))}
           </div>
           
           <div className="mt-12 text-center">
-            <Button className="futuristic-btn">View All Partners</Button>
+            <Button className="bg-career-blue hover:bg-career-blue/90 text-white font-medium px-8 py-3">
+              View All Partners
+            </Button>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-career-blue to-career-purple text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between">
+      {/* CTA Section with Improved Contrast */}
+      <section className="py-16 bg-gradient-to-r from-slate-900 to-purple-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between relative z-10">
           <div className="text-center md:text-left mb-8 md:mb-0">
-            <h2 className="text-3xl font-bold mb-4 neon-text">Ready to Partner With Us?</h2>
-            <p className="text-lg opacity-90 max-w-xl">
+            <h2 className="text-3xl font-bold mb-4 text-white drop-shadow-lg">
+              Ready to Partner With Us?
+            </h2>
+            <p className="text-lg text-gray-100 max-w-xl drop-shadow-md">
               Schedule a demo to learn how Visiondrill can help your organization thrive in the modern talent landscape.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button className="futuristic-btn bg-white text-career-blue hover:bg-gray-100">
+            <Button className="bg-white text-slate-900 hover:bg-gray-100 font-semibold px-8 py-3 shadow-xl">
               Request Demo
             </Button>
-            <Button variant="outline" className="border-white text-white hover:bg-white/10 glowing-border">
+            <Button variant="outline" className="border-2 border-white bg-white/10 text-white hover:bg-white hover:text-slate-900 font-semibold px-8 py-3 shadow-xl backdrop-blur-sm">
               Contact Sales
             </Button>
           </div>
