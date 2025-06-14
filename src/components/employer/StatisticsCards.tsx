@@ -88,7 +88,7 @@ export const StatisticsCards = () => {
         subtitle={`${viewsIncrease} from last month`}
         icon={<Clock className="h-8 w-8" />}
         iconColor="text-amber-500"
-        onClick={() => navigate("/employer/analytics")}
+        onClick={() => navigate("/employer/jobs")}
       />
     </div>
   );

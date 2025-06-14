@@ -3,98 +3,78 @@ import { create } from "zustand";
 
 export interface Interview {
   id: string;
-  applicantId: string;
-  applicantName: string;
-  jobId: string;
+  candidateName: string;
+  candidateEmail: string;
   jobTitle: string;
+  jobId: string;
   scheduledDate: string;
   scheduledTime: string;
+  duration: string;
   status: "Scheduled" | "Completed" | "Cancelled" | "Rescheduled";
-  interviewType: "Phone" | "Video" | "In-Person";
+  type: "Phone" | "Video" | "In-person";
   notes?: string;
-  interviewer: string;
 }
 
-interface InterviewsStore {
+interface InterviewStore {
   interviews: Interview[];
-  scheduleInterview: (interview: Omit<Interview, "id">) => void;
-  updateInterviewStatus: (id: string, status: Interview["status"]) => void;
-  getInterviewsByJobId: (jobId: string) => Interview[];
-  getUpcomingInterviews: () => Interview[];
+  addInterview: (interview: Interview) => void;
+  updateInterview: (id: string, updates: Partial<Interview>) => void;
+  removeInterview: (id: string) => void;
+  getInterviewsByJob: (jobId: string) => Interview[];
 }
 
+// Sample interview data
 const initialInterviews: Interview[] = [
   {
     id: "1",
-    applicantId: "2",
-    applicantName: "Michael Chen",
-    jobId: "1",
+    candidateName: "John Doe",
+    candidateEmail: "john.doe@email.com",
     jobTitle: "Senior Frontend Developer",
-    scheduledDate: "2024-06-17",
-    scheduledTime: "10:00",
+    jobId: "1",
+    scheduledDate: "2023-06-15",
+    scheduledTime: "10:00 AM",
+    duration: "1 hour",
     status: "Scheduled",
-    interviewType: "Video",
-    interviewer: "Sarah Davis"
+    type: "Video",
   },
   {
     id: "2",
-    applicantId: "5",
-    applicantName: "Taylor Wilson",
-    jobId: "1",
-    jobTitle: "Senior Frontend Developer",
-    scheduledDate: "2024-06-18",
-    scheduledTime: "14:00",
+    candidateName: "Mike Johnson",
+    candidateEmail: "mike.j@email.com",
+    jobTitle: "Backend Engineer",
+    jobId: "3",
+    scheduledDate: "2023-06-16",
+    scheduledTime: "2:00 PM",
+    duration: "45 minutes",
     status: "Scheduled",
-    interviewType: "Phone",
-    interviewer: "John Smith"
+    type: "Phone",
   },
-  {
-    id: "3",
-    applicantId: "3",
-    applicantName: "Alex Rodriguez",
-    jobId: "2",
-    jobTitle: "UX Designer",
-    scheduledDate: "2024-06-15",
-    scheduledTime: "11:00",
-    status: "Completed",
-    interviewType: "In-Person",
-    interviewer: "Emily Johnson"
-  }
 ];
 
-export const useInterviews = create<InterviewsStore>((set, get) => ({
+export const useInterviews = create<InterviewStore>((set, get) => ({
   interviews: initialInterviews,
   
-  scheduleInterview: (interviewData) => {
-    const newInterview: Interview = {
-      ...interviewData,
-      id: crypto.randomUUID(),
-    };
-    
+  addInterview: (interview) => {
     set((state) => ({
-      interviews: [...state.interviews, newInterview],
+      interviews: [...state.interviews, interview],
     }));
   },
   
-  updateInterviewStatus: (id, status) => {
+  updateInterview: (id, updates) => {
     set((state) => ({
       interviews: state.interviews.map(interview =>
-        interview.id === id 
-          ? { ...interview, status }
-          : interview
+        interview.id === id ? { ...interview, ...updates } : interview
       ),
     }));
   },
   
-  getInterviewsByJobId: (jobId) => {
-    return get().interviews.filter(interview => interview.jobId === jobId);
+  removeInterview: (id) => {
+    set((state) => ({
+      interviews: state.interviews.filter(interview => interview.id !== id),
+    }));
   },
   
-  getUpcomingInterviews: () => {
-    const now = new Date();
-    return get().interviews.filter(interview => {
-      const interviewDate = new Date(`${interview.scheduledDate}T${interview.scheduledTime}`);
-      return interviewDate > now && interview.status === "Scheduled";
-    });
+  getInterviewsByJob: (jobId) => {
+    return get().interviews.filter(interview => interview.jobId === jobId);
   },
 }));
