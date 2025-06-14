@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, Building, Briefcase, Clock, BarChart3, Filter, X } from "lucide-react";
+import { Search, MapPin, Building, Briefcase, Clock, BarChart3, Filter, X, Heart } from "lucide-react";
 import { toast } from "sonner";
 import {
   Select,
@@ -16,9 +16,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Link } from "react-router-dom";
+import { JobApplicationDialog } from "@/components/jobseeker/JobApplicationDialog";
+import { useJobApplications } from "@/hooks/use-job-applications";
 
 interface Job {
-  id: number;
+  id: string;
   title: string;
   company: string;
   location: string;
@@ -29,12 +31,11 @@ interface Job {
   skills: string[];
   description: string;
   experienceLevel?: string;
-  applied?: boolean;
 }
 
 const mockJobs: Job[] = [
   {
-    id: 1,
+    id: "1",
     title: "Frontend Developer",
     company: "Tech Solutions Ltd",
     location: "Nairobi, Kenya",
@@ -44,10 +45,10 @@ const mockJobs: Job[] = [
     matchScore: 92,
     experienceLevel: "Mid Level",
     skills: ["React", "JavaScript", "CSS", "UI/UX"],
-    description: "We're looking for a Frontend Developer to join our team and help build responsive web applications..."
+    description: "We're looking for a Frontend Developer to join our team and help build responsive web applications using modern technologies like React, TypeScript, and Tailwind CSS."
   },
   {
-    id: 2,
+    id: "2",
     title: "Software Engineer",
     company: "Innovative Systems",
     location: "Nairobi, Kenya",
@@ -57,10 +58,10 @@ const mockJobs: Job[] = [
     matchScore: 85,
     experienceLevel: "Senior",
     skills: ["Python", "Django", "REST APIs", "PostgreSQL"],
-    description: "Seeking a Software Engineer to develop and maintain backend services and APIs..."
+    description: "Seeking a Software Engineer to develop and maintain backend services and APIs for our growing platform. Experience with Python and Django required."
   },
   {
-    id: 3,
+    id: "3",
     title: "UX Designer",
     company: "Creative Digital Agency",
     location: "Remote",
@@ -70,10 +71,10 @@ const mockJobs: Job[] = [
     matchScore: 78,
     experienceLevel: "Mid Level",
     skills: ["Figma", "User Research", "Prototyping", "UI Design"],
-    description: "Looking for a UX Designer to create user-centered designs for web and mobile applications..."
+    description: "Looking for a UX Designer to create user-centered designs for web and mobile applications. Strong portfolio and Figma skills required."
   },
   {
-    id: 4,
+    id: "4",
     title: "Data Analyst",
     company: "Data Insights Co",
     location: "Mombasa, Kenya",
@@ -83,10 +84,10 @@ const mockJobs: Job[] = [
     matchScore: 65,
     experienceLevel: "Entry Level",
     skills: ["SQL", "Excel", "Data Visualization", "Statistics"],
-    description: "Join our team as a Data Analyst to help extract insights from our growing datasets..."
+    description: "Join our team as a Data Analyst to help extract insights from our growing datasets. Experience with SQL and data visualization tools preferred."
   },
   {
-    id: 5,
+    id: "5",
     title: "Senior Product Manager",
     company: "TechCorp Inc.",
     location: "Hybrid - Nairobi",
@@ -96,7 +97,7 @@ const mockJobs: Job[] = [
     matchScore: 89,
     experienceLevel: "Executive",
     skills: ["Product Strategy", "Agile", "User Research", "Roadmapping"],
-    description: "We're looking for an experienced Product Manager to lead our flagship product development..."
+    description: "We're looking for an experienced Product Manager to lead our flagship product development and work with cross-functional teams."
   }
 ];
 
@@ -119,8 +120,12 @@ const Jobs = () => {
     javascript: false,
     react: false,
   });
-  const [appliedJobs, setAppliedJobs] = useState<number[]>([]);
   const [filtersVisible, setFiltersVisible] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [applicationDialogOpen, setApplicationDialogOpen] = useState(false);
+  const [savedJobs, setSavedJobs] = useState<string[]>([]);
+  
+  const { getApplicationForJob } = useJobApplications();
   
   const resetFilters = () => {
     setFilter({
@@ -222,13 +227,27 @@ const Jobs = () => {
     return true;
   });
   
-  const handleApply = (jobId: number) => {
-    if (!appliedJobs.includes(jobId)) {
-      setAppliedJobs([...appliedJobs, jobId]);
-      toast.success("Application submitted", {
-        description: "Your application has been successfully submitted"
-      });
+  const handleApply = (job: Job) => {
+    setSelectedJob(job);
+    setApplicationDialogOpen(true);
+  };
+
+  const handleSaveJob = (jobId: string) => {
+    if (savedJobs.includes(jobId)) {
+      setSavedJobs(savedJobs.filter(id => id !== jobId));
+      toast.success("Job removed from saved jobs");
+    } else {
+      setSavedJobs([...savedJobs, jobId]);
+      toast.success("Job saved successfully");
     }
+  };
+
+  const isJobApplied = (jobId: string) => {
+    return !!getApplicationForJob(jobId);
+  };
+
+  const isJobSaved = (jobId: string) => {
+    return savedJobs.includes(jobId);
   };
   
   return (
@@ -412,7 +431,8 @@ const Jobs = () => {
             </div>
           ) : (
             filteredJobs.map(job => {
-              const isApplied = appliedJobs.includes(job.id);
+              const isApplied = isJobApplied(job.id);
+              const isSaved = isJobSaved(job.id);
               
               return (
                 <Card key={job.id} className="overflow-hidden">
@@ -431,10 +451,25 @@ const Jobs = () => {
                           <Badge variant="outline" className="ml-2">
                             {job.matchScore}% Match
                           </Badge>
+                          {isApplied && (
+                            <Badge variant="secondary" className="ml-2 bg-green-100 text-green-800">
+                              Applied
+                            </Badge>
+                          )}
                         </CardTitle>
                         <CardDescription>{job.company}</CardDescription>
                       </div>
-                      <BarChart3 className="h-10 w-10 text-gray-300" />
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleSaveJob(job.id)}
+                          className={isSaved ? "text-red-500" : "text-gray-400"}
+                        >
+                          <Heart className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
+                        </Button>
+                        <BarChart3 className="h-10 w-10 text-gray-300" />
+                      </div>
                     </div>
                   </CardHeader>
                   
@@ -476,7 +511,7 @@ const Jobs = () => {
                           </Button>
                         </Link>
                         <Button 
-                          onClick={() => handleApply(job.id)}
+                          onClick={() => handleApply(job)}
                           disabled={isApplied}
                         >
                           {isApplied ? 'Applied' : 'Apply Now'}
@@ -490,6 +525,12 @@ const Jobs = () => {
           )}
         </div>
       </div>
+
+      <JobApplicationDialog
+        job={selectedJob}
+        open={applicationDialogOpen}
+        onOpenChange={setApplicationDialogOpen}
+      />
     </Layout>
   );
 };
