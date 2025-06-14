@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -9,6 +8,7 @@ import ToolsSection from "@/components/home/ToolsSection";
 import TestimonialSection from "@/components/home/TestimonialSection";
 import JobListingSection from "@/components/home/JobListingSection";
 import CareerPathSection from "@/components/home/CareerPathSection";
+import PartnerShowcaseSection from "@/components/home/PartnerShowcaseSection";
 import CTASection from "@/components/home/CTASection";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -142,6 +142,7 @@ const Index = () => {
       )}
       <HeroSection />
       <FeatureSection />
+      <PartnerShowcaseSection />
       <CareerJourneySection />
       <JobListingSection featuredJobs={featuredJobs} />
       <CareerPathSection careerPaths={careerPaths} />

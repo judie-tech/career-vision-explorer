@@ -46,55 +46,6 @@ const Partners = () => {
     }
   ];
 
-  const partnersShowcase = [
-    { 
-      id: 1,
-      name: "TechGiant Inc.", 
-      logo: "/lovable-uploads/37656cc1-be74-4d59-8843-b6729c619a2a.png",
-      website: "https://techgiant.com",
-      category: "employer"
-    },
-    { 
-      id: 2,
-      name: "Global University", 
-      logo: "https://images.unsplash.com/photo-1568792923760-d70635a89fdd?auto=format&fit=crop&w=100&h=100",
-      website: "https://globaluniversity.edu",
-      category: "education"
-    },
-    { 
-      id: 3,
-      name: "Future Staffing", 
-      logo: "https://images.unsplash.com/photo-1565372195458-9de0b320ef04?auto=format&fit=crop&w=100&h=100",
-      website: "https://futurestaffing.com",
-      category: "recruiting"
-    },
-    { 
-      id: 4,
-      name: "InnovateHR", 
-      logo: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?auto=format&fit=crop&w=100&h=100",
-      website: "https://innovatehr.com",
-      category: "recruiting"
-    },
-    { 
-      id: 5,
-      name: "Career Academy", 
-      logo: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=100&h=100",
-      website: "https://careeracademy.edu",
-      category: "education"
-    },
-    { 
-      id: 6,
-      name: "Elite Corp", 
-      logo: "https://images.unsplash.com/photo-1560441347-3a9c2e1e7e5c?auto=format&fit=crop&w=100&h=100",
-      website: "https://elitecorp.com",
-      category: "employer"
-    },
-  ];
-
-  const handlePartnerClick = (partner: typeof partnersShowcase[0]) => {
-    window.open(partner.website, '_blank', 'noopener,noreferrer');
-  };
-
   return (
     <Layout>
       {/* Hero Section */}
@@ -160,45 +111,6 @@ const Partners = () => {
                 </CardContent>
               </Card>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Success Stories */}
-      <section className="py-16 bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-extrabold text-foreground sm:text-4xl mb-4">
-              Trusted by Industry Leaders
-            </h2>
-            <p className="mt-4 max-w-2xl text-xl text-muted-foreground mx-auto">
-              Join the organizations already transforming their talent acquisition and development
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center justify-items-center">
-            {partnersShowcase.map((partner) => (
-              <div 
-                key={partner.id} 
-                className="hover:scale-105 transition-transform duration-200 cursor-pointer group"
-                onClick={() => handlePartnerClick(partner)}
-              >
-                <img 
-                  src={partner.logo} 
-                  alt={`${partner.name} logo`} 
-                  className="h-20 w-20 object-contain rounded-full shadow-md group-hover:shadow-lg transition-shadow"
-                />
-                <p className="text-center mt-2 text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
-                  {partner.name}
-                </p>
-              </div>
-            ))}
-          </div>
-          
-          <div className="mt-12 text-center">
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 py-3">
-              View All Partners
-            </Button>
           </div>
         </div>
       </section>
