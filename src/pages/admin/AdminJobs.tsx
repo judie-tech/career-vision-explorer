@@ -143,7 +143,7 @@ const AdminJobs = () => {
     draft: filteredJobs.filter(job => job.status === "draft").length,
     expired: filteredJobs.filter(job => job.status === "expired").length,
     totalApplications: filteredJobs.reduce((sum, job) => sum + job.applications, 0),
-    averageApplications: filteredJobs.length > 0 ? (filteredJobs.reduce((sum, job) => sum + job.applications, 0) / filteredJobs.length).toFixed(1) : 0,
+    averageApplications: filteredJobs.length > 0 ? filteredJobs.reduce((sum, job) => sum + job.applications, 0) / filteredJobs.length : 0,
     topPerformer: filteredJobs.reduce((max, job) => job.applications > max.applications ? job : max, filteredJobs[0] || { applications: 0, title: "N/A" })
   };
 
@@ -197,7 +197,7 @@ const AdminJobs = () => {
           </Card>
           <Card>
             <CardContent className="p-6">
-              <div className="text-2xl font-bold text-purple-600">{stats.averageApplications}</div>
+              <div className="text-2xl font-bold text-purple-600">{stats.averageApplications.toFixed(1)}</div>
               <div className="text-sm text-gray-600">Avg Applications</div>
             </CardContent>
           </Card>
