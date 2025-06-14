@@ -12,11 +12,11 @@ import { useInterviewSchedule } from "@/hooks/use-interview-schedule";
 import { useUserProfile } from "@/hooks/use-user-profile";
 
 // Profile components
-import ProfileHeader from "@/components/profile/ProfileHeader";
-import ProfileMetrics from "@/components/profile/ProfileMetrics";
+import ProfileInfoCard from "@/components/profile/ProfileInfoCard";
+import ProfileCompletionCard from "@/components/profile/ProfileCompletionCard";
+import ApplicationStatsCard from "@/components/profile/ApplicationStatsCard";
 import ProfileTabsContent from "@/components/profile/ProfileTabsContent";
 import ProfileDialogs from "@/components/profile/ProfileDialogs";
-import ProfileImageUpload from "@/components/profile/ProfileImageUpload";
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -111,27 +111,34 @@ const Profile = () => {
     <Layout>
       <div className="min-h-screen bg-gray-50">
         <div className="container py-8 max-w-7xl mx-auto">
-          <ProfileHeader
-            userName={currentProfile.name}
-            userRole={currentProfile.role}
-            userEducation={currentProfile.education}
-            userExperience={currentProfile.experience}
-            onEditProfile={() => setShowEditProfileDialog(true)}
-          />
-          
-          <div className="mb-10">
-            <ProfileImageUpload
-              currentImage={currentProfile.profileImage}
-              onImageUpload={handleImageUpload}
-            />
+          {/* Single consolidated profile section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+            <div className="lg:col-span-2">
+              <ProfileInfoCard
+                userName={currentProfile.name}
+                userRole={currentProfile.role}
+                userEducation={currentProfile.education}
+                userExperience={currentProfile.experience}
+                userLocation={currentProfile.location}
+                userBio={currentProfile.bio}
+                profileImage={currentProfile.profileImage}
+                onEditProfile={() => setShowEditProfileDialog(true)}
+                onImageUpload={handleImageUpload}
+              />
+            </div>
+            
+            <div className="space-y-6">
+              <ProfileCompletionCard
+                profileCompletionScore={currentProfile.profileComplete}
+                verifiedSkills={safeVerifiedSkills}
+                totalSkills={safeTotalSkills}
+              />
+              
+              <ApplicationStatsCard
+                applicationStats={applicationStats}
+              />
+            </div>
           </div>
-          
-          <ProfileMetrics
-            userProfile={currentProfile}
-            verifiedSkills={safeVerifiedSkills}
-            totalSkills={safeTotalSkills}
-            applicationStats={applicationStats}
-          />
           
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
