@@ -44,6 +44,10 @@ export const JobsContainer = ({ jobs }: JobsContainerProps) => {
     setSalaryRange,
     selectedSkills,
     setSelectedSkills,
+    locationFilters,
+    setLocationFilters,
+    jobTypeFilters,
+    setJobTypeFilters,
     filtersVisible,
     setFiltersVisible,
     filteredJobs,
@@ -85,6 +89,10 @@ export const JobsContainer = ({ jobs }: JobsContainerProps) => {
         filtersVisible={filtersVisible}
         setFiltersVisible={setFiltersVisible}
         activeFiltersCount={activeFiltersCount}
+        locationFilters={locationFilters}
+        setLocationFilters={setLocationFilters}
+        jobTypeFilters={jobTypeFilters}
+        setJobTypeFilters={setJobTypeFilters}
       />
       
       {filtersVisible && (

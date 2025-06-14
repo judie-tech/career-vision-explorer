@@ -33,6 +33,23 @@ interface SelectedSkills {
   react: boolean;
 }
 
+interface LocationFilters {
+  remote: boolean;
+  onsite: boolean;
+  hybrid: boolean;
+  nairobi: boolean;
+  mombasa: boolean;
+  kisumu: boolean;
+}
+
+interface JobTypeFilters {
+  fullTime: boolean;
+  partTime: boolean;
+  contract: boolean;
+  internship: boolean;
+  freelance: boolean;
+}
+
 export const useJobsFilter = (jobs: Job[]) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<FilterState>({
@@ -51,6 +68,21 @@ export const useJobsFilter = (jobs: Job[]) => {
   const [selectedSkills, setSelectedSkills] = useState<SelectedSkills>({
     javascript: false,
     react: false,
+  });
+  const [locationFilters, setLocationFilters] = useState<LocationFilters>({
+    remote: false,
+    onsite: false,
+    hybrid: false,
+    nairobi: false,
+    mombasa: false,
+    kisumu: false,
+  });
+  const [jobTypeFilters, setJobTypeFilters] = useState<JobTypeFilters>({
+    fullTime: false,
+    partTime: false,
+    contract: false,
+    internship: false,
+    freelance: false,
   });
   const [filtersVisible, setFiltersVisible] = useState(false);
 
@@ -72,6 +104,21 @@ export const useJobsFilter = (jobs: Job[]) => {
       javascript: false,
       react: false,
     });
+    setLocationFilters({
+      remote: false,
+      onsite: false,
+      hybrid: false,
+      nairobi: false,
+      mombasa: false,
+      kisumu: false,
+    });
+    setJobTypeFilters({
+      fullTime: false,
+      partTime: false,
+      contract: false,
+      internship: false,
+      freelance: false,
+    });
   };
 
   const filteredJobs = useMemo(() => {
@@ -83,7 +130,44 @@ export const useJobsFilter = (jobs: Job[]) => {
         return false;
       }
       
-      // Work Style filters
+      // Location filters from search bar
+      if (locationFilters.remote && !job.location.toLowerCase().includes("remote")) {
+        return false;
+      }
+      if (locationFilters.onsite && (job.location.toLowerCase().includes("remote") || job.location.toLowerCase().includes("hybrid"))) {
+        return false;
+      }
+      if (locationFilters.hybrid && !job.location.toLowerCase().includes("hybrid")) {
+        return false;
+      }
+      if (locationFilters.nairobi && !job.location.toLowerCase().includes("nairobi")) {
+        return false;
+      }
+      if (locationFilters.mombasa && !job.location.toLowerCase().includes("mombasa")) {
+        return false;
+      }
+      if (locationFilters.kisumu && !job.location.toLowerCase().includes("kisumu")) {
+        return false;
+      }
+
+      // Job type filters from search bar
+      if (jobTypeFilters.fullTime && !job.type.toLowerCase().includes("full-time")) {
+        return false;
+      }
+      if (jobTypeFilters.partTime && !job.type.toLowerCase().includes("part-time")) {
+        return false;
+      }
+      if (jobTypeFilters.contract && !job.type.toLowerCase().includes("contract")) {
+        return false;
+      }
+      if (jobTypeFilters.internship && !job.type.toLowerCase().includes("internship")) {
+        return false;
+      }
+      if (jobTypeFilters.freelance && !job.type.toLowerCase().includes("freelance")) {
+        return false;
+      }
+      
+      // Work Style filters (from advanced filters)
       if (filter.remote && !job.location.toLowerCase().includes("remote")) {
         return false;
       }
@@ -96,7 +180,7 @@ export const useJobsFilter = (jobs: Job[]) => {
         return false;
       }
       
-      // Job Type filters
+      // Job Type filters (from advanced filters)
       if (filter.fullTime && !job.type.toLowerCase().includes("full-time")) {
         return false;
       }
@@ -154,11 +238,13 @@ export const useJobsFilter = (jobs: Job[]) => {
       
       return true;
     });
-  }, [jobs, searchTerm, filter, salaryRange, selectedSkills]);
+  }, [jobs, searchTerm, filter, salaryRange, selectedSkills, locationFilters, jobTypeFilters]);
 
   const activeFiltersCount = Object.values(filter).filter(Boolean).length + 
     (salaryRange !== "all" ? 1 : 0) + 
-    Object.values(selectedSkills).filter(Boolean).length;
+    Object.values(selectedSkills).filter(Boolean).length +
+    Object.values(locationFilters).filter(Boolean).length +
+    Object.values(jobTypeFilters).filter(Boolean).length;
 
   return {
     searchTerm,
@@ -169,6 +255,10 @@ export const useJobsFilter = (jobs: Job[]) => {
     setSalaryRange,
     selectedSkills,
     setSelectedSkills,
+    locationFilters,
+    setLocationFilters,
+    jobTypeFilters,
+    setJobTypeFilters,
     filtersVisible,
     setFiltersVisible,
     filteredJobs,
