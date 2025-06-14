@@ -42,6 +42,7 @@ import EmployerInterviews from "./pages/employer/EmployerInterviews";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { UserProfileProvider } from "./hooks/use-user-profile";
 import { LearningPathsProvider } from "./hooks/use-learning-paths";
+import { CareerPathsProvider } from "./hooks/use-career-paths";
 
 const queryClient = new QueryClient();
 
@@ -53,50 +54,52 @@ function App() {
           <UsersProvider>
             <UserProfileProvider>
               <LearningPathsProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/jobs" element={<Jobs />} />
-                      <Route path="/skills" element={<Skills />} />
-                      <Route path="/career-paths" element={<CareerPaths />} />
-                      <Route path="/partners" element={<Partners />} />
-                      <Route path="/insights" element={<Insights />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/signup" element={<Signup />} />
-                      <Route path="/profile" element={<Profile />} />
-                      
-                      {/* Admin routes */}
-                      <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
-                      <Route path="/admin/login" element={<AdminLogin />} />
-                      <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
-                      <Route path="/admin/jobs" element={<ProtectedRoute requiredRole="admin"><AdminJobs /></ProtectedRoute>} />
-                      <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><AdminUsers /></ProtectedRoute>} />
-                      <Route path="/admin/career-paths" element={<ProtectedRoute requiredRole="admin"><AdminCareerPaths /></ProtectedRoute>} />
-                      <Route path="/admin/skills" element={<ProtectedRoute requiredRole="admin"><AdminSkills /></ProtectedRoute>} />
-                      <Route path="/admin/content" element={<ProtectedRoute requiredRole="admin"><AdminContent /></ProtectedRoute>} />
-                      <Route path="/admin/testimonials" element={<ProtectedRoute requiredRole="admin"><AdminTestimonials /></ProtectedRoute>} />
-                      <Route path="/admin/insights" element={<ProtectedRoute requiredRole="admin"><AdminInsights /></ProtectedRoute>} />
-                      <Route path="/admin/settings" element={<ProtectedRoute requiredRole="admin"><AdminSettings /></ProtectedRoute>} />
-                      <Route path="/admin/employer" element={<ProtectedRoute requiredRole="admin"><EmployerDashboard /></ProtectedRoute>} />
-                      <Route path="/admin/jobseeker" element={<ProtectedRoute requiredRole="admin"><JobSeekerDashboard /></ProtectedRoute>} />
-                      
-                      {/* Job seeker routes */}
-                      <Route path="/jobseeker/dashboard" element={<ProtectedRoute requiredRole="jobseeker"><JobSeekerDashboard /></ProtectedRoute>} />
-                      
-                      {/* Employer routes */}
-                      <Route path="/employer/jobs" element={<ProtectedRoute requiredRole="employer"><EmployerJobs /></ProtectedRoute>} />
-                      <Route path="/employer/jobs/:jobId/applicants" element={<ProtectedRoute requiredRole="employer"><JobApplicants /></ProtectedRoute>} />
-                      <Route path="/employer/applicants" element={<ProtectedRoute requiredRole="employer"><AllApplicants /></ProtectedRoute>} />
-                      <Route path="/employer/interviews" element={<ProtectedRoute requiredRole="employer"><InterviewSchedule /></ProtectedRoute>} />
-                      <Route path="/employer/interview-schedule" element={<ProtectedRoute requiredRole="employer"><EmployerInterviews /></ProtectedRoute>} />
-                      
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </BrowserRouter>
-                </TooltipProvider>
+                <CareerPathsProvider>
+                  <TooltipProvider>
+                    <Toaster />
+                    <Sonner />
+                    <BrowserRouter>
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/jobs" element={<Jobs />} />
+                        <Route path="/skills" element={<Skills />} />
+                        <Route path="/career-paths" element={<CareerPaths />} />
+                        <Route path="/partners" element={<Partners />} />
+                        <Route path="/insights" element={<Insights />} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/signup" element={<Signup />} />
+                        <Route path="/profile" element={<Profile />} />
+                        
+                        {/* Admin routes */}
+                        <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
+                        <Route path="/admin/login" element={<AdminLogin />} />
+                        <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
+                        <Route path="/admin/jobs" element={<ProtectedRoute requiredRole="admin"><AdminJobs /></ProtectedRoute>} />
+                        <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><AdminUsers /></ProtectedRoute>} />
+                        <Route path="/admin/career-paths" element={<ProtectedRoute requiredRole="admin"><AdminCareerPaths /></ProtectedRoute>} />
+                        <Route path="/admin/skills" element={<ProtectedRoute requiredRole="admin"><AdminSkills /></ProtectedRoute>} />
+                        <Route path="/admin/content" element={<ProtectedRoute requiredRole="admin"><AdminContent /></ProtectedRoute>} />
+                        <Route path="/admin/testimonials" element={<ProtectedRoute requiredRole="admin"><AdminTestimonials /></ProtectedRoute>} />
+                        <Route path="/admin/insights" element={<ProtectedRoute requiredRole="admin"><AdminInsights /></ProtectedRoute>} />
+                        <Route path="/admin/settings" element={<ProtectedRoute requiredRole="admin"><AdminSettings /></ProtectedRoute>} />
+                        <Route path="/admin/employer" element={<ProtectedRoute requiredRole="admin"><EmployerDashboard /></ProtectedRoute>} />
+                        <Route path="/admin/jobseeker" element={<ProtectedRoute requiredRole="admin"><JobSeekerDashboard /></ProtectedRoute>} />
+                        
+                        {/* Job seeker routes */}
+                        <Route path="/jobseeker/dashboard" element={<ProtectedRoute requiredRole="jobseeker"><JobSeekerDashboard /></ProtectedRoute>} />
+                        
+                        {/* Employer routes */}
+                        <Route path="/employer/jobs" element={<ProtectedRoute requiredRole="employer"><EmployerJobs /></ProtectedRoute>} />
+                        <Route path="/employer/jobs/:jobId/applicants" element={<ProtectedRoute requiredRole="employer"><JobApplicants /></ProtectedRoute>} />
+                        <Route path="/employer/applicants" element={<ProtectedRoute requiredRole="employer"><AllApplicants /></ProtectedRoute>} />
+                        <Route path="/employer/interviews" element={<ProtectedRoute requiredRole="employer"><InterviewSchedule /></ProtectedRoute>} />
+                        <Route path="/employer/interview-schedule" element={<ProtectedRoute requiredRole="employer"><EmployerInterviews /></ProtectedRoute>} />
+                        
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </BrowserRouter>
+                  </TooltipProvider>
+                </CareerPathsProvider>
               </LearningPathsProvider>
             </UserProfileProvider>
           </UsersProvider>
