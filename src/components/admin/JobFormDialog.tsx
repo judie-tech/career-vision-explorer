@@ -103,9 +103,17 @@ export function JobFormDialog({ open, onOpenChange, job, mode }: JobFormDialogPr
   }, [job, mode, form]);
 
   const onSubmit = (data: JobFormData) => {
-    const formattedData = {
-      ...data,
+    const formattedData: Omit<AdminJob, "id" | "postedDate" | "applications"> = {
+      title: data.title,
+      company: data.company,
+      location: data.location,
+      description: data.description,
       requirements: data.requirements.split("\n").filter(req => req.trim() !== ""),
+      salary: data.salary,
+      type: data.type,
+      experience: data.experience,
+      department: data.department,
+      status: data.status,
     };
 
     if (mode === "create") {
