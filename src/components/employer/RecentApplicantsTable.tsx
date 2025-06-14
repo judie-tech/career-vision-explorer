@@ -49,7 +49,6 @@ export const RecentApplicantsTable = () => {
   const handleScheduleInterview = (applicantId: string) => {
     updateApplicantStatus(applicantId, "Interview");
     // Navigate to interview scheduling page
-    // This is a placeholder, in a real app you might use a modal or navigate to a specific page
     navigate("/employer/interviews/schedule");
   };
   
