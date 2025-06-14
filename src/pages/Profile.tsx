@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { 
@@ -29,13 +28,38 @@ import {
   TrendingUp,
   CheckCircle, 
   Star,
-  GraduationCap
+  GraduationCap,
+  Calendar,
+  Clock
 } from "lucide-react";
+import { useJobApplications } from "@/hooks/use-job-applications";
+import { useSkillsAssessment } from "@/hooks/use-skills-assessment";
+import { useInterviewSchedule } from "@/hooks/use-interview-schedule";
+import { JobApplicationDialog } from "@/components/jobseeker/JobApplicationDialog";
+import { SkillAssessmentDialog } from "@/components/jobseeker/SkillAssessmentDialog";
+import { InterviewScheduleDialog } from "@/components/jobseeker/InterviewScheduleDialog";
+import { Link } from "react-router-dom";
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("overview");
+  const [showApplicationDialog, setShowApplicationDialog] = useState(false);
+  const [showSkillsDialog, setShowSkillsDialog] = useState(false);
+  const [showInterviewDialog, setShowInterviewDialog] = useState(false);
   
-  const profileCompletionScore = 75;
+  // Get data from hooks
+  const { applications, getApplicationsByStatus } = useJobApplications();
+  const { skills, verifiedSkills, totalSkills, updateSkillProficiency, verifySkill } = useSkillsAssessment();
+  const { getUpcomingInterviews } = useInterviewSchedule();
+  
+  const upcomingInterviews = getUpcomingInterviews();
+  
+  // Calculate profile completion
+  const profileCompletionScore = Math.round(
+    ((verifiedSkills / totalSkills) * 40) + // 40% for skills
+    (applications.length > 0 ? 30 : 0) + // 30% for having applications
+    25 // 25% base for basic profile info
+  );
+  
   const recentAssessments = [
     {
       title: "Front-End Development",
@@ -57,20 +81,11 @@ const Profile = () => {
     }
   ];
   
-  const skills = [
-    { name: "JavaScript", level: 90, verified: true },
-    { name: "React", level: 85, verified: true },
-    { name: "Node.js", level: 80, verified: false },
-    { name: "UI/UX Design", level: 75, verified: false },
-    { name: "Communication", level: 92, verified: true },
-    { name: "Problem Solving", level: 88, verified: true }
-  ];
-  
   const applicationStats = {
-    total: 12,
-    active: 5,
-    interviews: 3,
-    offers: 1
+    total: applications.length,
+    active: getApplicationsByStatus("Applied").length + getApplicationsByStatus("Reviewing").length,
+    interviews: getApplicationsByStatus("Interview").length,
+    offers: getApplicationsByStatus("Hired").length
   };
   
   const learningPaths = [
@@ -87,6 +102,14 @@ const Profile = () => {
       modulesCompleted: 5
     }
   ];
+
+  const handleUpdateSkill = (skillId: string, level: number) => {
+    updateSkillProficiency(skillId, level);
+  };
+
+  const handleVerifySkill = (skillId: string) => {
+    verifySkill(skillId);
+  };
   
   return (
     <Layout>
@@ -96,7 +119,13 @@ const Profile = () => {
             <h1 className="text-3xl font-bold">My Profile</h1>
             <p className="text-gray-500">Manage your career profile and track your progress</p>
           </div>
-          <div className="mt-4 md:mt-0">
+          <div className="mt-4 md:mt-0 flex gap-2">
+            <Link to="/admin/jobseeker">
+              <Button variant="outline" className="flex items-center">
+                <Briefcase className="mr-2 h-4 w-4" />
+                Dashboard
+              </Button>
+            </Link>
             <Button variant="outline" className="flex items-center">
               <Settings className="mr-2 h-4 w-4" />
               Edit Profile
@@ -158,7 +187,7 @@ const Profile = () => {
                   </div>
                   <div className="flex items-center text-sm">
                     <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                    Skills & Assessments
+                    Skills & Assessments ({verifiedSkills}/{totalSkills})
                   </div>
                   <div className="flex items-center text-sm text-gray-400">
                     <div className="h-4 w-4 mr-2 rounded-full border border-gray-300"></div>
@@ -197,9 +226,11 @@ const Profile = () => {
                 </div>
               </div>
               <div className="mt-4">
-                <Button variant="outline" className="w-full">
-                  View Applications
-                </Button>
+                <Link to="/admin/jobseeker">
+                  <Button variant="outline" className="w-full">
+                    View Applications
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -223,24 +254,30 @@ const Profile = () => {
                 <CardContent>
                   <div className="space-y-4">
                     {skills.slice(0, 4).map((skill) => (
-                      <div key={skill.name} className="space-y-1">
+                      <div key={skill.id} className="space-y-1">
                         <div className="flex justify-between items-center">
                           <div className="flex items-center">
                             <span className="text-sm font-medium">{skill.name}</span>
-                            {skill.verified && (
+                            {skill.isVerified && (
                               <Badge variant="outline" className="ml-2 text-xs bg-green-50">
                                 <CheckCircle className="h-3 w-3 mr-1" />
                                 Verified
                               </Badge>
                             )}
                           </div>
-                          <span className="text-xs">{skill.level}%</span>
+                          <span className="text-xs">{skill.proficiencyLevel * 20}%</span>
                         </div>
-                        <Progress value={skill.level} />
+                        <Progress value={skill.proficiencyLevel * 20} />
                       </div>
                     ))}
                     
-                    <Button variant="ghost" className="w-full text-sm">View All Skills</Button>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full text-sm"
+                      onClick={() => setShowSkillsDialog(true)}
+                    >
+                      View All Skills
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -269,11 +306,56 @@ const Profile = () => {
                       </div>
                     ))}
                     
-                    <Button variant="ghost" className="w-full text-sm">Take New Assessment</Button>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full text-sm"
+                      onClick={() => setShowSkillsDialog(true)}
+                    >
+                      Take New Assessment
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
             </div>
+
+            {/* Upcoming Interviews Section */}
+            {upcomingInterviews.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Upcoming Interviews</CardTitle>
+                  <CardDescription>Your scheduled interviews</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {upcomingInterviews.slice(0, 3).map((interview) => (
+                      <div key={interview.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">{interview.jobTitle}</h4>
+                          <p className="text-sm text-gray-500">{interview.company}</p>
+                          <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                            <Calendar className="h-3 w-3" />
+                            {new Date(interview.date).toLocaleDateString()}
+                            <Clock className="h-3 w-3 ml-2" />
+                            {interview.time}
+                          </div>
+                        </div>
+                        <Badge variant="outline">
+                          {interview.type}
+                        </Badge>
+                      </div>
+                    ))}
+                    <Button 
+                      variant="ghost" 
+                      className="w-full"
+                      onClick={() => setShowInterviewDialog(true)}
+                    >
+                      View All Interviews
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
             
             <Card>
               <CardHeader>
@@ -324,11 +406,11 @@ const Profile = () => {
                   <div className="space-y-4">
                     <h3 className="font-medium">Technical Skills</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {skills.filter(skill => ["JavaScript", "React", "Node.js"].includes(skill.name)).map((skill) => (
-                        <div key={skill.name} className="border rounded-md p-3">
+                      {skills.filter(skill => ["Programming", "Frontend", "Backend"].includes(skill.category)).slice(0, 6).map((skill) => (
+                        <div key={skill.id} className="border rounded-md p-3">
                           <div className="flex justify-between">
                             <span className="font-medium">{skill.name}</span>
-                            {skill.verified && (
+                            {skill.isVerified && (
                               <Badge variant="outline" className="text-xs bg-green-50">
                                 <CheckCircle className="h-3 w-3 mr-1" />
                                 Verified
@@ -338,49 +420,27 @@ const Profile = () => {
                           <div className="mt-2 space-y-1">
                             <div className="flex justify-between text-xs">
                               <span>Proficiency</span>
-                              <span>{skill.level}%</span>
+                              <span>{skill.proficiencyLevel * 20}%</span>
                             </div>
-                            <Progress value={skill.level} />
+                            <Progress value={skill.proficiencyLevel * 20} />
                           </div>
                           <div className="flex gap-2 mt-3">
-                            <Button variant="outline" size="sm" className="text-xs flex-1">Edit</Button>
-                            {!skill.verified && (
-                              <Button size="sm" className="text-xs flex-1">Verify</Button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                      <div className="border border-dashed rounded-md p-3 flex items-center justify-center">
-                        <Button variant="ghost" className="text-sm">+ Add Skill</Button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <h3 className="font-medium">Soft Skills</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {skills.filter(skill => ["Communication", "Problem Solving"].includes(skill.name)).map((skill) => (
-                        <div key={skill.name} className="border rounded-md p-3">
-                          <div className="flex justify-between">
-                            <span className="font-medium">{skill.name}</span>
-                            {skill.verified && (
-                              <Badge variant="outline" className="text-xs bg-green-50">
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                Verified
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="mt-2 space-y-1">
-                            <div className="flex justify-between text-xs">
-                              <span>Proficiency</span>
-                              <span>{skill.level}%</span>
-                            </div>
-                            <Progress value={skill.level} />
-                          </div>
-                          <div className="flex gap-2 mt-3">
-                            <Button variant="outline" size="sm" className="text-xs flex-1">Edit</Button>
-                            {!skill.verified && (
-                              <Button size="sm" className="text-xs flex-1">Verify</Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-xs flex-1"
+                              onClick={() => handleUpdateSkill(skill.id, skill.proficiencyLevel)}
+                            >
+                              Edit
+                            </Button>
+                            {!skill.isVerified && (
+                              <Button 
+                                size="sm" 
+                                className="text-xs flex-1"
+                                onClick={() => handleVerifySkill(skill.id)}
+                              >
+                                Verify
+                              </Button>
                             )}
                           </div>
                         </div>
@@ -400,6 +460,7 @@ const Profile = () => {
           </TabsContent>
           
           <TabsContent value="learning" className="space-y-8">
+            
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">My Learning Paths</CardTitle>
@@ -503,6 +564,23 @@ const Profile = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Dialogs */}
+        <JobApplicationDialog
+          job={null}
+          open={showApplicationDialog}
+          onOpenChange={setShowApplicationDialog}
+        />
+        
+        <SkillAssessmentDialog
+          open={showSkillsDialog}
+          onOpenChange={setShowSkillsDialog}
+        />
+        
+        <InterviewScheduleDialog
+          open={showInterviewDialog}
+          onOpenChange={setShowInterviewDialog}
+        />
       </div>
     </Layout>
   );
