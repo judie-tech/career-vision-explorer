@@ -94,6 +94,46 @@ const mockJobDetails = {
       founded: "2015",
       website: "https://innovativesystems.co.ke"
     }
+  },
+  "5": {
+    id: "5",
+    title: "Senior Product Manager",
+    company: "TechCorp Inc.",
+    location: "Hybrid - Nairobi",
+    type: "Full-time",
+    salary: "150K-200K KES/month",
+    posted: "4 days ago",
+    matchScore: 89,
+    experienceLevel: "Executive",
+    skills: ["Product Strategy", "Agile", "User Research", "Roadmapping"],
+    description: "We're looking for an experienced Product Manager to lead our flagship product development and work with cross-functional teams.",
+    requirements: [
+      "7+ years of product management experience",
+      "Experience with Agile development methodologies",
+      "Strong analytical and problem-solving skills",
+      "Excellent communication and leadership abilities",
+      "Experience with user research and data analysis"
+    ],
+    responsibilities: [
+      "Define product strategy and roadmap",
+      "Lead cross-functional product teams",
+      "Conduct user research and market analysis",
+      "Collaborate with engineering and design teams",
+      "Monitor product performance and metrics"
+    ],
+    benefits: [
+      "Competitive executive compensation",
+      "Equity participation",
+      "Comprehensive health benefits",
+      "Professional development budget",
+      "Flexible hybrid work arrangement"
+    ],
+    companyInfo: {
+      size: "200-500 employees",
+      industry: "Technology",
+      founded: "2012",
+      website: "https://techcorp.co.ke"
+    }
   }
 };
 
