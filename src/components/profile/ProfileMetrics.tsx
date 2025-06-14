@@ -33,6 +33,7 @@ const ProfileMetrics = ({
         userExperience={userProfile.experience}
         userLocation={userProfile.location}
         userBio={userProfile.bio}
+        profileImage={userProfile.profileImage}
       />
       
       <ProfileCompletionCard

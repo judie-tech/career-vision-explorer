@@ -16,6 +16,7 @@ import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileMetrics from "@/components/profile/ProfileMetrics";
 import ProfileTabsContent from "@/components/profile/ProfileTabsContent";
 import ProfileDialogs from "@/components/profile/ProfileDialogs";
+import ProfileImageUpload from "@/components/profile/ProfileImageUpload";
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -84,7 +85,12 @@ const Profile = () => {
     }
   };
 
-  // Provide default user profile if not loaded - now with joinDate included
+  const handleImageUpload = async (imageUrl: string) => {
+    if (updateProfile) {
+      await updateProfile({ profileImage: imageUrl });
+    }
+  };
+
   const defaultProfile = {
     id: "1",
     name: "John Doe",
@@ -111,6 +117,13 @@ const Profile = () => {
           userExperience={currentProfile.experience}
           onEditProfile={() => setShowEditProfileDialog(true)}
         />
+        
+        <div className="mb-8">
+          <ProfileImageUpload
+            currentImage={currentProfile.profileImage}
+            onImageUpload={handleImageUpload}
+          />
+        </div>
         
         <ProfileMetrics
           userProfile={currentProfile}

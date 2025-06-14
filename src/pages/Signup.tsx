@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -33,11 +32,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Linkedin, Upload, Video } from "lucide-react";
+import { Linkedin, Upload, Video, User, Camera } from "lucide-react";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 
 const signupSchema = z.object({
@@ -50,6 +50,7 @@ const signupSchema = z.object({
   password: z.string().min(8, {
     message: "Password must be at least 8 characters.",
   }),
+  profileImage: z.string().optional(),
 });
 
 const Signup = () => {
@@ -57,6 +58,7 @@ const Signup = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [linkedInImportOpen, setLinkedInImportOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [profileImage, setProfileImage] = useState<string>("");
   
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
@@ -64,14 +66,45 @@ const Signup = () => {
       name: "",
       email: "",
       password: "",
+      profileImage: "",
     },
   });
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select a valid image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Image size must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setProfileImage(result);
+      form.setValue('profileImage', result);
+    };
+    reader.readAsDataURL(file);
+  };
   
   const onSubmit = (values: z.infer<typeof signupSchema>) => {
     setIsLoading(true);
     console.log(values);
     
-    // Simulate account creation
     setTimeout(() => {
       setIsLoading(false);
       toast({
@@ -92,7 +125,6 @@ const Signup = () => {
       title: "LinkedIn Import Initiated",
       description: "Please complete authorization in the popup window.",
     });
-    // In a real app, this would trigger OAuth flow
     setTimeout(() => {
       setIsLoading(false);
       setLinkedInImportOpen(false);
@@ -113,6 +145,36 @@ const Signup = () => {
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                {/* Profile Image Upload */}
+                <div className="flex flex-col items-center space-y-4 pb-4">
+                  <div className="relative">
+                    <Avatar className="h-20 w-20">
+                      <AvatarImage src={profileImage} alt="Profile" />
+                      <AvatarFallback className="bg-gray-100">
+                        <User className="h-8 w-8 text-gray-500" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="absolute bottom-0 right-0 rounded-full h-8 w-8 p-0"
+                      onClick={() => document.getElementById('signup-image-input')?.click()}
+                    >
+                      <Camera className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 text-center">
+                    Add a profile photo (optional)
+                  </p>
+                  <input
+                    id="signup-image-input"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </div>
+
                 <FormField
                   control={form.control}
                   name="name"

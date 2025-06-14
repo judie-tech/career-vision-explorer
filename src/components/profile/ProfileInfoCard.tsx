@@ -1,5 +1,6 @@
 
 import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, BookOpen, Briefcase, TrendingUp, MapPin, Phone } from "lucide-react";
 
 interface ProfileInfoCardProps {
@@ -9,16 +10,28 @@ interface ProfileInfoCardProps {
   userExperience: string;
   userLocation?: string;
   userBio?: string;
+  profileImage?: string;
 }
 
-const ProfileInfoCard = ({ userName, userRole, userEducation, userExperience, userLocation, userBio }: ProfileInfoCardProps) => {
+const ProfileInfoCard = ({ 
+  userName, 
+  userRole, 
+  userEducation, 
+  userExperience, 
+  userLocation, 
+  userBio,
+  profileImage 
+}: ProfileInfoCardProps) => {
   return (
     <Card>
       <CardContent className="pt-6">
         <div className="flex items-center">
-          <div className="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center">
-            <User className="h-8 w-8 text-gray-500" />
-          </div>
+          <Avatar className="h-16 w-16">
+            <AvatarImage src={profileImage} alt={userName} />
+            <AvatarFallback className="bg-gray-200">
+              <User className="h-8 w-8 text-gray-500" />
+            </AvatarFallback>
+          </Avatar>
           <div className="ml-4">
             <h2 className="text-xl font-bold">{userName}</h2>
             <p className="text-gray-500">{userRole}</p>
