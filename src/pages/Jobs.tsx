@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { toast } from "sonner";
@@ -247,19 +246,22 @@ const Jobs = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20">
-        <div className="container py-8">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none"></div>
+        
+        <div className="relative container py-12">
           <JobsHeader />
           
-          <div className="mb-8">
-            <JobsSearchBar
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filtersVisible={filtersVisible}
-              setFiltersVisible={setFiltersVisible}
-              activeFiltersCount={activeFiltersCount}
-            />
-            
-            {filtersVisible && (
+          <JobsSearchBar
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filtersVisible={filtersVisible}
+            setFiltersVisible={setFiltersVisible}
+            activeFiltersCount={activeFiltersCount}
+          />
+          
+          {filtersVisible && (
+            <div className="animate-fade-in">
               <JobsFilters
                 filter={filter}
                 setFilter={setFilter}
@@ -269,8 +271,8 @@ const Jobs = () => {
                 setSelectedSkills={setSelectedSkills}
                 resetFilters={resetFilters}
               />
-            )}
-          </div>
+            </div>
+          )}
           
           <JobsList
             jobs={filteredJobs}
