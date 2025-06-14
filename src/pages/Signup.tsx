@@ -33,7 +33,6 @@ import { Linkedin } from "lucide-react";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import ProfileImageUpload from "@/components/auth/ProfileImageUpload";
 import PhoneNumberInput from "@/components/auth/PhoneNumberInput";
-import LinkedInImportDialog from "@/components/auth/LinkedInImportDialog";
 
 const signupSchema = z.object({
   name: z.string().min(2, {
@@ -117,8 +116,8 @@ const Signup = () => {
     toast({
       title: "LinkedIn Data Imported",
       description: selectedRole === "jobseeker" 
-        ? "Please complete your profile with image and phone number."
-        : "Please complete your profile with image.",
+        ? "Please add your phone number to complete registration."
+        : "Registration complete! Setting up your profile...",
     });
     
     setTimeout(() => {
@@ -126,17 +125,28 @@ const Signup = () => {
       setLinkedInImportOpen(false);
       setLinkedInDataImported(true);
       
-      // Pre-fill form with LinkedIn data
+      // Pre-fill form with LinkedIn data including profile image
       form.setValue('name', 'John Doe');
       form.setValue('email', 'john.doe@example.com');
       form.setValue('password', 'linkedinpass123');
+      form.setValue('profileImage', 'https://via.placeholder.com/150'); // Simulate LinkedIn profile image
+      setProfileImage('https://via.placeholder.com/150');
       
-      toast({
-        title: "LinkedIn Import Complete",
-        description: selectedRole === "jobseeker"
-          ? "Profile information imported. Please add your photo and phone number to continue."
-          : "Profile information imported. Please add your photo to continue.",
-      });
+      if (selectedRole === "employer") {
+        // For employers, complete registration immediately since no phone needed
+        setTimeout(() => {
+          toast({
+            title: "Account created!",
+            description: "Let's set up your profile to find the perfect opportunities.",
+          });
+          setShowOnboarding(true);
+        }, 500);
+      } else {
+        toast({
+          title: "LinkedIn Import Complete",
+          description: "Profile information and photo imported. Please add your phone number to continue.",
+        });
+      }
     }, 1500);
   };
   
@@ -148,7 +158,9 @@ const Signup = () => {
             <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
             <CardDescription className="text-center">
               {linkedInDataImported 
-                ? "Complete your profile to finish registration" 
+                ? selectedRole === "jobseeker"
+                  ? "Add your phone number to complete registration"
+                  : "Complete your profile to finish registration"
                 : "Join Visiondrill to explore career opportunities tailored to your skills and goals."
               }
             </CardDescription>

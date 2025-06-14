@@ -31,18 +31,21 @@ const LinkedInImportDialog: React.FC<LinkedInImportDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Import LinkedIn Profile</DialogTitle>
           <DialogDescription>
-            We'll import your LinkedIn profile data. You'll still need to add a profile photo
-            {selectedRole === "jobseeker" && " and phone number"} to complete registration.
+            We'll import your LinkedIn profile data and photo.
+            {selectedRole === "jobseeker" && " You'll still need to add your phone number to complete registration."}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <p className="text-sm text-gray-600">
-            After importing from LinkedIn, you will need to:
-          </p>
-          <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
-            <li>Upload a profile photo</li>
-            {selectedRole === "jobseeker" && <li>Add your phone number</li>}
-          </ul>
+          {selectedRole === "jobseeker" && (
+            <>
+              <p className="text-sm text-gray-600">
+                After importing from LinkedIn, you will need to:
+              </p>
+              <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                <li>Add your phone number</li>
+              </ul>
+            </>
+          )}
           <Button 
             className="w-full bg-[#0077B5] hover:bg-[#0077B5]/90 transition-colors"
             onClick={onConnect}
