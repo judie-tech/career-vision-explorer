@@ -23,6 +23,7 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminJobs from "@/pages/admin/AdminJobs";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminSettings from "@/pages/admin/AdminSettings";
+import AdminTestimonials from "@/pages/admin/AdminTestimonials";
 import EmployerDashboard from "@/pages/admin/EmployerDashboard";
 import JobSeekerDashboard from "@/pages/admin/JobSeekerDashboard";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -84,6 +85,11 @@ function App() {
                 <Route path="/admin/skills" element={
                   <ProtectedRoute requiredRole="admin">
                     <Skills />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/testimonials" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminTestimonials />
                   </ProtectedRoute>
                 } />
                 
