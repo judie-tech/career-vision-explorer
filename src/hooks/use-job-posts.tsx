@@ -1,3 +1,4 @@
+
 import { create } from "zustand";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ export interface JobFilters {
   dateRange?: number;
   boostedOnly?: boolean;
   searchQuery?: string;
+  location?: string;
 }
 
 interface JobStore {
@@ -30,15 +32,16 @@ interface JobStore {
   updateJob: (id: string, updatedJob: Partial<JobPost>) => void;
   getJob: (id: string) => JobPost | undefined;
   updateFilters: (filters: Partial<JobFilters>) => void;
+  resetFilters: () => void;
 }
 
-// Sample job data
+// Enhanced sample job data
 const initialJobs: JobPost[] = [
   {
     id: "1",
     title: "Senior Frontend Developer",
-    description: "We're looking for an experienced Frontend Developer to join our team.",
-    location: "Remote",
+    description: "We're looking for an experienced Frontend Developer to join our team and build amazing user interfaces.",
+    location: "San Francisco, CA",
     type: "Full-time",
     salary: "$120,000 - $150,000",
     isBoosted: true,
@@ -49,8 +52,8 @@ const initialJobs: JobPost[] = [
   {
     id: "2",
     title: "UX Designer",
-    description: "Design beautiful user experiences for our products.",
-    location: "San Francisco",
+    description: "Design beautiful user experiences for our products using modern design principles.",
+    location: "Remote",
     type: "Full-time",
     salary: "$90,000 - $110,000",
     isBoosted: false,
@@ -61,8 +64,8 @@ const initialJobs: JobPost[] = [
   {
     id: "3",
     title: "Backend Engineer",
-    description: "Build scalable APIs and backend systems.",
-    location: "New York",
+    description: "Build scalable APIs and backend systems using modern technologies.",
+    location: "New York, NY",
     type: "Full-time",
     salary: "$130,000 - $160,000",
     isBoosted: true,
@@ -73,14 +76,38 @@ const initialJobs: JobPost[] = [
   {
     id: "4",
     title: "DevOps Engineer",
-    description: "Manage our cloud infrastructure and CI/CD pipelines.",
-    location: "Remote",
+    description: "Manage our cloud infrastructure and CI/CD pipelines for optimal performance.",
+    location: "Austin, TX",
     type: "Full-time",
     salary: "$115,000 - $140,000",
     isBoosted: false,
     datePosted: "2023-05-07T10:45:00Z",
     applicants: 6,
     views: 153,
+  },
+  {
+    id: "5",
+    title: "Product Manager",
+    description: "Lead product strategy and work with cross-functional teams to deliver great products.",
+    location: "Seattle, WA",
+    type: "Full-time",
+    salary: "$140,000 - $170,000",
+    isBoosted: true,
+    datePosted: "2023-05-02T16:20:00Z",
+    applicants: 20,
+    views: 428,
+  },
+  {
+    id: "6",
+    title: "Data Scientist",
+    description: "Analyze complex datasets to derive insights and build predictive models.",
+    location: "Chicago, IL",
+    type: "Contract",
+    salary: "$100,000 - $130,000",
+    isBoosted: false,
+    datePosted: "2023-05-06T11:30:00Z",
+    applicants: 9,
+    views: 201,
   },
 ];
 
@@ -92,6 +119,7 @@ export const useJobPosts = create<JobStore>((set, get) => ({
     dateRange: 30,
     boostedOnly: false,
     searchQuery: '',
+    location: 'all',
   },
   
   addJob: (job) => {
@@ -102,6 +130,7 @@ export const useJobPosts = create<JobStore>((set, get) => ({
         filteredJobs: applyFilters(newJobs, state.filters),
       };
     });
+    toast.success("Job posted successfully!");
   },
   
   removeJob: (id) => {
@@ -147,13 +176,32 @@ export const useJobPosts = create<JobStore>((set, get) => ({
       };
     });
   },
+
+  resetFilters: () => {
+    const defaultFilters = {
+      jobType: 'all',
+      dateRange: 30,
+      boostedOnly: false,
+      searchQuery: '',
+      location: 'all',
+    };
+    set((state) => ({
+      filters: defaultFilters,
+      filteredJobs: applyFilters(state.jobs, defaultFilters),
+    }));
+  },
 }));
 
-// Helper function to apply filters to jobs
+// Enhanced filter function
 function applyFilters(jobs: JobPost[], filters: JobFilters): JobPost[] {
   return jobs.filter(job => {
     // Filter by job type
     if (filters.jobType && filters.jobType !== 'all' && job.type !== filters.jobType) {
+      return false;
+    }
+    
+    // Filter by location
+    if (filters.location && filters.location !== 'all' && !job.location.toLowerCase().includes(filters.location.toLowerCase())) {
       return false;
     }
     
@@ -177,7 +225,9 @@ function applyFilters(jobs: JobPost[], filters: JobFilters): JobPost[] {
       return (
         job.title.toLowerCase().includes(query) ||
         job.description.toLowerCase().includes(query) ||
-        job.location.toLowerCase().includes(query)
+        job.location.toLowerCase().includes(query) ||
+        job.type.toLowerCase().includes(query) ||
+        job.salary.toLowerCase().includes(query)
       );
     }
     
