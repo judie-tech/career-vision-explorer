@@ -19,6 +19,7 @@ import LearningPaths from "@/pages/LearningPaths";
 import Partners from "@/pages/Partners";
 import Insights from "@/pages/Insights";
 import JobSeekerDashboard from "@/pages/admin/JobSeekerDashboard";
+import JobSeekerSettings from "@/pages/jobseeker/JobSeekerSettings";
 
 // Admin pages
 import AdminLogin from "@/pages/admin/AdminLogin";
