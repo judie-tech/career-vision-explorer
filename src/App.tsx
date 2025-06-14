@@ -25,6 +25,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminContent from "./pages/admin/AdminContent";
 import AdminTestimonials from "./pages/admin/AdminTestimonials";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminInsights from "./pages/admin/AdminInsights";
 import EmployerDashboard from "./pages/admin/EmployerDashboard";
 import JobSeekerDashboard from "./pages/admin/JobSeekerDashboard";
 
@@ -70,6 +71,7 @@ function App() {
                     <Route path="/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
                     <Route path="/admin/content" element={<ProtectedRoute><AdminContent /></ProtectedRoute>} />
                     <Route path="/admin/testimonials" element={<ProtectedRoute><AdminTestimonials /></ProtectedRoute>} />
+                    <Route path="/admin/insights" element={<ProtectedRoute><AdminInsights /></ProtectedRoute>} />
                     <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
                     <Route path="/admin/employer" element={<ProtectedRoute><EmployerDashboard /></ProtectedRoute>} />
                     <Route path="/admin/jobseeker" element={<ProtectedRoute><JobSeekerDashboard /></ProtectedRoute>} />

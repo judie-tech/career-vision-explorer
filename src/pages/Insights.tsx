@@ -21,44 +21,20 @@ import {
 } from "@/components/ui/tabs";
 import Layout from "@/components/layout/Layout";
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell } from "recharts";
+import useInsightsData from "@/hooks/use-insights-data";
 
 const Insights = () => {
   const [industry, setIndustry] = useState("all-industries");
   const [region, setRegion] = useState("all-regions");
-
-  // Mock data for charts
-  const salaryByRoleData = [
-    { name: "Software Engineer", salary: 110000 },
-    { name: "Data Scientist", salary: 120000 },
-    { name: "Product Manager", salary: 125000 },
-    { name: "UX Designer", salary: 95000 },
-    { name: "DevOps Engineer", salary: 115000 },
-    { name: "Marketing Manager", salary: 90000 },
-  ];
-
-  const jobTrendData = [
-    { month: "Jan", jobs: 5200 },
-    { month: "Feb", jobs: 5000 },
-    { month: "Mar", jobs: 5400 },
-    { month: "Apr", jobs: 5600 },
-    { month: "May", jobs: 6000 },
-    { month: "Jun", jobs: 5800 },
-    { month: "Jul", jobs: 6200 },
-    { month: "Aug", jobs: 6400 },
-    { month: "Sep", jobs: 6700 },
-    { month: "Oct", jobs: 6500 },
-    { month: "Nov", jobs: 6800 },
-    { month: "Dec", jobs: 7000 },
-  ];
-
-  const skillDemandData = [
-    { name: "React", value: 25 },
-    { name: "Python", value: 20 },
-    { name: "Data Analysis", value: 15 },
-    { name: "Cloud Services", value: 12 },
-    { name: "UX Design", value: 10 },
-    { name: "Leadership", value: 18 },
-  ];
+  
+  const {
+    marketData,
+    industryInsights,
+    regionalData,
+    salaryByRoleData,
+    jobTrendData,
+    skillDemandData,
+  } = useInsightsData();
 
   const SKILL_COLORS = [
     "#3b82f6",
@@ -69,55 +45,29 @@ const Insights = () => {
     "#14b8a6",
   ];
 
-  // Industry insights data
-  const industryInsights = [
-    {
-      industry: "Technology",
-      topRoles: ["Software Engineer", "Product Manager", "Data Scientist"],
-      averageSalary: "$115,000",
-      growthRate: "+18%",
-      topSkills: ["Programming", "System Design", "AI/ML"],
-    },
-    {
-      industry: "Finance",
-      topRoles: ["Financial Analyst", "Investment Banker", "Risk Manager"],
-      averageSalary: "$105,000",
-      growthRate: "+8%",
-      topSkills: ["Financial Modeling", "Risk Assessment", "Regulatory Compliance"],
-    },
-    {
-      industry: "Healthcare",
-      topRoles: ["Medical Technician", "Healthcare Administrator", "Nurse Practitioner"],
-      averageSalary: "$95,000",
-      growthRate: "+15%",
-      topSkills: ["Patient Care", "Medical Knowledge", "Regulatory Compliance"],
-    },
-  ];
+  const formatValue = (type: string, value: number) => {
+    switch (type) {
+      case "average_salary":
+        return `$${value.toLocaleString()}`;
+      case "remote_jobs":
+        return `${value}%`;
+      default:
+        return value.toLocaleString();
+    }
+  };
 
-  // Regional data
-  const regionalData = [
-    {
-      region: "San Francisco Bay Area",
-      topIndustries: ["Tech", "Biotech", "Finance"],
-      averageSalary: "$145,000",
-      jobGrowth: "+12%",
-      costOfLiving: "Very High",
-    },
-    {
-      region: "New York City",
-      topIndustries: ["Finance", "Media", "Fashion"],
-      averageSalary: "$125,000",
-      jobGrowth: "+9%",
-      costOfLiving: "Very High",
-    },
-    {
-      region: "Austin, TX",
-      topIndustries: ["Tech", "Education", "Healthcare"],
-      averageSalary: "$95,000",
-      jobGrowth: "+15%",
-      costOfLiving: "Medium",
-    },
-  ];
+  // Filter data based on selected filters
+  const filteredIndustryInsights = industry === "all-industries" 
+    ? industryInsights 
+    : industryInsights.filter(insight => 
+        insight.industry.toLowerCase().includes(industry.replace('-', ' '))
+      );
+
+  const filteredRegionalData = region === "all-regions"
+    ? regionalData
+    : regionalData.filter(data =>
+        data.region.toLowerCase().includes(region.replace('-', ' '))
+      );
 
   return (
     <Layout>
@@ -139,7 +89,7 @@ const Insights = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all-industries">All Industries</SelectItem>
-              <SelectItem value="tech">Technology</SelectItem>
+              <SelectItem value="technology">Technology</SelectItem>
               <SelectItem value="finance">Finance</SelectItem>
               <SelectItem value="healthcare">Healthcare</SelectItem>
               <SelectItem value="marketing">Marketing</SelectItem>
@@ -153,11 +103,11 @@ const Insights = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all-regions">All Regions</SelectItem>
-              <SelectItem value="us-west">US West</SelectItem>
-              <SelectItem value="us-east">US East</SelectItem>
-              <SelectItem value="us-central">US Central</SelectItem>
-              <SelectItem value="europe">Europe</SelectItem>
-              <SelectItem value="asia">Asia</SelectItem>
+              <SelectItem value="san-francisco">San Francisco Bay Area</SelectItem>
+              <SelectItem value="new-york">New York City</SelectItem>
+              <SelectItem value="austin">Austin, TX</SelectItem>
+              <SelectItem value="seattle">Seattle, WA</SelectItem>
+              <SelectItem value="boston">Boston, MA</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -173,33 +123,19 @@ const Insights = () => {
             
             <TabsContent value="market" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Job Openings</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-career-blue">128,432</div>
-                    <p className="text-sm text-gray-500">+15% from last month</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Average Salary</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-career-blue">$112,500</div>
-                    <p className="text-sm text-gray-500">+5% from last year</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Remote Jobs</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-career-blue">32%</div>
-                    <p className="text-sm text-gray-500">+8% from last year</p>
-                  </CardContent>
-                </Card>
+                {marketData.map((data) => (
+                  <Card key={data.id}>
+                    <CardHeader>
+                      <CardTitle>{data.label}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold text-career-blue">
+                        {formatValue(data.type, data.value)}
+                      </div>
+                      <p className="text-sm text-gray-500">{data.change} from last month</p>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -345,8 +281,8 @@ const Insights = () => {
 
             <TabsContent value="industry" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {industryInsights.map((insight, index) => (
-                  <Card key={index} className="hover:shadow-md transition-shadow">
+                {filteredIndustryInsights.map((insight) => (
+                  <Card key={insight.id} className="hover:shadow-md transition-shadow">
                     <CardHeader>
                       <CardTitle>{insight.industry}</CardTitle>
                     </CardHeader>
@@ -518,8 +454,8 @@ const Insights = () => {
 
             <TabsContent value="regional" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {regionalData.map((region, index) => (
-                  <Card key={index} className="hover:shadow-md transition-shadow">
+                {filteredRegionalData.map((region) => (
+                  <Card key={region.id} className="hover:shadow-md transition-shadow">
                     <CardHeader>
                       <CardTitle>{region.region}</CardTitle>
                     </CardHeader>
