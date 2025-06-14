@@ -1,83 +1,144 @@
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/sonner";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/use-auth";
 import { UsersProvider } from "@/hooks/use-users";
-import { JobsProvider } from "@/hooks/use-jobs";
-import Layout from "@/components/layout/Layout";
-import Index from "@/pages/Index";
-import Jobs from "@/pages/Jobs";
-import CareerPaths from "@/pages/CareerPaths";
-import Skills from "@/pages/Skills";
-import Insights from "@/pages/Insights";
-import Profile from "@/pages/Profile";
-import Login from "@/pages/Login";
-import Signup from "@/pages/Signup";
-import Partners from "@/pages/Partners";
-import NotFound from "@/pages/NotFound";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import Index from "./pages/Index";
+import Jobs from "./pages/Jobs";
+import CareerPaths from "./pages/CareerPaths";
+import Skills from "./pages/Skills";
+import Insights from "./pages/Insights";
+import Partners from "./pages/Partners";
+import NotFound from "./pages/NotFound";
+import Signup from "./pages/Signup";
+import Login from "./pages/Login";
+import Profile from "./pages/Profile";
 
 // Admin pages
-import AdminLogin from "@/pages/admin/AdminLogin";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
-import AdminUsers from "@/pages/admin/AdminUsers";
-import AdminJobs from "@/pages/admin/AdminJobs";
-import AdminCareerPaths from "@/pages/admin/AdminCareerPaths";
-import AdminSkills from "@/pages/admin/AdminSkills";
-import AdminContent from "@/pages/admin/AdminContent";
-import AdminTestimonials from "@/pages/admin/AdminTestimonials";
-import AdminSettings from "@/pages/admin/AdminSettings";
-import EmployerDashboard from "@/pages/admin/EmployerDashboard";
-import JobSeekerDashboard from "@/pages/admin/JobSeekerDashboard";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminJobs from "./pages/admin/AdminJobs";
+import AdminSettings from "./pages/admin/AdminSettings";
+import AdminLogin from "./pages/admin/AdminLogin";
+import EmployerDashboard from "./pages/admin/EmployerDashboard";
+import JobSeekerDashboard from "./pages/admin/JobSeekerDashboard";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
-const App = () => {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <UsersProvider>
-          <JobsProvider>
-            <Router>
-              <Routes>
-                {/* Public routes with layout */}
-                <Route path="/" element={<Layout><Index /></Layout>} />
-                <Route path="/jobs" element={<Layout><Jobs /></Layout>} />
-                <Route path="/career-paths" element={<Layout><CareerPaths /></Layout>} />
-                <Route path="/skills" element={<Layout><Skills /></Layout>} />
-                <Route path="/insights" element={<Layout><Insights /></Layout>} />
-                <Route path="/profile" element={<Layout><Profile /></Layout>} />
-                <Route path="/partners" element={<Layout><Partners /></Layout>} />
-
-                {/* Auth routes */}
-                <Route path="/login" element={<Layout><Login /></Layout>} />
-                <Route path="/signup" element={<Layout><Signup /></Layout>} />
-
-                {/* Admin routes (no layout wrapper) */}
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/users" element={<AdminUsers />} />
-                <Route path="/admin/jobs" element={<AdminJobs />} />
-                <Route path="/admin/career-paths" element={<AdminCareerPaths />} />
-                <Route path="/admin/skills" element={<AdminSkills />} />
-                <Route path="/admin/content" element={<AdminContent />} />
-                <Route path="/admin/testimonials" element={<AdminTestimonials />} />
-                <Route path="/admin/settings" element={<AdminSettings />} />
-
-                {/* Dashboard routes */}
-                <Route path="/employer/dashboard" element={<EmployerDashboard />} />
-                <Route path="/jobseeker/dashboard" element={<JobSeekerDashboard />} />
-
-                {/* 404 route */}
-                <Route path="*" element={<Layout><NotFound /></Layout>} />
-              </Routes>
-              <Toaster />
-            </Router>
-          </JobsProvider>
-        </UsersProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-  );
-};
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <UsersProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner position="top-right" closeButton />
+          <BrowserRouter>
+            <Routes>
+              {/* Main routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/jobs" element={<Jobs />} />
+              <Route path="/career-paths" element={<CareerPaths />} />
+              <Route path="/skills" element={<Skills />} />
+              <Route path="/insights" element={<Insights />} />
+              <Route path="/partners" element={<Partners />} />
+              
+              {/* Auth routes */}
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/login" element={<Login />} />
+              
+              {/* User routes */}
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile/:section" element={<Profile />} />
+              
+              {/* Admin Authentication */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              
+              {/* Admin routes - protected with role requirement */}
+              <Route path="/admin" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/users" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminUsers />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/jobs" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminJobs />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/settings" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminSettings />
+                </ProtectedRoute>
+              } />
+              
+              {/* Employer routes - protected with role requirement */}
+              <Route path="/employer/dashboard" element={
+                <ProtectedRoute requiredRole="employer">
+                  <EmployerDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/employer/jobs" element={
+                <ProtectedRoute requiredRole="employer">
+                  <EmployerDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/employer/applicants" element={
+                <ProtectedRoute requiredRole="employer">
+                  <EmployerDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/employer/interviews" element={
+                <ProtectedRoute requiredRole="employer">
+                  <EmployerDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/employer/analytics" element={
+                <ProtectedRoute requiredRole="employer">
+                  <EmployerDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/employer/jobs/:jobId/applicants" element={
+                <ProtectedRoute requiredRole="employer">
+                  <EmployerDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/employer/interviews/schedule" element={
+                <ProtectedRoute requiredRole="employer">
+                  <EmployerDashboard />
+                </ProtectedRoute>
+              } />
+              
+              {/* Job Seeker routes - protected with role requirement */}
+              <Route path="/jobseeker/dashboard" element={
+                <ProtectedRoute requiredRole="jobseeker">
+                  <JobSeekerDashboard />
+                </ProtectedRoute>
+              } />
+              
+              {/* Fallbacks */}
+              <Route path="/404" element={<NotFound />} />
+              <Route path="*" element={<Navigate to="/404" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </UsersProvider>
+    </AuthProvider>
+  </QueryClientProvider>
+);
 
 export default App;

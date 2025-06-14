@@ -22,22 +22,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
-  const { user, logout, isAuthenticated, hasRole } = useAuth();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     setSidebarOpen(!isMobile);
   }, [isMobile]);
-
-  useEffect(() => {
-    if (!isAuthenticated || !hasRole('admin')) {
-      toast({
-        title: "Access Denied",
-        description: "Please log in as an admin to access this page",
-        variant: "destructive",
-      });
-      navigate("/admin/login");
-    }
-  }, [isAuthenticated, hasRole, navigate, toast]);
 
   const navigationItems = [
     { name: "Dashboard", icon: LayoutDashboard, href: "/admin" },
@@ -73,10 +62,6 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     });
     navigate('/admin/login');
   };
-
-  if (!isAuthenticated || !hasRole('admin')) {
-    return null;
-  }
 
   return (
     <div className="flex h-screen bg-background">

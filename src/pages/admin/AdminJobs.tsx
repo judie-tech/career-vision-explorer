@@ -1,12 +1,11 @@
 
 import { useState } from "react";
+import { AdminButton } from "@/components/ui/custom-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { useJobs, Job } from "@/hooks/use-jobs";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Plus, Edit, Trash, Eye, Play, Pause, X } from "lucide-react";
+import { Search, Plus, Edit, Trash, Eye } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -23,60 +22,111 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+
+type Job = {
+  id: number;
+  title: string;
+  company: string;
+  location: string;
+  postedDate: string;
+  status: "active" | "draft" | "expired";
+  applications: number;
+  description?: string;
+};
 
 const AdminJobs = () => {
   const { toast } = useToast();
-  const { jobs, createJob, updateJob, deleteJob, isLoading } = useJobs();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
 
-  const [editForm, setEditForm] = useState<Partial<Job>>({
+  const [jobs, setJobs] = useState<Job[]>([
+    {
+      id: 1,
+      title: "Senior Frontend Developer",
+      company: "TechCorp Inc.",
+      location: "San Francisco, CA",
+      postedDate: "2023-05-12",
+      status: "active",
+      applications: 24,
+      description: "We are looking for a Senior Frontend Developer with React experience to join our team. You'll be working on our flagship product and collaborating with designers and backend engineers."
+    },
+    {
+      id: 2,
+      title: "Product Manager",
+      company: "InnovateSoft",
+      location: "New York, NY",
+      postedDate: "2023-05-10",
+      status: "active",
+      applications: 18,
+      description: "InnovateSoft is seeking a Product Manager to lead our product development initiatives. The ideal candidate has 5+ years of experience in SaaS products."
+    },
+    {
+      id: 3,
+      title: "Data Scientist",
+      company: "DataViz Analytics",
+      location: "Remote",
+      postedDate: "2023-05-08",
+      status: "draft",
+      applications: 0,
+      description: "Join our data science team to work on cutting-edge machine learning models. We're looking for someone with a strong background in statistics and Python programming."
+    },
+    {
+      id: 4,
+      title: "UX Designer",
+      company: "CreativeMinds",
+      location: "Chicago, IL",
+      postedDate: "2023-04-15",
+      status: "expired",
+      applications: 32,
+      description: "As a UX Designer at CreativeMinds, you'll be responsible for creating intuitive and engaging user experiences for our clients across various industries."
+    },
+  ]);
+
+  const [jobForm, setJobForm] = useState<Job>({
+    id: 0,
     title: "",
     company: "",
     location: "",
-    type: "full-time",
-    salary: "",
-    description: "",
-    requirements: [],
-    benefits: [],
-    status: "active",
-    employerId: "2",
+    postedDate: new Date().toISOString().split('T')[0],
+    status: "draft",
+    applications: 0,
+    description: ""
   });
 
-  const filteredJobs = jobs.filter((job) => {
-    const matchesSearch = 
+  const filteredJobs = jobs.filter(
+    (job) =>
       job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || job.status === statusFilter;
-    const matchesType = typeFilter === "all" || job.type === typeFilter;
-    
-    return matchesSearch && matchesStatus && matchesType;
-  });
+      job.location.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  const handleEditClick = (job: Job) => {
-    setSelectedJob(job);
-    setEditForm({ ...job });
-    setIsEditDialogOpen(true);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "active":
+        return "bg-green-100 text-green-800";
+      case "draft":
+        return "bg-yellow-100 text-yellow-800";
+      case "expired":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
   };
 
   const handleViewClick = (job: Job) => {
     setSelectedJob(job);
     setIsViewDialogOpen(true);
+  };
+
+  const handleEditClick = (job: Job) => {
+    setSelectedJob(job);
+    setJobForm({...job});
+    setIsEditDialogOpen(true);
   };
 
   const handleDeleteClick = (job: Job) => {
@@ -85,197 +135,141 @@ const AdminJobs = () => {
   };
 
   const handleAddClick = () => {
-    setEditForm({
+    setJobForm({
+      id: jobs.length > 0 ? Math.max(...jobs.map(j => j.id)) + 1 : 1,
       title: "",
       company: "",
       location: "",
-      type: "full-time",
-      salary: "",
-      description: "",
-      requirements: [],
-      benefits: [],
-      status: "active",
-      employerId: "2",
+      postedDate: new Date().toISOString().split('T')[0],
+      status: "draft",
+      applications: 0,
+      description: ""
     });
     setIsAddDialogOpen(true);
   };
 
-  const handleAddJob = async () => {
-    if (!editForm.title || !editForm.company || !editForm.location || !editForm.description) {
+  const handleAddJob = () => {
+    if (!jobForm.title || !jobForm.company || !jobForm.location) {
       toast({
         title: "Error",
-        description: "Required fields are missing",
+        description: "Title, company and location are required",
         variant: "destructive",
       });
       return;
     }
     
-    const success = await createJob(editForm as Omit<Job, 'id' | 'postedDate' | 'applicants' | 'views'>);
-    if (success) {
-      setIsAddDialogOpen(false);
-    }
-  };
-
-  const handleEditJob = async () => {
-    if (!selectedJob?.id) return;
+    setJobs([...jobs, jobForm]);
+    setIsAddDialogOpen(false);
     
-    const success = await updateJob(selectedJob.id, editForm);
-    if (success) {
-      setIsEditDialogOpen(false);
-    }
+    toast({
+      title: "Job Added",
+      description: `${jobForm.title} at ${jobForm.company} has been added successfully`,
+    });
   };
 
-  const handleDeleteJob = async () => {
-    if (!selectedJob?.id) return;
+  const handleEditJob = () => {
+    if (!selectedJob) return;
     
-    const success = await deleteJob(selectedJob.id);
-    if (success) {
-      setIsDeleteDialogOpen(false);
-    }
+    setJobs(jobs.map(job => job.id === selectedJob.id ? jobForm : job));
+    setIsEditDialogOpen(false);
+    
+    toast({
+      title: "Job Updated",
+      description: `${jobForm.title} has been updated successfully`,
+    });
   };
 
-  const handleToggleStatus = async (job: Job) => {
-    const newStatus = job.status === "active" ? "paused" : "active";
-    await updateJob(job.id, { status: newStatus });
-  };
-
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case "active": return "default";
-      case "paused": return "secondary";
-      case "closed": return "destructive";
-      default: return "outline";
-    }
-  };
-
-  const getTypeBadgeVariant = (type: string) => {
-    switch (type) {
-      case "full-time": return "default";
-      case "part-time": return "secondary";
-      case "contract": return "outline";
-      case "remote": return "default";
-      default: return "outline";
-    }
+  const handleDeleteJob = () => {
+    if (!selectedJob) return;
+    
+    setJobs(jobs.filter(job => job.id !== selectedJob.id));
+    setIsDeleteDialogOpen(false);
+    
+    toast({
+      title: "Job Deleted",
+      description: `${selectedJob.title} at ${selectedJob.company} has been removed`,
+    });
   };
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Job Management</h1>
-            <p className="text-muted-foreground">Manage job postings and applications</p>
-          </div>
-          <Button onClick={handleAddClick} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Jobs Management</h1>
+          <AdminButton 
+            variant="primary"
+            icon={<Plus className="h-4 w-4" />}
+            onClick={handleAddClick}
+          >
             Add Job
-          </Button>
+          </AdminButton>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              type="text"
-              placeholder="Search jobs by title, company, or location..."
-              className="pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center">
+              <div className="relative flex-grow">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Input
+                  type="text"
+                  placeholder="Search jobs..."
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="paused">Paused</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="full-time">Full-time</SelectItem>
-              <SelectItem value="part-time">Part-time</SelectItem>
-              <SelectItem value="contract">Contract</SelectItem>
-              <SelectItem value="remote">Remote</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
 
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Job</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Applications</TableHead>
-                <TableHead>Views</TableHead>
-                <TableHead>Posted Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredJobs.map((job) => (
-                <TableRow key={job.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{job.title}</div>
-                      <div className="text-sm text-muted-foreground">{job.company} • {job.location}</div>
-                      <div className="text-sm text-muted-foreground">{job.salary}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getTypeBadgeVariant(job.type)}>
-                      {job.type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusBadgeVariant(job.status)}>
-                      {job.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{job.applicants}</TableCell>
-                  <TableCell>{job.views}</TableCell>
-                  <TableCell>{job.postedDate}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => handleViewClick(job)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleEditClick(job)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleToggleStatus(job)}
-                        className={job.status === "active" ? "text-orange-600" : "text-green-600"}
-                      >
-                        {job.status === "active" ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDeleteClick(job)} className="text-destructive">
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filteredJobs.length === 0 && (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    No jobs found
-                  </TableCell>
+                  <TableHead>Job Title</TableHead>
+                  <TableHead>Company</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Posted Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Applications</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredJobs.map((job) => (
+                  <TableRow key={job.id}>
+                    <TableCell className="font-medium">{job.title}</TableCell>
+                    <TableCell>{job.company}</TableCell>
+                    <TableCell>{job.location}</TableCell>
+                    <TableCell>{job.postedDate}</TableCell>
+                    <TableCell>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(job.status)}`}>
+                        {job.status}
+                      </span>
+                    </TableCell>
+                    <TableCell>{job.applications}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800" onClick={() => handleViewClick(job)}>
+                        <Eye size={16} />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800" onClick={() => handleEditClick(job)}>
+                        <Edit size={16} />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-800" onClick={() => handleDeleteClick(job)}>
+                        <Trash size={16} />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {filteredJobs.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                      No jobs found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
 
@@ -283,176 +277,175 @@ const AdminJobs = () => {
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Job Details</DialogTitle>
+            <DialogTitle>{selectedJob?.title}</DialogTitle>
+            <DialogDescription>
+              {selectedJob?.company} · {selectedJob?.location}
+            </DialogDescription>
           </DialogHeader>
-          {selectedJob && (
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Title</label>
-                  <p className="text-sm text-muted-foreground">{selectedJob.title}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Company</label>
-                  <p className="text-sm text-muted-foreground">{selectedJob.company}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Location</label>
-                  <p className="text-sm text-muted-foreground">{selectedJob.location}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Type</label>
-                  <p className="text-sm text-muted-foreground">{selectedJob.type}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Salary</label>
-                  <p className="text-sm text-muted-foreground">{selectedJob.salary}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Status</label>
-                  <p className="text-sm text-muted-foreground">{selectedJob.status}</p>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Description</label>
-                <p className="text-sm text-muted-foreground mt-1">{selectedJob.description}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Requirements</label>
-                <ul className="text-sm text-muted-foreground mt-1 list-disc list-inside">
-                  {selectedJob.requirements.map((req, index) => (
-                    <li key={index}>{req}</li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Benefits</label>
-                <ul className="text-sm text-muted-foreground mt-1 list-disc list-inside">
-                  {selectedJob.benefits.map((benefit, index) => (
-                    <li key={index}>{benefit}</li>
-                  ))}
-                </ul>
-              </div>
+          <div className="space-y-4">
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500">Posted: {selectedJob?.postedDate}</span>
+              <span className={`px-2 py-1 text-xs leading-5 font-semibold rounded-full ${selectedJob ? getStatusColor(selectedJob.status) : ''}`}>
+                {selectedJob?.status}
+              </span>
             </div>
-          )}
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Applications</h3>
+              <p>{selectedJob?.applications}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Description</h3>
+              <p className="text-sm whitespace-pre-line">{selectedJob?.description}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsViewDialogOpen(false)}>Close</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Add/Edit Job Dialog */}
-      <Dialog open={isAddDialogOpen || isEditDialogOpen} onOpenChange={(open) => {
-        setIsAddDialogOpen(false);
-        setIsEditDialogOpen(false);
-      }}>
+      {/* Add Job Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{isAddDialogOpen ? "Add New Job" : "Edit Job"}</DialogTitle>
+            <DialogTitle>Add New Job</DialogTitle>
             <DialogDescription>
-              {isAddDialogOpen ? "Create a new job posting" : "Update job information"}
+              Create a new job posting
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 max-h-96 overflow-y-auto">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Title</label>
-                <Input
-                  value={editForm.title || ""}
-                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                  placeholder="Job title"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Company</label>
-                <Input
-                  value={editForm.company || ""}
-                  onChange={(e) => setEditForm({ ...editForm, company: e.target.value })}
-                  placeholder="Company name"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Location</label>
-                <Input
-                  value={editForm.location || ""}
-                  onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
-                  placeholder="Job location"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Type</label>
-                <Select value={editForm.type} onValueChange={(value) => setEditForm({ ...editForm, type: value as Job['type'] })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="full-time">Full-time</SelectItem>
-                    <SelectItem value="part-time">Part-time</SelectItem>
-                    <SelectItem value="contract">Contract</SelectItem>
-                    <SelectItem value="remote">Remote</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Salary</label>
-                <Input
-                  value={editForm.salary || ""}
-                  onChange={(e) => setEditForm({ ...editForm, salary: e.target.value })}
-                  placeholder="Salary range"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Status</label>
-                <Select value={editForm.status} onValueChange={(value) => setEditForm({ ...editForm, status: value as Job['status'] })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="paused">Paused</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Description</label>
-              <Textarea
-                value={editForm.description || ""}
-                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                placeholder="Job description"
-                rows={4}
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="title" className="text-right">Title</label>
+              <Input
+                id="title"
+                value={jobForm.title}
+                onChange={(e) => setJobForm({...jobForm, title: e.target.value})}
+                className="col-span-3"
               />
             </div>
-            <div>
-              <label className="text-sm font-medium">Requirements (one per line)</label>
-              <Textarea
-                value={editForm.requirements?.join('\n') || ""}
-                onChange={(e) => setEditForm({ ...editForm, requirements: e.target.value.split('\n').filter(r => r.trim()) })}
-                placeholder="Enter requirements, one per line"
-                rows={3}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="company" className="text-right">Company</label>
+              <Input
+                id="company"
+                value={jobForm.company}
+                onChange={(e) => setJobForm({...jobForm, company: e.target.value})}
+                className="col-span-3"
               />
             </div>
-            <div>
-              <label className="text-sm font-medium">Benefits (one per line)</label>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="location" className="text-right">Location</label>
+              <Input
+                id="location"
+                value={jobForm.location}
+                onChange={(e) => setJobForm({...jobForm, location: e.target.value})}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="status" className="text-right">Status</label>
+              <select
+                id="status"
+                value={jobForm.status}
+                onChange={(e) => setJobForm({...jobForm, status: e.target.value as "active" | "draft" | "expired"})}
+                className="col-span-3 border rounded p-2"
+              >
+                <option value="draft">Draft</option>
+                <option value="active">Active</option>
+                <option value="expired">Expired</option>
+              </select>
+            </div>
+            <div className="grid grid-cols-4 items-start gap-4">
+              <label htmlFor="description" className="text-right">Description</label>
               <Textarea
-                value={editForm.benefits?.join('\n') || ""}
-                onChange={(e) => setEditForm({ ...editForm, benefits: e.target.value.split('\n').filter(b => b.trim()) })}
-                placeholder="Enter benefits, one per line"
-                rows={3}
+                id="description"
+                value={jobForm.description}
+                onChange={(e) => setJobForm({...jobForm, description: e.target.value})}
+                rows={6}
+                className="col-span-3"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setIsAddDialogOpen(false);
-              setIsEditDialogOpen(false);
-            }}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={isAddDialogOpen ? handleAddJob : handleEditJob}
-              disabled={isLoading}
-            >
-              {isLoading ? "Saving..." : (isAddDialogOpen ? "Create Job" : "Save Changes")}
-            </Button>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddJob}>Create Job</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Job Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Job</DialogTitle>
+            <DialogDescription>
+              Make changes to the job posting
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="edit-title" className="text-right">Title</label>
+              <Input
+                id="edit-title"
+                value={jobForm.title}
+                onChange={(e) => setJobForm({...jobForm, title: e.target.value})}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="edit-company" className="text-right">Company</label>
+              <Input
+                id="edit-company"
+                value={jobForm.company}
+                onChange={(e) => setJobForm({...jobForm, company: e.target.value})}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="edit-location" className="text-right">Location</label>
+              <Input
+                id="edit-location"
+                value={jobForm.location}
+                onChange={(e) => setJobForm({...jobForm, location: e.target.value})}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="edit-status" className="text-right">Status</label>
+              <select
+                id="edit-status"
+                value={jobForm.status}
+                onChange={(e) => setJobForm({...jobForm, status: e.target.value as "active" | "draft" | "expired"})}
+                className="col-span-3 border rounded p-2"
+              >
+                <option value="draft">Draft</option>
+                <option value="active">Active</option>
+                <option value="expired">Expired</option>
+              </select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="edit-applications" className="text-right">Applications</label>
+              <Input
+                id="edit-applications"
+                type="number"
+                value={jobForm.applications.toString()}
+                onChange={(e) => setJobForm({...jobForm, applications: parseInt(e.target.value) || 0})}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-start gap-4">
+              <label htmlFor="edit-description" className="text-right">Description</label>
+              <Textarea
+                id="edit-description"
+                value={jobForm.description}
+                onChange={(e) => setJobForm({...jobForm, description: e.target.value})}
+                rows={6}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleEditJob}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -463,20 +456,12 @@ const AdminJobs = () => {
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete the job "{selectedJob?.title}"? This action cannot be undone.
+              Are you sure you want to delete {selectedJob?.title} at {selectedJob?.company}? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDeleteJob}
-              disabled={isLoading}
-            >
-              {isLoading ? "Deleting..." : "Delete Job"}
-            </Button>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteJob}>Delete Job</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
