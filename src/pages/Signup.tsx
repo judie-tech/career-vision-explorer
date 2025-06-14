@@ -33,6 +33,7 @@ import { Linkedin } from "lucide-react";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import ProfileImageUpload from "@/components/auth/ProfileImageUpload";
 import PhoneNumberInput from "@/components/auth/PhoneNumberInput";
+import LinkedInImportDialog from "@/components/auth/LinkedInImportDialog";
 
 const signupSchema = z.object({
   name: z.string().min(2, {
