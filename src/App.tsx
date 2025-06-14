@@ -15,7 +15,7 @@ import CareerPaths from "@/pages/CareerPaths";
 import Partners from "@/pages/Partners";
 import Insights from "@/pages/Insights";
 import NotFound from "@/pages/NotFound";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 // Admin Pages
 import AdminLogin from "@/pages/admin/AdminLogin";
