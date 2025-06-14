@@ -10,18 +10,54 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useUserProfile } from "@/hooks/use-user-profile";
-import { Bell, Shield, User, Briefcase, Mail } from "lucide-react";
+import { Bell, Shield, User, Briefcase } from "lucide-react";
 
 const JobSeekerSettings = () => {
   const { toast } = useToast();
   const { userProfile, updateProfile } = useUserProfile();
   
+  // Profile form state
+  const [firstName, setFirstName] = useState(userProfile?.name?.split(' ')[0] || "");
+  const [lastName, setLastName] = useState(userProfile?.name?.split(' ')[1] || "");
+  const [email, setEmail] = useState(userProfile?.email || "");
+  const [phone, setPhone] = useState(userProfile?.phone || "");
+  const [location, setLocation] = useState(userProfile?.location || "");
+  
+  // Notification settings
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [jobAlerts, setJobAlerts] = useState(true);
+  const [applicationUpdates, setApplicationUpdates] = useState(true);
+  
+  // Privacy settings
   const [profileVisibility, setProfileVisibility] = useState(true);
+  const [contactInfo, setContactInfo] = useState(true);
+  const [anonymousApplications, setAnonymousApplications] = useState(false);
+  
+  // Security settings
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [twoFactorAuth, setTwoFactorAuth] = useState(false);
 
+  const handleSaveProfile = async () => {
+    const profileData = {
+      name: `${firstName} ${lastName}`.trim(),
+      email,
+      phone,
+      location,
+    };
+    
+    const success = await updateProfile(profileData);
+    if (success) {
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been saved successfully.",
+      });
+    }
+  };
+
   const handleSaveNotifications = () => {
+    // In a real app, this would save to backend
     toast({
       title: "Notification Settings Updated",
       description: "Your notification preferences have been saved successfully.",
@@ -29,10 +65,41 @@ const JobSeekerSettings = () => {
   };
 
   const handleSavePrivacy = () => {
+    // In a real app, this would save to backend
     toast({
       title: "Privacy Settings Updated",
       description: "Your privacy settings have been updated successfully.",
     });
+  };
+
+  const handleChangePassword = () => {
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "New password and confirmation password do not match.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (newPassword.length < 8) {
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 8 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // In a real app, this would validate current password and update
+    toast({
+      title: "Password Updated",
+      description: "Your password has been changed successfully.",
+    });
+    
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
   };
 
   const handleSaveSecurity = () => {
@@ -84,26 +151,47 @@ const JobSeekerSettings = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" defaultValue={userProfile?.name?.split(' ')[0] || ""} />
+                    <Input 
+                      id="firstName" 
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" defaultValue={userProfile?.name?.split(' ')[1] || ""} />
+                    <Input 
+                      id="lastName" 
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue={userProfile?.email || ""} />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone</Label>
-                  <Input id="phone" defaultValue={userProfile?.phone || ""} />
+                  <Input 
+                    id="phone" 
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="location">Location</Label>
-                  <Input id="location" defaultValue={userProfile?.location || ""} />
+                  <Input 
+                    id="location" 
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                  />
                 </div>
-                <Button onClick={() => updateProfile && updateProfile({})}>
+                <Button onClick={handleSaveProfile}>
                   Save Profile Changes
                 </Button>
               </CardContent>
@@ -152,7 +240,10 @@ const JobSeekerSettings = () => {
                       Receive updates on your job applications
                     </p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch
+                    checked={applicationUpdates}
+                    onCheckedChange={setApplicationUpdates}
+                  />
                 </div>
                 <Button onClick={handleSaveNotifications}>
                   Save Notification Settings
@@ -190,7 +281,10 @@ const JobSeekerSettings = () => {
                       Allow employers to contact you directly
                     </p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch
+                    checked={contactInfo}
+                    onCheckedChange={setContactInfo}
+                  />
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
@@ -200,7 +294,10 @@ const JobSeekerSettings = () => {
                       Hide your identity until you're selected for interview
                     </p>
                   </div>
-                  <Switch />
+                  <Switch
+                    checked={anonymousApplications}
+                    onCheckedChange={setAnonymousApplications}
+                  />
                 </div>
                 <Button onClick={handleSavePrivacy}>
                   Save Privacy Settings
@@ -221,17 +318,34 @@ const JobSeekerSettings = () => {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="currentPassword">Current Password</Label>
-                    <Input id="currentPassword" type="password" />
+                    <Input 
+                      id="currentPassword" 
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="newPassword">New Password</Label>
-                    <Input id="newPassword" type="password" />
+                    <Input 
+                      id="newPassword" 
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                    <Input id="confirmPassword" type="password" />
+                    <Input 
+                      id="confirmPassword" 
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
                   </div>
-                  <Button variant="outline">Change Password</Button>
+                  <Button variant="outline" onClick={handleChangePassword}>
+                    Change Password
+                  </Button>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
