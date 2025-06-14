@@ -115,14 +115,18 @@ export const JobCard = ({ job, isApplied, isSaved, onApply, onSave }: JobCardPro
         
         <div className="flex justify-between items-center pt-4 border-t">
           <Link to={`/jobs/${job.id}`}>
-            <Button variant="outline" className="modern-btn-secondary">
+            <Button variant="outline" className="modern-btn-secondary hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300">
               View Details
             </Button>
           </Link>
           <Button 
             onClick={() => onApply(job)}
             disabled={isApplied}
-            className={`modern-btn-primary ${isApplied ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`${
+              isApplied 
+                ? 'bg-green-600 hover:bg-green-700 text-white cursor-default' 
+                : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white'
+            } transition-all duration-200`}
           >
             {isApplied ? 'Applied ✓' : 'Apply Now'}
           </Button>
