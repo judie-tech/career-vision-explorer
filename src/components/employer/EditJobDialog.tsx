@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Form, 
@@ -25,7 +26,8 @@ import {
   FormMessage 
 } from "@/components/ui/form";
 import { Edit } from "lucide-react";
-import { JobPost, useJobPosts } from "@/hooks/use-job-posts";
+import { useJobPosts, JobPost } from "@/hooks/use-job-posts";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   title: z.string().min(5, "Job title must be at least 5 characters"),
@@ -33,7 +35,7 @@ const formSchema = z.object({
   location: z.string().min(2, "Location is required"),
   type: z.string().min(2, "Job type is required"),
   salary: z.string().min(1, "Salary information is required"),
-  isBoosted: z.boolean(),
+  isBoosted: z.boolean().default(false),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -44,7 +46,7 @@ interface EditJobDialogProps {
 
 export function EditJobDialog({ job }: EditJobDialogProps) {
   const { updateJob } = useJobPosts();
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -61,6 +63,7 @@ export function EditJobDialog({ job }: EditJobDialogProps) {
   function onSubmit(values: FormValues) {
     updateJob(job.id, values);
     setOpen(false);
+    form.reset();
   }
 
   return (
@@ -100,7 +103,11 @@ export function EditJobDialog({ job }: EditJobDialogProps) {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input placeholder="Detail the job responsibilities and requirements" {...field} />
+                    <Textarea 
+                      placeholder="Detail the job responsibilities and requirements" 
+                      {...field} 
+                      rows={3}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -173,7 +180,10 @@ export function EditJobDialog({ job }: EditJobDialogProps) {
             />
             
             <DialogFooter>
-              <Button type="submit">Save Changes</Button>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Update Job</Button>
             </DialogFooter>
           </form>
         </Form>

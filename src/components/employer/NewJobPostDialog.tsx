@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Form, 
@@ -24,7 +25,7 @@ import {
   FormLabel, 
   FormMessage 
 } from "@/components/ui/form";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { useJobPosts } from "@/hooks/use-job-posts";
 
@@ -113,7 +114,11 @@ export function NewJobPostDialog() {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input placeholder="Detail the job responsibilities and requirements" {...field} />
+                    <Textarea 
+                      placeholder="Detail the job responsibilities and requirements" 
+                      {...field} 
+                      rows={3}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

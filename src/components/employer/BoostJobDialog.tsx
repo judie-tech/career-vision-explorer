@@ -1,19 +1,18 @@
 
-import React from "react";
-import {
+import React, { useState } from "react";
+import { 
   Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Eye, Users, Clock } from "lucide-react";
-import { JobPost, useJobPosts } from "@/hooks/use-job-posts";
+import { TrendingUp, Zap } from "lucide-react";
+import { useJobPosts, JobPost } from "@/hooks/use-job-posts";
 import { toast } from "sonner";
 
 interface BoostJobDialogProps {
@@ -22,17 +21,18 @@ interface BoostJobDialogProps {
 
 export function BoostJobDialog({ job }: BoostJobDialogProps) {
   const { updateJob } = useJobPosts();
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
 
-  const handleBoost = () => {
-    updateJob(job.id, { isBoosted: true });
-    toast.success(`${job.title} has been boosted! It will appear at the top of search results.`);
-    setOpen(false);
-  };
-
-  const handleRemoveBoost = () => {
-    updateJob(job.id, { isBoosted: false });
-    toast.success(`Boost removed from ${job.title}.`);
+  const handleToggleBoost = () => {
+    const newBoostedStatus = !job.isBoosted;
+    updateJob(job.id, { isBoosted: newBoostedStatus });
+    
+    if (newBoostedStatus) {
+      toast.success(`"${job.title}" has been boosted!`);
+    } else {
+      toast.success(`"${job.title}" boost has been removed.`);
+    }
+    
     setOpen(false);
   };
 
@@ -42,115 +42,76 @@ export function BoostJobDialog({ job }: BoostJobDialogProps) {
         <Button 
           variant={job.isBoosted ? "outline" : "default"} 
           size="sm"
-          className={job.isBoosted ? "text-green-700 border-green-200" : ""}
+          className={job.isBoosted ? "text-green-600 border-green-600" : ""}
         >
-          <TrendingUp className="h-4 w-4 mr-2" />
-          {job.isBoosted ? "Boosted" : "Boost"}
+          {job.isBoosted ? (
+            <>
+              <Zap className="h-4 w-4 mr-1 fill-current" />
+              Boosted
+            </>
+          ) : (
+            <>
+              <TrendingUp className="h-4 w-4 mr-1" />
+              Boost
+            </>
+          )}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>
-            {job.isBoosted ? "Manage Boost" : "Boost Job Listing"}
+          <DialogTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            {job.isBoosted ? "Remove Boost" : "Boost Job Listing"}
           </DialogTitle>
           <DialogDescription>
             {job.isBoosted 
-              ? "This job is currently boosted and appears at the top of search results."
-              : "Boost your job listing to increase visibility and attract more candidates."
+              ? "Remove the boost from this job listing to return it to standard visibility."
+              : "Boost this job listing to increase its visibility and attract more candidates."
             }
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">{job.title}</CardTitle>
-              <CardDescription>{job.location} • {job.type}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-gray-500" />
-                  <span>{job.applicants} applicants</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-gray-500" />
-                  <span>{job.views} views</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <span>Posted {new Date(job.datePosted).toLocaleDateString()}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
+        <div className="space-y-4">
+          <div className="border rounded-lg p-4">
+            <h4 className="font-medium mb-2">{job.title}</h4>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>{job.location}</span>
+              <span>•</span>
+              <span>{job.type}</span>
+              <span>•</span>
+              <span>{job.salary}</span>
+            </div>
+            <div className="flex items-center gap-4 mt-2 text-sm">
+              <span>{job.applicants} applicants</span>
+              <span>{job.views} views</span>
+              {job.isBoosted && (
+                <Badge className="bg-green-100 text-green-800">
+                  Currently Boosted
+                </Badge>
+              )}
+            </div>
+          </div>
+          
           {!job.isBoosted && (
-            <Card className="border-green-200 bg-green-50">
-              <CardHeader>
-                <CardTitle className="text-green-800 flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Boost Benefits
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-green-700">
-                <div className="flex items-start gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                  <span>Appear at the top of search results</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                  <span>Increase visibility by up to 300%</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                  <span>Attract more qualified candidates</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                  <span>Get highlighted with a special badge</span>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {job.isBoosted && (
-            <Card className="border-green-200 bg-green-50">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-center gap-2 text-green-800">
-                  <Badge className="bg-green-100 text-green-800">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    Currently Boosted
-                  </Badge>
-                </div>
-                <p className="text-center text-green-700 text-sm mt-2">
-                  This listing is appearing at the top of search results
-                </p>
-              </CardContent>
-            </Card>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h5 className="font-medium text-blue-900 mb-2">Boost Benefits:</h5>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>• Appears at the top of search results</li>
+                <li>• Increased visibility to job seekers</li>
+                <li>• Higher application rates</li>
+                <li>• Priority placement in recommendations</li>
+              </ul>
+            </div>
           )}
         </div>
-
+        
         <DialogFooter>
-          {job.isBoosted ? (
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setOpen(false)}>
-                Keep Boost
-              </Button>
-              <Button variant="destructive" onClick={handleRemoveBoost}>
-                Remove Boost
-              </Button>
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleBoost}>
-                Boost This Job
-              </Button>
-            </div>
-          )}
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleToggleBoost}>
+            {job.isBoosted ? "Remove Boost" : "Boost Job"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
