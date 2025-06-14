@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -40,9 +39,9 @@ import InterviewSchedule from "./pages/employer/InterviewSchedule";
 import EmployerInterviews from "./pages/employer/EmployerInterviews";
 
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
-import { UserProfileProvider } from "./hooks/use-user-profile";
-import { LearningPathsProvider } from "./hooks/use-learning-paths";
-import { CareerPathsProvider } from "./hooks/use-career-paths";
+import { UserProfileProvider } from "@/hooks/use-user-profile";
+import { LearningPathsProvider } from "@/hooks/use-learning-paths";
+import { CareerPathsProvider } from "@/hooks/use-career-paths";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +88,7 @@ function App() {
                         <Route path="/jobseeker/dashboard" element={<ProtectedRoute requiredRole="jobseeker"><JobSeekerDashboard /></ProtectedRoute>} />
                         
                         {/* Employer routes */}
+                        <Route path="/employer/dashboard" element={<ProtectedRoute requiredRole="employer"><EmployerDashboard /></ProtectedRoute>} />
                         <Route path="/employer/jobs" element={<ProtectedRoute requiredRole="employer"><EmployerJobs /></ProtectedRoute>} />
                         <Route path="/employer/jobs/:jobId/applicants" element={<ProtectedRoute requiredRole="employer"><JobApplicants /></ProtectedRoute>} />
                         <Route path="/employer/applicants" element={<ProtectedRoute requiredRole="employer"><AllApplicants /></ProtectedRoute>} />
