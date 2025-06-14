@@ -81,6 +81,11 @@ function App() {
                     <CareerPaths />
                   </ProtectedRoute>
                 } />
+                <Route path="/admin/skills" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <Skills />
+                  </ProtectedRoute>
+                } />
                 
                 {/* Employer Routes */}
                 <Route path="/employer/dashboard" element={
