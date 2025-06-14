@@ -1,10 +1,10 @@
 
-
 import React from "react";
 import {
   BrowserRouter as Router,
   Route,
   Routes,
+  Navigate,
 } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme/ThemeProvider"
 import { Toaster } from "@/components/ui/toaster"
@@ -51,43 +51,45 @@ function App() {
                 
                 {/* Admin Routes */}
                 <Route path="/admin/login" element={<AdminLogin />} />
-                <Route
-                  path="/admin/*"
-                  element={
-                    <ProtectedRoute requiredRole="admin">
-                      <Routes>
-                        <Route path="dashboard" element={<AdminDashboard />} />
-                        <Route path="jobs" element={<AdminJobs />} />
-                        <Route path="users" element={<AdminUsers />} />
-                        <Route path="settings" element={<AdminSettings />} />
-                      </Routes>
-                    </ProtectedRoute>
-                  }
-                />
+                <Route path="/admin" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <Navigate to="/admin/dashboard" replace />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/dashboard" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/jobs" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminJobs />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/users" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminUsers />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/settings" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminSettings />
+                  </ProtectedRoute>
+                } />
                 
                 {/* Employer Routes */}
-                <Route
-                  path="/employer/*"
-                  element={
-                    <ProtectedRoute requiredRole="employer">
-                      <Routes>
-                        <Route path="dashboard" element={<EmployerDashboard />} />
-                      </Routes>
-                    </ProtectedRoute>
-                  }
-                />
+                <Route path="/employer/dashboard" element={
+                  <ProtectedRoute requiredRole="employer">
+                    <EmployerDashboard />
+                  </ProtectedRoute>
+                } />
                 
                 {/* Job Seeker Routes */}
-                <Route
-                  path="/jobseeker/*"
-                  element={
-                    <ProtectedRoute requiredRole="jobseeker">
-                      <Routes>
-                        <Route path="dashboard" element={<JobSeekerDashboard />} />
-                      </Routes>
-                    </ProtectedRoute>
-                  }
-                />
+                <Route path="/jobseeker/dashboard" element={
+                  <ProtectedRoute requiredRole="jobseeker">
+                    <JobSeekerDashboard />
+                  </ProtectedRoute>
+                } />
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>
