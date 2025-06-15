@@ -29,6 +29,7 @@ import AdminJobseekers from "@/pages/admin/AdminJobseekers";
 import AdminJobs from "@/pages/admin/AdminJobs";
 import AdminSkills from "@/pages/admin/AdminSkills";
 import AdminCareerPaths from "@/pages/admin/AdminCareerPaths";
+import AdminPartners from "@/pages/admin/AdminPartners";
 import AdminTestimonials from "@/pages/admin/AdminTestimonials";
 import AdminContent from "@/pages/admin/AdminContent";
 import AdminInsights from "@/pages/admin/AdminInsights";
@@ -95,6 +96,11 @@ export const AppRoutes = () => {
         <Route path="/admin/career-paths" element={
           <ProtectedRoute requiredRole="admin">
             <AdminCareerPaths />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/partners" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminPartners />
           </ProtectedRoute>
         } />
         <Route path="/admin/testimonials" element={
