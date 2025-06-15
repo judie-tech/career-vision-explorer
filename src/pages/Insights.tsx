@@ -24,8 +24,9 @@ import Layout from "@/components/layout/Layout";
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell } from "recharts";
 import { TrendingUp, TrendingDown, Users, DollarSign, Briefcase, MapPin, Filter, BarChart3, LineChart as LineChartIcon, PieChart as PieChartIcon, Sparkles } from "lucide-react";
 import { useInsights } from "@/hooks/use-insights-provider";
+import { InsightsProvider } from "@/hooks/use-insights-provider";
 
-const Insights = () => {
+const InsightsContent = () => {
   const [industry, setIndustry] = useState("all-industries");
   const [region, setRegion] = useState("all-regions");
   
@@ -607,6 +608,14 @@ const Insights = () => {
         </div>
       </div>
     </Layout>
+  );
+};
+
+const Insights = () => {
+  return (
+    <InsightsProvider>
+      <InsightsContent />
+    </InsightsProvider>
   );
 };
 
