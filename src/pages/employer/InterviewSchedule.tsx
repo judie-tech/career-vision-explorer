@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, ArrowLeft, Clock, Users, Briefcase, Video, Phone, MapPin, User } from "lucide-react";
+import { CalendarIcon, ArrowLeft, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useInterviews } from "@/hooks/use-interviews";
@@ -115,69 +115,32 @@ const InterviewSchedule = () => {
     }
   };
 
-  const getInterviewTypeIcon = (type: string) => {
-    switch (type) {
-      case "Video": return <Video className="h-4 w-4" />;
-      case "Phone": return <Phone className="h-4 w-4" />;
-      case "In-Person": return <MapPin className="h-4 w-4" />;
-      default: return <Video className="h-4 w-4" />;
-    }
-  };
-
   return (
     <DashboardLayout title="Schedule Interview" role="employer">
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-        {/* Header */}
-        <div className="mb-8">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate("/employer/dashboard")}
-            className="mb-4 hover:bg-white border-gray-200"
-          >
+      <div className="space-y-6">
+        <div className="flex items-center">
+          <Button variant="outline" onClick={() => navigate("/employer/dashboard")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
-          
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center">
-              <div className="bg-blue-50 p-3 rounded-full mr-4">
-                <Calendar className="h-8 w-8 text-blue-600" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Schedule Interview
-                </h1>
-                <p className="text-gray-600 mt-2 text-lg">
-                  Set up an interview with a candidate
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
 
-        {/* Main Form */}
-        <Card className="max-w-4xl mx-auto shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100">
-            <CardTitle className="text-2xl text-gray-800 flex items-center">
-              <Users className="h-6 w-6 mr-3 text-blue-600" />
-              Interview Details
-            </CardTitle>
-            <CardDescription className="text-gray-600">
-              Fill in the information below to schedule the interview
+        <Card className="max-w-2xl">
+          <CardHeader>
+            <CardTitle>Schedule Interview</CardTitle>
+            <CardDescription>
+              Set up an interview with a candidate
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {/* Applicant Selection */}
-              <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                <div className="flex items-center mb-4">
-                  <User className="h-5 w-5 text-gray-600 mr-2" />
-                  <Label className="text-lg font-semibold text-gray-800">Select Existing Applicant (Optional)</Label>
-                </div>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="applicantSelect">Select Existing Applicant (Optional)</Label>
                 <select
+                  id="applicantSelect"
                   value={selectedApplicantId}
                   onChange={(e) => handleApplicantSelect(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-800 shadow-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select an applicant or enter manually below</option>
                   {applicants.map((applicant) => (
@@ -188,49 +151,37 @@ const InterviewSchedule = () => {
                 </select>
               </div>
 
-              {/* Candidate Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <Label htmlFor="candidateName" className="text-base font-medium text-gray-800 flex items-center">
-                    <User className="h-4 w-4 mr-2 text-gray-600" />
-                    Candidate Name *
-                  </Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="candidateName">Candidate Name *</Label>
                   <Input
                     id="candidateName"
                     value={candidateName}
                     onChange={(e) => setCandidateName(e.target.value)}
                     placeholder="Enter candidate name"
-                    className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                     required
                   />
                 </div>
-                <div className="space-y-3">
-                  <Label htmlFor="candidateEmail" className="text-base font-medium text-gray-800">
-                    Candidate Email *
-                  </Label>
+                <div className="space-y-2">
+                  <Label htmlFor="candidateEmail">Candidate Email *</Label>
                   <Input
                     id="candidateEmail"
                     type="email"
                     value={candidateEmail}
                     onChange={(e) => setCandidateEmail(e.target.value)}
                     placeholder="candidate@example.com"
-                    className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                     required
                   />
                 </div>
               </div>
 
-              {/* Job Position */}
-              <div className="space-y-3">
-                <Label htmlFor="jobSelect" className="text-base font-medium text-gray-800 flex items-center">
-                  <Briefcase className="h-4 w-4 mr-2 text-gray-600" />
-                  Job Position *
-                </Label>
+              <div className="space-y-2">
+                <Label htmlFor="jobSelect">Job Position *</Label>
                 <select
                   id="jobSelect"
                   value={selectedJobId}
                   onChange={(e) => setSelectedJobId(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-800 shadow-sm h-12"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 >
                   <option value="">Select a job position</option>
@@ -242,19 +193,15 @@ const InterviewSchedule = () => {
                 </select>
               </div>
 
-              {/* Date and Time */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <Label className="text-base font-medium text-gray-800 flex items-center">
-                    <CalendarIcon className="h-4 w-4 mr-2 text-gray-600" />
-                    Interview Date *
-                  </Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Interview Date *</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full h-12 justify-start text-left font-normal border-gray-300",
+                          "w-full justify-start text-left font-normal",
                           !date && "text-muted-foreground"
                         )}
                       >
@@ -262,7 +209,7 @@ const InterviewSchedule = () => {
                         {date ? format(date, "PPP") : "Pick a date"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-white shadow-lg">
+                    <PopoverContent className="w-auto p-0">
                       <Calendar
                         mode="single"
                         selected={date}
@@ -273,78 +220,63 @@ const InterviewSchedule = () => {
                     </PopoverContent>
                   </Popover>
                 </div>
-                <div className="space-y-3">
-                  <Label htmlFor="time" className="text-base font-medium text-gray-800 flex items-center">
-                    <Clock className="h-4 w-4 mr-2 text-gray-600" />
-                    Interview Time *
-                  </Label>
+                <div className="space-y-2">
+                  <Label htmlFor="time">Interview Time *</Label>
                   <div className="relative">
-                    <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
                     <Input
                       id="time"
                       type="time"
                       value={time}
                       onChange={(e) => setTime(e.target.value)}
-                      className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="pl-8"
                       required
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Interview Type and Interviewer */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <Label htmlFor="interviewType" className="text-base font-medium text-gray-800 flex items-center">
-                    {getInterviewTypeIcon(interviewType)}
-                    <span className="ml-2">Interview Type</span>
-                  </Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="interviewType">Interview Type</Label>
                   <select
                     id="interviewType"
                     value={interviewType}
                     onChange={(e) => setInterviewType(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-800 shadow-sm h-12"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="Video">Video Call</option>
                     <option value="Phone">Phone Call</option>
                     <option value="In-Person">In Person</option>
                   </select>
                 </div>
-                <div className="space-y-3">
-                  <Label htmlFor="interviewer" className="text-base font-medium text-gray-800 flex items-center">
-                    <User className="h-4 w-4 mr-2 text-gray-600" />
-                    Interviewer *
-                  </Label>
+                <div className="space-y-2">
+                  <Label htmlFor="interviewer">Interviewer *</Label>
                   <Input
                     id="interviewer"
                     value={interviewer}
                     onChange={(e) => setInterviewer(e.target.value)}
                     placeholder="Enter interviewer name"
-                    className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                     required
                   />
                 </div>
               </div>
 
-              {/* Notes */}
-              <div className="space-y-3">
-                <Label htmlFor="notes" className="text-base font-medium text-gray-800">
-                  Additional Notes
-                </Label>
+              <div className="space-y-2">
+                <Label htmlFor="notes">Additional Notes</Label>
                 <Textarea
                   id="notes"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Any additional information or instructions for the interview..."
-                  className="min-h-[120px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 resize-none"
+                  className="min-h-[100px]"
                 />
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-4 pt-6 border-t border-gray-200">
+              <div className="flex gap-4 pt-4">
                 <Button 
                   type="submit" 
-                  className="flex-1 h-12 text-base font-medium bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
+                  className="flex-1"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Scheduling..." : "Schedule Interview"}
@@ -354,7 +286,6 @@ const InterviewSchedule = () => {
                   variant="outline" 
                   onClick={() => navigate("/employer/dashboard")}
                   disabled={isSubmitting}
-                  className="px-8 h-12 text-base border-gray-300 hover:bg-gray-50"
                 >
                   Cancel
                 </Button>
