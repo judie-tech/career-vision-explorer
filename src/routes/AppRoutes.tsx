@@ -12,6 +12,13 @@ import Jobs from "@/pages/Jobs";
 import JobDetails from "@/pages/JobDetails";
 import PublicProfile from "@/pages/PublicProfile";
 import NotFound from "@/pages/NotFound";
+import About from "@/pages/About";
+import Blog from "@/pages/Blog";
+import Help from "@/pages/Help";
+import Contact from "@/pages/Contact";
+import FAQ from "@/pages/FAQ";
+import Privacy from "@/pages/Privacy";
+import Terms from "@/pages/Terms";
 
 // Protected pages
 import Profile from "@/pages/Profile";
@@ -68,6 +75,13 @@ export const AppRoutes = () => {
         <Route path="/profile/:id" element={<PublicProfile />} />
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/jobs/:id" element={<JobDetails />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/help" element={<Help />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
         
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
