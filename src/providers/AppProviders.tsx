@@ -7,6 +7,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { FeatureProvider } from "@/hooks/use-features";
 import { AuthProvider } from "@/hooks/use-auth";
+import { UserProfileProvider } from "@/hooks/use-user-profile";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,19 +21,21 @@ const queryClient = new QueryClient({
 export const AppProviders = ({ children }: { children: React.ReactNode }) => {
   return (
     <AuthProvider>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-            <TooltipProvider>
-              <FeatureProvider>
-                {children}
-                <Toaster />
-                <Sonner />
-              </FeatureProvider>
-            </TooltipProvider>
-          </ThemeProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
+      <UserProfileProvider>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+              <TooltipProvider>
+                <FeatureProvider>
+                  {children}
+                  <Toaster />
+                  <Sonner />
+                </FeatureProvider>
+              </TooltipProvider>
+            </ThemeProvider>
+          </BrowserRouter>
+        </QueryClientProvider>
+      </UserProfileProvider>
     </AuthProvider>
   );
 };
