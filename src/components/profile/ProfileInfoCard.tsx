@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Edit, MapPin, GraduationCap, Briefcase, Upload, User, Star } from "lucide-react";
+import { toast } from "@/components/ui/sonner";
 
 interface ProfileInfoCardProps {
   userName: string;
@@ -32,10 +33,25 @@ const ProfileInfoCard = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error("Please select a valid image file");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size must be less than 5MB");
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
-      onImageUpload?.(result);
+      if (onImageUpload) {
+        onImageUpload(result);
+        toast.success("Profile image updated successfully!");
+      }
     };
     reader.readAsDataURL(file);
   };
