@@ -2,6 +2,7 @@
 import { lazy, Suspense } from "react";
 import { AppProviders } from "@/providers/AppProviders";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useMobileOptimizations } from "@/hooks/use-mobile-optimizations";
 
 // Lazy load the routes component
 const AppRoutes = lazy(() => import("@/routes/AppRoutes").then(module => ({ default: module.AppRoutes })));
@@ -34,6 +35,8 @@ const AppLoading = () => (
 );
 
 function App() {
+  useMobileOptimizations();
+
   return (
     <AppProviders>
       <Suspense fallback={<AppLoading />}>
