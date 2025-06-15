@@ -31,6 +31,7 @@ export const AdminMetrics = () => {
       icon: Users,
       color: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50",
+      iconColor: "text-blue-600",
     },
     {
       title: "Active Jobs", 
@@ -39,6 +40,7 @@ export const AdminMetrics = () => {
       icon: Briefcase,
       color: "from-green-500 to-green-600",
       bgColor: "bg-green-50",
+      iconColor: "text-green-600",
     },
     {
       title: "Applications",
@@ -47,6 +49,7 @@ export const AdminMetrics = () => {
       icon: TrendingUp,
       color: "from-purple-500 to-purple-600",
       bgColor: "bg-purple-50",
+      iconColor: "text-purple-600",
     },
     {
       title: "Daily Active Users",
@@ -55,6 +58,7 @@ export const AdminMetrics = () => {
       icon: Activity,
       color: "from-orange-500 to-orange-600",
       bgColor: "bg-orange-50",
+      iconColor: "text-orange-600",
     }
   ];
 
@@ -67,11 +71,7 @@ export const AdminMetrics = () => {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
               <CardTitle className="text-sm font-semibold text-gray-600">{metric.title}</CardTitle>
               <div className={`p-3 rounded-xl ${metric.bgColor}`}>
-                <metric.icon className={`h-5 w-5 text-transparent bg-gradient-to-r ${metric.color} bg-clip-text`} style={{
-                  background: `linear-gradient(to right, rgb(59, 130, 246), rgb(29, 78, 216))`,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                }} />
+                <metric.icon className={`h-5 w-5 ${metric.iconColor}`} />
               </div>
             </CardHeader>
             <CardContent>
