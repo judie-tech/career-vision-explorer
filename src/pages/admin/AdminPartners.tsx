@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, ExternalLink, Search, Filter } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Edit, Trash2, ExternalLink, Search, Filter, Upload } from "lucide-react";
 import { usePartners, Partner } from "@/hooks/use-partners";
 
 const AdminPartners = () => {
@@ -18,6 +18,8 @@ const AdminPartners = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [logoUploadMethod, setLogoUploadMethod] = useState<"url" | "upload">("url");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     logo: "",
@@ -29,6 +31,8 @@ const AdminPartners = () => {
   const handleAddPartner = () => {
     setEditingPartner(null);
     setFormData({ name: "", logo: "", website: "", category: "employer", description: "" });
+    setLogoUploadMethod("url");
+    setUploadedFile(null);
     setIsDialogOpen(true);
   };
 
@@ -41,7 +45,19 @@ const AdminPartners = () => {
       category: partner.category,
       description: partner.description || ""
     });
+    setLogoUploadMethod("url");
+    setUploadedFile(null);
     setIsDialogOpen(true);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+      // Create a temporary URL for preview
+      const tempUrl = URL.createObjectURL(file);
+      setFormData(prev => ({ ...prev, logo: tempUrl }));
+    }
   };
 
   const handleSavePartner = () => {
@@ -57,6 +73,7 @@ const AdminPartners = () => {
 
     setIsDialogOpen(false);
     setFormData({ name: "", logo: "", website: "", category: "employer", description: "" });
+    setUploadedFile(null);
   };
 
   const handleDeletePartner = (id: number) => {
@@ -232,7 +249,7 @@ const AdminPartners = () => {
         )}
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingPartner ? "Edit Partner" : "Add New Partner"}
@@ -248,15 +265,46 @@ const AdminPartners = () => {
                   placeholder="Enter partner name"
                 />
               </div>
+              
               <div>
-                <Label htmlFor="logo">Logo URL *</Label>
-                <Input
-                  id="logo"
-                  value={formData.logo}
-                  onChange={(e) => setFormData(prev => ({ ...prev, logo: e.target.value }))}
-                  placeholder="Enter logo URL"
-                />
+                <Label>Logo *</Label>
+                <Tabs value={logoUploadMethod} onValueChange={(value) => setLogoUploadMethod(value as "url" | "upload")}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="url">URL</TabsTrigger>
+                    <TabsTrigger value="upload">Upload</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="url" className="space-y-2">
+                    <Input
+                      value={formData.logo}
+                      onChange={(e) => setFormData(prev => ({ ...prev, logo: e.target.value }))}
+                      placeholder="Enter logo URL"
+                    />
+                  </TabsContent>
+                  <TabsContent value="upload" className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        id="logo-upload"
+                      />
+                      <Label htmlFor="logo-upload" className="flex-1">
+                        <div className="flex items-center justify-center gap-2 p-2 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:border-gray-400 transition-colors">
+                          <Upload className="h-4 w-4" />
+                          <span className="text-sm">{uploadedFile ? uploadedFile.name : "Choose file"}</span>
+                        </div>
+                      </Label>
+                    </div>
+                    {uploadedFile && (
+                      <p className="text-xs text-muted-foreground">
+                        Note: File upload is simulated. In production, this would upload to your storage service.
+                      </p>
+                    )}
+                  </TabsContent>
+                </Tabs>
               </div>
+
               <div>
                 <Label htmlFor="website">Website URL *</Label>
                 <Input
