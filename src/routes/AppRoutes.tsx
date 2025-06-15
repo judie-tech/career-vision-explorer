@@ -1,5 +1,7 @@
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 // Public pages
@@ -44,9 +46,20 @@ import AllApplicants from "@/pages/employer/AllApplicants";
 import EmployerInterviews from "@/pages/employer/EmployerInterviews";
 import InterviewSchedule from "@/pages/employer/InterviewSchedule";
 
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
 export const AppRoutes = () => {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Index />} />
