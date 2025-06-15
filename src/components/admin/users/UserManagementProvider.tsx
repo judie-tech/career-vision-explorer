@@ -39,6 +39,7 @@ export const UserManagementProvider = ({ children }: { children: ReactNode }) =>
     email: "",
     role: "jobseeker",
     status: "active",
+    permissions: {},
   });
 
   return (

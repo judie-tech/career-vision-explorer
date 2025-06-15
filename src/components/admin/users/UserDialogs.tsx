@@ -17,6 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { User } from "@/hooks/use-users";
+import { SubAdminPermissions } from "./SubAdminPermissions";
+import { FeatureFlags } from "@/hooks/use-features";
 
 interface UserDialogsProps {
   selectedUser: User | null;
@@ -53,11 +55,15 @@ export const UserDialogs = ({
   onDeleteUser,
   isLoading,
 }: UserDialogsProps) => {
+  const handlePermissionsChange = (permissions: Partial<FeatureFlags>) => {
+    setEditForm({ ...editForm, permissions });
+  };
+
   return (
     <>
       {/* View User Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>User Details</DialogTitle>
           </DialogHeader>
@@ -95,6 +101,21 @@ export const UserDialogs = ({
                   <p className="text-sm text-muted-foreground">{selectedUser.profileComplete}%</p>
                 </div>
               )}
+              {selectedUser.role === "subadmin" && selectedUser.permissions && (
+                <div>
+                  <label className="text-sm font-medium">Permissions</label>
+                  <div className="mt-2 space-y-1">
+                    {Object.entries(selectedUser.permissions).map(([key, value]) => (
+                      <div key={key} className="flex items-center justify-between text-sm">
+                        <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                        <span className={value ? "text-green-600" : "text-red-600"}>
+                          {value ? "Enabled" : "Disabled"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
@@ -105,7 +126,7 @@ export const UserDialogs = ({
         setIsAddDialogOpen(false);
         setIsEditDialogOpen(false);
       }}>
-        <DialogContent>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{isAddDialogOpen ? "Add New User" : "Edit User"}</DialogTitle>
             <DialogDescription>
@@ -139,6 +160,7 @@ export const UserDialogs = ({
                 <SelectContent>
                   <SelectItem value="jobseeker">Job Seeker</SelectItem>
                   <SelectItem value="employer">Employer</SelectItem>
+                  <SelectItem value="subadmin">Sub Admin</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
@@ -155,6 +177,13 @@ export const UserDialogs = ({
                 </SelectContent>
               </Select>
             </div>
+            
+            {editForm.role === "subadmin" && (
+              <SubAdminPermissions 
+                user={editForm as User} 
+                onPermissionsChange={handlePermissionsChange}
+              />
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => {

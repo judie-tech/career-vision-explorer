@@ -2,7 +2,7 @@
 // Mock authentication system
 // In a production app, this would be replaced with a real authentication system
 
-type UserRole = 'admin' | 'jobseeker' | 'employer';
+type UserRole = 'admin' | 'jobseeker' | 'employer' | 'subadmin';
 
 interface User {
   id: string;
@@ -38,6 +38,13 @@ const MOCK_USERS = [
     password: 'jobseeker123',
     name: 'Jobseeker User',
     role: 'jobseeker' as UserRole,
+  },
+  {
+    id: '4',
+    email: 'subadmin@visiondrill.com',
+    password: 'subadmin123',
+    name: 'SubAdmin User',
+    role: 'subadmin' as UserRole,
   },
 ];
 

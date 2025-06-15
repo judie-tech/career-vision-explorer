@@ -3,7 +3,7 @@ import { useState, useEffect, createContext, useContext, ReactNode } from 'react
 import { authenticateUser, logoutUser, getCurrentUser } from '@/lib/auth';
 import { toast } from "@/components/ui/sonner";
 
-type UserRole = 'admin' | 'jobseeker' | 'employer';
+type UserRole = 'admin' | 'jobseeker' | 'employer' | 'subadmin';
 
 interface User {
   id: string;

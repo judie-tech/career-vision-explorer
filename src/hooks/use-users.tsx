@@ -1,16 +1,18 @@
 
 import { useState, createContext, useContext, ReactNode } from 'react';
 import { toast } from "@/components/ui/sonner";
+import { FeatureFlags } from "@/hooks/use-features";
 
 export type User = {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "jobseeker" | "employer";
+  role: "admin" | "jobseeker" | "employer" | "subadmin";
   status: "active" | "inactive";
   joinDate: string;
   lastLogin?: string;
   profileComplete?: number;
+  permissions?: Partial<FeatureFlags>;
 };
 
 type UsersContextType = {
@@ -53,6 +55,22 @@ const mockUsers: User[] = [
     joinDate: "2024-03-01",
     lastLogin: "2024-03-14",
     profileComplete: 85,
+  },
+  {
+    id: "4",
+    name: "Alice SubAdmin",
+    email: "subadmin@visiondrill.com",
+    role: "subadmin",
+    status: "active",
+    joinDate: "2024-03-05",
+    lastLogin: "2024-03-14",
+    permissions: {
+      jobMatching: true,
+      skillsAssessment: true,
+      userRegistration: true,
+      partnerShowcase: false,
+      blogSection: false,
+    },
   },
 ];
 

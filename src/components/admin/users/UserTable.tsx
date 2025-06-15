@@ -1,3 +1,4 @@
+
 import { Eye, Edit, Trash, UserCheck, UserX, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,18 +27,10 @@ export const UserTable = ({
   onDeleteClick,
   onToggleStatus,
 }: UserTableProps) => {
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case "admin": return "default";
-      case "employer": return "secondary";
-      case "jobseeker": return "outline";
-      default: return "outline";
-    }
-  };
-
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case "admin": return "bg-gradient-to-r from-red-500 to-red-600 text-white border-0";
+      case "subadmin": return "bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0";
       case "employer": return "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0";
       case "jobseeker": return "bg-gradient-to-r from-green-500 to-green-600 text-white border-0";
       default: return "bg-gray-100 text-gray-800";
@@ -54,6 +47,7 @@ export const UserTable = ({
             <TableHead className="text-gray-700 font-semibold">Status</TableHead>
             <TableHead className="text-gray-700 font-semibold">Join Date</TableHead>
             <TableHead className="text-gray-700 font-semibold">Last Login</TableHead>
+            <TableHead className="text-gray-700 font-semibold">Permissions</TableHead>
             <TableHead className="text-right text-gray-700 font-semibold">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -78,7 +72,7 @@ export const UserTable = ({
               </TableCell>
               <TableCell>
                 <Badge className={getRoleBadgeColor(user.role)}>
-                  {user.role}
+                  {user.role === "subadmin" ? "Sub Admin" : user.role}
                 </Badge>
               </TableCell>
               <TableCell>
@@ -89,6 +83,21 @@ export const UserTable = ({
               </TableCell>
               <TableCell className="text-gray-600">{user.joinDate}</TableCell>
               <TableCell className="text-gray-600">{user.lastLogin || "Never"}</TableCell>
+              <TableCell>
+                {user.role === "subadmin" && user.permissions ? (
+                  <div className="text-sm">
+                    <span className="text-green-600">
+                      {Object.values(user.permissions).filter(Boolean).length}
+                    </span>
+                    <span className="text-gray-400"> / </span>
+                    <span className="text-gray-600">
+                      {Object.keys(user.permissions).length} features
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-gray-400">—</span>
+                )}
+              </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
                   <Button 
@@ -129,7 +138,7 @@ export const UserTable = ({
           ))}
           {users.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-12">
+              <TableCell colSpan={7} className="text-center py-12">
                 <div className="text-gray-400">
                   <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p className="text-lg font-medium">No users found</p>
