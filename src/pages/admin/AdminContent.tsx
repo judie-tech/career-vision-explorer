@@ -2,10 +2,10 @@
 import { useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ContentStats } from "@/components/admin/content/ContentStats";
-import { ContentFilters } from "@/components/admin/content/ContentFilters";
-import { ContentTable } from "@/components/admin/content/ContentTable";
-import { ContentForm } from "@/components/admin/content/ContentForm";
+import ContentStats from "@/components/admin/content/ContentStats";
+import ContentFilters from "@/components/admin/content/ContentFilters";
+import ContentTable from "@/components/admin/content/ContentTable";
+import ContentForm from "@/components/admin/content/ContentForm";
 import { FooterContentManagement } from "@/components/admin/content/FooterContentManagement";
 
 const AdminContent = () => {
