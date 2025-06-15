@@ -9,21 +9,24 @@ import { FeatureProvider } from "@/hooks/use-features";
 import { AuthProvider } from "@/hooks/use-auth";
 import { UserProfileProvider } from "@/hooks/use-user-profile";
 
+// Optimize query client for faster loading
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 10 * 60 * 1000, // 10 minutes
     },
   },
 });
 
 export const AppProviders = ({ children }: { children: React.ReactNode }) => {
   return (
-    <AuthProvider>
-      <UserProfileProvider>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
+        <UserProfileProvider>
+          <QueryClientProvider client={queryClient}>
             <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
               <TooltipProvider>
                 <FeatureProvider>
@@ -33,9 +36,9 @@ export const AppProviders = ({ children }: { children: React.ReactNode }) => {
                 </FeatureProvider>
               </TooltipProvider>
             </ThemeProvider>
-          </BrowserRouter>
-        </QueryClientProvider>
-      </UserProfileProvider>
-    </AuthProvider>
+          </QueryClientProvider>
+        </UserProfileProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 };

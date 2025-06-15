@@ -1,21 +1,38 @@
 
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import HeroSection from "@/components/home/HeroSection";
 import FeatureSection from "@/components/home/FeatureSection";
-import CareerJourneySection from "@/components/home/CareerJourneySection";
-import ToolsSection from "@/components/home/ToolsSection";
-import TestimonialSection from "@/components/home/TestimonialSection";
-import JobListingSection from "@/components/home/JobListingSection";
-import CareerPathSection from "@/components/home/CareerPathSection";
-import PartnerShowcaseSection from "@/components/home/PartnerShowcaseSection";
-import CTASection from "@/components/home/CTASection";
 import { useAuth } from "@/hooks/use-auth";
 import { useFeatures } from "@/hooks/use-features";
 import { Button } from "@/components/ui/button";
 import { Shield, Briefcase, User } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Lazy load heavy sections
+const CareerJourneySection = lazy(() => import("@/components/home/CareerJourneySection"));
+const ToolsSection = lazy(() => import("@/components/home/ToolsSection"));
+const JobListingSection = lazy(() => import("@/components/home/JobListingSection"));
+const CareerPathSection = lazy(() => import("@/components/home/CareerPathSection"));
+const PartnerShowcaseSection = lazy(() => import("@/components/home/PartnerShowcaseSection"));
+const TestimonialSection = lazy(() => import("@/components/home/TestimonialSection"));
+const CTASection = lazy(() => import("@/components/home/CTASection"));
+
+// Lightweight loading component for sections
+const SectionLoader = () => (
+  <div className="py-16">
+    <div className="max-w-7xl mx-auto px-4">
+      <Skeleton className="h-8 w-1/2 mx-auto mb-8" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <Skeleton className="h-48 w-full" />
+        <Skeleton className="h-48 w-full" />
+        <Skeleton className="h-48 w-full" />
+      </div>
+    </div>
+  </div>
+);
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -151,13 +168,35 @@ const Index = () => {
       )}
       <HeroSection />
       <FeatureSection />
-      {features.partnerShowcase && <PartnerShowcaseSection />}
-      <CareerJourneySection />
-      <JobListingSection featuredJobs={featuredJobs} />
-      {features.careerPaths && <CareerPathSection careerPaths={careerPaths} />}
-      <ToolsSection />
-      {features.testimonials && <TestimonialSection testimonials={testimonials} />}
-      {features.ctaSection && <CTASection />}
+      {features.partnerShowcase && (
+        <Suspense fallback={<SectionLoader />}>
+          <PartnerShowcaseSection />
+        </Suspense>
+      )}
+      <Suspense fallback={<SectionLoader />}>
+        <CareerJourneySection />
+      </Suspense>
+      <Suspense fallback={<SectionLoader />}>
+        <JobListingSection featuredJobs={featuredJobs} />
+      </Suspense>
+      {features.careerPaths && (
+        <Suspense fallback={<SectionLoader />}>
+          <CareerPathSection careerPaths={careerPaths} />
+        </Suspense>
+      )}
+      <Suspense fallback={<SectionLoader />}>
+        <ToolsSection />
+      </Suspense>
+      {features.testimonials && (
+        <Suspense fallback={<SectionLoader />}>
+          <TestimonialSection testimonials={testimonials} />
+        </Suspense>
+      )}
+      {features.ctaSection && (
+        <Suspense fallback={<SectionLoader />}>
+          <CTASection />
+        </Suspense>
+      )}
     </Layout>
   );
 };
