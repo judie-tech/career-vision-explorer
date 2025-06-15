@@ -1,5 +1,6 @@
 
 import { LearningPathsProvider } from "@/hooks/use-learning-paths";
+import { CareerPathsProvider } from "@/hooks/use-career-paths";
 import { UserProfileProvider } from "@/hooks/use-user-profile";
 import { UsersProvider } from "@/hooks/use-users";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -16,9 +17,11 @@ export const AppProviders = ({ children }: { children: React.ReactNode }) => {
         <UsersProvider>
           <UserProfileProvider>
             <LearningPathsProvider>
-              {children}
-              <Toaster />
-              <Sonner />
+              <CareerPathsProvider>
+                {children}
+                <Toaster />
+                <Sonner />
+              </CareerPathsProvider>
             </LearningPathsProvider>
           </UserProfileProvider>
         </UsersProvider>
