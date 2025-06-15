@@ -1,3 +1,4 @@
+
 import { Routes, Route } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
 import { useLocation } from "react-router-dom";
@@ -20,6 +21,7 @@ const CareerPaths = lazy(() => import("@/pages/CareerPaths"));
 const AdminLogin = lazy(() => import("@/pages/admin/AdminLogin"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const JobSeekerDashboard = lazy(() => import("@/pages/admin/JobSeekerDashboard"));
+const AdminAPI = lazy(() => import("@/pages/admin/AdminAPI"));
 
 // Lazy load employer pages
 const EmployerDashboard = lazy(() => import("@/pages/employer/EmployerDashboard"));
@@ -233,6 +235,13 @@ export const AppRoutes = () => {
           <ProtectedRoute requiredRole="admin">
             <Suspense fallback={<PageLoader />}>
               <AdminInsights />
+            </Suspense>
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/api" element={
+          <ProtectedRoute requiredRole="admin">
+            <Suspense fallback={<PageLoader />}>
+              <AdminAPI />
             </Suspense>
           </ProtectedRoute>
         } />

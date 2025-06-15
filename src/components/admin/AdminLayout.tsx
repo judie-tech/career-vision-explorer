@@ -1,9 +1,8 @@
-
 import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, Users, Briefcase, BookOpen, BarChart, Settings, 
-  MessageSquare, FileText, LogOut, Menu, X, Home, TrendingUp, Building
+  MessageSquare, FileText, LogOut, Menu, X, Home, TrendingUp, Building, Code
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -36,6 +35,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { name: "Skills", icon: BarChart, href: "/admin/skills" },
     { name: "Partners", icon: Building, href: "/admin/partners" },
     { name: "Insights", icon: TrendingUp, href: "/admin/insights" },
+    { name: "API", icon: Code, href: "/admin/api" },
     { name: "Testimonials", icon: MessageSquare, href: "/admin/testimonials" },
     { name: "Content", icon: FileText, href: "/admin/content" },
     { name: "Settings", icon: Settings, href: "/admin/settings" },
