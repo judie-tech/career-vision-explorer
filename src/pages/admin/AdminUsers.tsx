@@ -3,6 +3,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { CompanyLogoManagement } from "@/components/admin/companies/CompanyLogoManagement";
 import { UserManagementTab } from "@/components/admin/users/UserManagementTab";
 import { UserManagementProvider } from "@/components/admin/users/UserManagementProvider";
+import { UsersProvider } from "@/hooks/use-users";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AdminUsers = () => {
@@ -23,9 +24,11 @@ const AdminUsers = () => {
           </TabsList>
           
           <TabsContent value="users" className="space-y-6">
-            <UserManagementProvider>
-              <UserManagementTab />
-            </UserManagementProvider>
+            <UsersProvider>
+              <UserManagementProvider>
+                <UserManagementTab />
+              </UserManagementProvider>
+            </UsersProvider>
           </TabsContent>
           
           <TabsContent value="companies">
