@@ -35,18 +35,27 @@ const AdminSettings = () => {
   });
 
   const saveSettings = () => {
-    // In a real app, you would save to a database or API here
-    toast({
-      title: "Settings Saved",
-      description: "Your changes have been successfully applied"
-    });
-    
-    // Log settings to console for debugging
-    console.log({
-      generalSettings,
-      appearance,
-      notifications
-    });
+    try {
+      // In a real app, you would save to a database or API here
+      toast({
+        title: "Settings Saved",
+        description: "Your changes have been successfully applied"
+      });
+      
+      // Log settings to console for debugging
+      console.log("Settings saved:", {
+        generalSettings,
+        appearance,
+        notifications
+      });
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save settings. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
