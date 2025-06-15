@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -65,7 +65,7 @@ const ScrollToTop = () => {
 
 export const AppRoutes = () => {
   return (
-    <Router>
+    <>
       <ScrollToTop />
       <Routes>
         {/* Public Routes */}
@@ -228,6 +228,6 @@ export const AppRoutes = () => {
         {/* Catch-all route for 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </Router>
+    </>
   );
 };
