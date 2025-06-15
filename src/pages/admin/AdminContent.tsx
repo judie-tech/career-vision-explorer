@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,6 +6,7 @@ import ContentFilters from "@/components/admin/content/ContentFilters";
 import ContentTable from "@/components/admin/content/ContentTable";
 import ContentForm from "@/components/admin/content/ContentForm";
 import { FooterContentManagement } from "@/components/admin/content/FooterContentManagement";
+import { AboutPageManagement } from "@/components/admin/content/AboutPageManagement";
 import { useContentForm } from "@/hooks/useContentForm";
 import { Content, ContentStatus } from "@/types/content";
 
@@ -126,9 +126,10 @@ const AdminContent = () => {
         </div>
 
         <Tabs defaultValue="content" className="space-y-6">
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="content">Content</TabsTrigger>
-            <TabsTrigger value="footer">Footer Management</TabsTrigger>
+            <TabsTrigger value="about">About Page</TabsTrigger>
+            <TabsTrigger value="footer">Footer</TabsTrigger>
           </TabsList>
           
           <TabsContent value="content" className="space-y-6">
@@ -153,6 +154,10 @@ const AdminContent = () => {
               onCancel={handleCancel}
               submitLabel={editingContent ? "Update Content" : "Create Content"}
             />
+          </TabsContent>
+
+          <TabsContent value="about">
+            <AboutPageManagement />
           </TabsContent>
           
           <TabsContent value="footer">

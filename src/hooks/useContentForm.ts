@@ -25,7 +25,13 @@ const contentSchema = z.object({
     "error",
     "popup",
     "tooltip",
-    "placeholder"
+    "placeholder",
+    "about-hero",
+    "about-mission",
+    "about-feature",
+    "about-story",
+    "about-stats",
+    "about-achievement"
   ]),
   status: z.enum(["draft", "published", "archived"]),
   content: z.string().min(1, "Content cannot be empty"),

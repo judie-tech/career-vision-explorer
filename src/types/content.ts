@@ -34,4 +34,10 @@ export type ContentType =
   | "error"
   | "popup"
   | "tooltip"
-  | "placeholder";
+  | "placeholder"
+  | "about-hero"
+  | "about-mission"
+  | "about-feature"
+  | "about-story"
+  | "about-stats"
+  | "about-achievement";
