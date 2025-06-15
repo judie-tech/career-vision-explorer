@@ -67,7 +67,11 @@ export const AdminMetrics = () => {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
               <CardTitle className="text-sm font-semibold text-gray-600">{metric.title}</CardTitle>
               <div className={`p-3 rounded-xl ${metric.bgColor}`}>
-                <metric.icon className={`h-5 w-5 bg-gradient-to-r ${metric.color} bg-clip-text text-transparent`} />
+                <metric.icon className={`h-5 w-5 text-transparent bg-gradient-to-r ${metric.color} bg-clip-text`} style={{
+                  background: `linear-gradient(to right, rgb(59, 130, 246), rgb(29, 78, 216))`,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }} />
               </div>
             </CardHeader>
             <CardContent>
