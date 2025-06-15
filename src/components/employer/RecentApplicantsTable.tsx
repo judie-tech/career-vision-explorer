@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Eye, Calendar, ExternalLink } from "lucide-react";
+import { Search, Eye, Calendar, ExternalLink, Users } from "lucide-react";
 import { useApplicants } from "@/hooks/use-applicants";
 import { ApplicantProfileDialog } from "./ApplicantProfileDialog";
 import { useNavigate } from "react-router-dom";
@@ -33,11 +33,11 @@ export const RecentApplicantsTable = () => {
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
-      case "Review":
+      case "Reviewing":
         return "bg-orange-100 text-orange-700 border-orange-200";
       case "Interview":
         return "bg-blue-100 text-blue-700 border-blue-200";
-      case "Accepted":
+      case "Hired":
         return "bg-green-100 text-green-700 border-green-200";
       case "Rejected":
         return "bg-gray-100 text-gray-700 border-gray-200";
@@ -156,7 +156,7 @@ export const RecentApplicantsTable = () => {
                         >
                           <Eye className="h-3 w-3 text-blue-600" />
                         </Button>
-                        {applicant.status === "Review" && (
+                        {applicant.status === "Reviewing" && (
                           <Button 
                             size="sm" 
                             variant="outline"
