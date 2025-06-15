@@ -4,7 +4,7 @@ import { AdminMetrics } from "@/components/admin/AdminMetrics";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -36,11 +36,13 @@ const AdminDashboard = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome to the Visiondrill administration panel
+      <div className="space-y-8">
+        <div className="text-center lg:text-left">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            Admin Dashboard
+          </h1>
+          <p className="text-lg text-gray-600 max-w-2xl">
+            Welcome to the Visiondrill administration panel. Monitor your platform's performance and manage all aspects of your career development ecosystem.
           </p>
         </div>
         <AdminMetrics />

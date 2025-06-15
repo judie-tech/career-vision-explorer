@@ -36,57 +36,92 @@ export const UserTable = ({
     }
   };
 
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case "admin": return "bg-gradient-to-r from-red-500 to-red-600 text-white border-0";
+      case "employer": return "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0";
+      case "jobseeker": return "bg-gradient-to-r from-green-500 to-green-600 text-white border-0";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
+
   return (
-    <div className="border rounded-lg">
+    <div className="border-0 rounded-2xl shadow-xl overflow-hidden bg-white/80 backdrop-blur-sm">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>User</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Join Date</TableHead>
-            <TableHead>Last Login</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+          <TableRow className="bg-gradient-to-r from-gray-50 to-blue-50/30 border-b border-gray-200/50">
+            <TableHead className="text-gray-700 font-semibold">User</TableHead>
+            <TableHead className="text-gray-700 font-semibold">Role</TableHead>
+            <TableHead className="text-gray-700 font-semibold">Status</TableHead>
+            <TableHead className="text-gray-700 font-semibold">Join Date</TableHead>
+            <TableHead className="text-gray-700 font-semibold">Last Login</TableHead>
+            <TableHead className="text-right text-gray-700 font-semibold">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users.map((user) => (
-            <TableRow key={user.id}>
+          {users.map((user, index) => (
+            <TableRow 
+              key={user.id} 
+              className={`transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/30 ${
+                index % 2 === 0 ? 'bg-white/50' : 'bg-gray-50/30'
+              }`}
+            >
               <TableCell>
-                <div>
-                  <div className="font-medium">{user.name}</div>
-                  <div className="text-sm text-muted-foreground">{user.email}</div>
+                <div className="flex items-center space-x-3">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">{user.name}</div>
+                    <div className="text-sm text-gray-500">{user.email}</div>
+                  </div>
                 </div>
               </TableCell>
               <TableCell>
-                <Badge variant={getRoleBadgeVariant(user.role)}>
+                <Badge className={getRoleBadgeColor(user.role)}>
                   {user.role}
                 </Badge>
               </TableCell>
               <TableCell>
-                <Badge variant={user.status === "active" ? "default" : "secondary"}>
+                <Badge variant={user.status === "active" ? "default" : "secondary"} 
+                       className={user.status === "active" ? "bg-green-100 text-green-800 border-green-200" : "bg-gray-100 text-gray-800 border-gray-200"}>
                   {user.status}
                 </Badge>
               </TableCell>
-              <TableCell>{user.joinDate}</TableCell>
-              <TableCell>{user.lastLogin || "Never"}</TableCell>
+              <TableCell className="text-gray-600">{user.joinDate}</TableCell>
+              <TableCell className="text-gray-600">{user.lastLogin || "Never"}</TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => onViewClick(user)}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => onViewClick(user)}
+                    className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
+                  >
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => onEditClick(user)}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => onEditClick(user)}
+                    className="hover:bg-purple-50 hover:text-purple-600 transition-all duration-200"
+                  >
                     <Edit className="h-4 w-4" />
                   </Button>
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     onClick={() => onToggleStatus(user)}
-                    className={user.status === "active" ? "text-orange-600" : "text-green-600"}
+                    className={user.status === "active" ? "hover:bg-orange-50 hover:text-orange-600" : "hover:bg-green-50 hover:text-green-600"}
                   >
                     {user.status === "active" ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => onDeleteClick(user)} className="text-destructive">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => onDeleteClick(user)} 
+                    className="hover:bg-red-50 hover:text-red-600 transition-all duration-200"
+                  >
                     <Trash className="h-4 w-4" />
                   </Button>
                 </div>
@@ -95,8 +130,12 @@ export const UserTable = ({
           ))}
           {users.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                No users found
+              <TableCell colSpan={6} className="text-center py-12">
+                <div className="text-gray-400">
+                  <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium">No users found</p>
+                  <p className="text-sm">Try adjusting your search or filter criteria</p>
+                </div>
               </TableCell>
             </TableRow>
           )}
