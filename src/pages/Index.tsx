@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -11,6 +12,7 @@ import CareerPathSection from "@/components/home/CareerPathSection";
 import PartnerShowcaseSection from "@/components/home/PartnerShowcaseSection";
 import CTASection from "@/components/home/CTASection";
 import { useAuth } from "@/hooks/use-auth";
+import { useFeatures } from "@/hooks/use-features";
 import { Button } from "@/components/ui/button";
 import { Shield, Briefcase, User } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
@@ -18,6 +20,7 @@ import { toast } from "@/components/ui/sonner";
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { isAuthenticated, user } = useAuth();
+  const { features } = useFeatures();
   const navigate = useNavigate();
   
   const featuredJobs = [
@@ -148,13 +151,13 @@ const Index = () => {
       )}
       <HeroSection />
       <FeatureSection />
-      <PartnerShowcaseSection />
+      {features.partnerShowcase && <PartnerShowcaseSection />}
       <CareerJourneySection />
       <JobListingSection featuredJobs={featuredJobs} />
-      <CareerPathSection careerPaths={careerPaths} />
+      {features.careerPaths && <CareerPathSection careerPaths={careerPaths} />}
       <ToolsSection />
-      <TestimonialSection testimonials={testimonials} />
-      <CTASection />
+      {features.testimonials && <TestimonialSection testimonials={testimonials} />}
+      {features.ctaSection && <CTASection />}
     </Layout>
   );
 };

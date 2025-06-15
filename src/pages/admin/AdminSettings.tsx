@@ -7,6 +7,7 @@ import { SettingsHeader } from "@/components/admin/settings/SettingsHeader";
 import { GeneralSettings } from "@/components/admin/settings/GeneralSettings";
 import { AppearanceSettings } from "@/components/admin/settings/AppearanceSettings";
 import { NotificationSettings } from "@/components/admin/settings/NotificationSettings";
+import { FeatureManagement } from "@/components/admin/settings/FeatureManagement";
 
 const AdminSettings = () => {
   const { toast } = useToast();
@@ -66,6 +67,9 @@ const AdminSettings = () => {
                 <TabsTrigger value="notifications" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-career-blue">
                   Notifications
                 </TabsTrigger>
+                <TabsTrigger value="features" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-career-blue">
+                  Features
+                </TabsTrigger>
               </TabsList>
             </div>
 
@@ -88,6 +92,10 @@ const AdminSettings = () => {
                 initialNotifications={notifications} 
                 onNotificationsChange={setNotifications} 
               />
+            </TabsContent>
+
+            <TabsContent value="features" className="p-6">
+              <FeatureManagement />
             </TabsContent>
           </Tabs>
         </div>

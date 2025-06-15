@@ -2,15 +2,19 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, User, Book, MessageCircle } from "lucide-react";
+import { useFeatures } from "@/hooks/use-features";
 
 const FeatureSection = () => {
-  const features = [
+  const { features } = useFeatures();
+
+  const allFeatures = [
     {
       icon: Search,
       title: "AI-Powered Job Matching",
       description: "Our intelligent system finds the perfect job matches based on your skills, experience, and preferences.",
       bgColor: "bg-blue-50",
       iconColor: "text-blue-600",
+      featureKey: "jobMatching" as const,
     },
     {
       icon: User,
@@ -18,6 +22,7 @@ const FeatureSection = () => {
       description: "Identify your strengths and areas for improvement through integrated assessments and get a personalized readiness score.",
       bgColor: "bg-purple-50",
       iconColor: "text-purple-600",
+      featureKey: "skillsAssessment" as const,
     },
     {
       icon: Book,
@@ -25,6 +30,7 @@ const FeatureSection = () => {
       description: "Fill skill gaps with personalized learning recommendations and track your progress toward career goals.",
       bgColor: "bg-green-50",
       iconColor: "text-green-600",
+      featureKey: "microlearning" as const,
     },
     {
       icon: MessageCircle,
@@ -32,8 +38,17 @@ const FeatureSection = () => {
       description: "Practice interviews with our AI coach that provides feedback on your responses, tone, and delivery.",
       bgColor: "bg-orange-50",
       iconColor: "text-orange-600",
+      featureKey: "aiInterviewPractice" as const,
     },
   ];
+
+  // Filter features based on toggles
+  const enabledFeatures = allFeatures.filter(feature => features[feature.featureKey]);
+
+  // Don't render the section if no features are enabled
+  if (enabledFeatures.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-20 bg-gradient-to-br from-background via-muted/20 to-background">
@@ -47,8 +62,8 @@ const FeatureSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-          {features.map((feature, index) => {
+        <div className={`grid grid-cols-1 md:grid-cols-2 ${enabledFeatures.length >= 3 ? 'lg:grid-cols-4' : enabledFeatures.length === 2 ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} gap-8 mb-12`}>
+          {enabledFeatures.map((feature, index) => {
             const Icon = feature.icon;
             return (
               <div 
