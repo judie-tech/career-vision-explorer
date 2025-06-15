@@ -2,13 +2,10 @@
 import { TabsContent } from "@/components/ui/tabs";
 import ResumeAnalysis from "@/components/profile/ResumeAnalysis";
 import SkillsAssessment from "@/components/assessments/SkillsAssessment";
-import SkillsOverviewCard from "@/components/profile/SkillsOverviewCard";
-import RecentAssessmentsCard from "@/components/profile/RecentAssessmentsCard";
-import UpcomingInterviewsCard from "@/components/profile/UpcomingInterviewsCard";
-import CareerProgressCard from "@/components/profile/CareerProgressCard";
 import SkillManagementCard from "@/components/profile/SkillManagementCard";
 import LearningPathsCard from "@/components/profile/LearningPathsCard";
 import RecommendedCoursesCard from "@/components/profile/RecommendedCoursesCard";
+import ProfileOverview from "@/components/profile/ProfileOverview";
 
 interface Skill {
   id: string;
@@ -55,25 +52,14 @@ const ProfileTabsContent = ({
 }: ProfileTabsContentProps) => {
   return (
     <>
-      <TabsContent value="overview" className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <SkillsOverviewCard
-            skills={skills}
-            onShowSkillsDialog={onShowSkillsDialog}
-          />
-          
-          <RecentAssessmentsCard
-            assessments={recentAssessments}
-            onShowSkillsDialog={onShowSkillsDialog}
-          />
-        </div>
-
-        <UpcomingInterviewsCard
-          interviews={upcomingInterviews}
+      <TabsContent value="overview">
+        <ProfileOverview
+          skills={skills}
+          recentAssessments={recentAssessments}
+          upcomingInterviews={upcomingInterviews}
+          onShowSkillsDialog={onShowSkillsDialog}
           onShowInterviewDialog={onShowInterviewDialog}
         />
-        
-        <CareerProgressCard />
       </TabsContent>
       
       <TabsContent value="resume" className="space-y-8">
