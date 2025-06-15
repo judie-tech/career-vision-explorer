@@ -69,6 +69,90 @@ const AdminContent = () => {
       createdAt: "2024-01-05",
       updatedAt: "2024-01-05",
     },
+    {
+      id: "5",
+      title: "Navigation - Main Menu",
+      slug: "nav-main-menu",
+      type: "navigation",
+      status: "published",
+      content: "Home|Jobs|Career Paths|Skills|Partners|Profile",
+      excerpt: "Main navigation menu items",
+      location: "global-header",
+      authorId: "admin",
+      authorName: "Admin User",
+      createdAt: "2024-01-05",
+      updatedAt: "2024-01-05",
+    },
+    {
+      id: "6",
+      title: "About Page - Company Description",
+      slug: "about-company-description",
+      type: "page",
+      status: "published",
+      content: "VisionDrill is a cutting-edge platform that revolutionizes career development through AI-powered job matching and personalized learning paths.",
+      excerpt: "About page company description",
+      location: "about-page",
+      authorId: "admin",
+      authorName: "Admin User",
+      createdAt: "2024-01-08",
+      updatedAt: "2024-01-08",
+    },
+    {
+      id: "7",
+      title: "404 Error Page Text",
+      slug: "error-404-text",
+      type: "page",
+      status: "published",
+      content: "Oops! The page you're looking for doesn't exist. Let's get you back on track to finding your dream career.",
+      excerpt: "404 error page message",
+      location: "error-pages",
+      authorId: "admin",
+      authorName: "Admin User",
+      createdAt: "2024-01-03",
+      updatedAt: "2024-01-03",
+    },
+    {
+      id: "8",
+      title: "Login Page - Welcome Message",
+      slug: "login-welcome-message",
+      type: "page",
+      status: "published",
+      content: "Welcome back! Sign in to continue your career journey with VisionDrill.",
+      excerpt: "Login page welcome message",
+      location: "auth-pages",
+      authorId: "admin",
+      authorName: "Admin User",
+      createdAt: "2024-01-02",
+      updatedAt: "2024-01-02",
+    },
+    {
+      id: "9",
+      title: "Contact Form - Success Message",
+      slug: "contact-success-message",
+      type: "notification",
+      status: "published",
+      content: "Thank you for reaching out! We'll get back to you within 24 hours.",
+      excerpt: "Contact form submission success message",
+      location: "contact-form",
+      authorId: "admin",
+      authorName: "Admin User",
+      createdAt: "2024-01-01",
+      updatedAt: "2024-01-01",
+    },
+    {
+      id: "10",
+      title: "Email Templates - Welcome Email",
+      slug: "email-welcome-template",
+      type: "email",
+      status: "published",
+      content: "Welcome to VisionDrill! We're excited to help you navigate your career journey. Get started by completing your profile.",
+      excerpt: "New user welcome email template",
+      location: "email-templates",
+      authorId: "admin",
+      authorName: "Admin User",
+      createdAt: "2024-01-01",
+      updatedAt: "2024-01-01",
+    },
   ]);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -83,7 +167,8 @@ const AdminContent = () => {
   const filteredContents = contents.filter((content) => {
     const matchesSearch = content.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          content.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         content.content.toLowerCase().includes(searchTerm.toLowerCase());
+                         content.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         content.location?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || content.status === statusFilter;
     const matchesType = typeFilter === "all" || content.type === typeFilter;
     
@@ -183,8 +268,10 @@ const AdminContent = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Content Management</h1>
-            <p className="text-gray-600 mt-2">Manage all website content including pages, sections, and text</p>
+            <h1 className="text-3xl font-bold">Website Content Management</h1>
+            <p className="text-gray-600 mt-2">
+              Manage all website text content including pages, sections, notifications, emails, and UI text across the entire platform
+            </p>
           </div>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
@@ -197,7 +284,7 @@ const AdminContent = () => {
               <DialogHeader>
                 <DialogTitle>Create New Content</DialogTitle>
                 <DialogDescription>
-                  Add new content to the platform
+                  Add new text content for any part of the website
                 </DialogDescription>
               </DialogHeader>
               <ContentForm
@@ -233,7 +320,7 @@ const AdminContent = () => {
             <DialogHeader>
               <DialogTitle>Edit Content</DialogTitle>
               <DialogDescription>
-                Update the content information
+                Update the website content
               </DialogDescription>
             </DialogHeader>
             <ContentForm

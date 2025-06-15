@@ -52,7 +52,7 @@ const ContentForm = ({ form, onSubmit, onCancel, submitLabel }: ContentFormProps
             name="type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Type</FormLabel>
+                <FormLabel>Content Type</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -60,17 +60,25 @@ const ContentForm = ({ form, onSubmit, onCancel, submitLabel }: ContentFormProps
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="page">Page</SelectItem>
+                    <SelectItem value="page">Page Content</SelectItem>
                     <SelectItem value="article">Article</SelectItem>
-                    <SelectItem value="blog">Blog</SelectItem>
+                    <SelectItem value="blog">Blog Post</SelectItem>
                     <SelectItem value="faq">FAQ</SelectItem>
                     <SelectItem value="header">Header Text</SelectItem>
                     <SelectItem value="footer">Footer Text</SelectItem>
-                    <SelectItem value="navigation">Navigation</SelectItem>
+                    <SelectItem value="navigation">Navigation Menu</SelectItem>
                     <SelectItem value="hero">Hero Section</SelectItem>
                     <SelectItem value="cta">Call to Action</SelectItem>
                     <SelectItem value="feature">Feature Section</SelectItem>
                     <SelectItem value="testimonial-section">Testimonial Section</SelectItem>
+                    <SelectItem value="notification">Notification Message</SelectItem>
+                    <SelectItem value="email">Email Template</SelectItem>
+                    <SelectItem value="button">Button Text</SelectItem>
+                    <SelectItem value="form">Form Labels/Text</SelectItem>
+                    <SelectItem value="error">Error Message</SelectItem>
+                    <SelectItem value="popup">Popup/Modal Text</SelectItem>
+                    <SelectItem value="tooltip">Tooltip Text</SelectItem>
+                    <SelectItem value="placeholder">Input Placeholder</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -107,9 +115,9 @@ const ContentForm = ({ form, onSubmit, onCancel, submitLabel }: ContentFormProps
           name="location"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Location (Optional)</FormLabel>
+              <FormLabel>Location/Context (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., homepage-hero, about-page-header" {...field} />
+                <Input placeholder="e.g., homepage-hero, login-page, global-header, contact-form" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -121,11 +129,11 @@ const ContentForm = ({ form, onSubmit, onCancel, submitLabel }: ContentFormProps
           name="excerpt"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Excerpt</FormLabel>
+              <FormLabel>Description/Purpose</FormLabel>
               <FormControl>
                 <Textarea 
-                  placeholder="Brief description or excerpt" 
-                  rows={3}
+                  placeholder="Brief description of where this content is used and its purpose" 
+                  rows={2}
                   {...field} 
                 />
               </FormControl>
@@ -139,11 +147,11 @@ const ContentForm = ({ form, onSubmit, onCancel, submitLabel }: ContentFormProps
           name="content"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Content</FormLabel>
+              <FormLabel>Content Text</FormLabel>
               <FormControl>
                 <Textarea 
-                  placeholder="Enter the full content here" 
-                  rows={8}
+                  placeholder="Enter the actual text content that will be displayed on the website" 
+                  rows={6}
                   {...field} 
                 />
               </FormControl>

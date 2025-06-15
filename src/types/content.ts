@@ -15,4 +15,23 @@ export interface Content {
 }
 
 export type ContentStatus = "draft" | "published" | "archived";
-export type ContentType = "page" | "article" | "blog" | "faq" | "header" | "footer" | "navigation" | "hero" | "cta" | "feature" | "testimonial-section";
+export type ContentType = 
+  | "page" 
+  | "article" 
+  | "blog" 
+  | "faq" 
+  | "header" 
+  | "footer" 
+  | "navigation" 
+  | "hero" 
+  | "cta" 
+  | "feature" 
+  | "testimonial-section"
+  | "notification"
+  | "email"
+  | "button"
+  | "form"
+  | "error"
+  | "popup"
+  | "tooltip"
+  | "placeholder";
