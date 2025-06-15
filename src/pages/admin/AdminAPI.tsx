@@ -1,62 +1,197 @@
 
 import AdminLayout from "@/components/admin/AdminLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Copy, ExternalLink, Code, Book, Smartphone } from "lucide-react";
-import { toast } from "sonner";
+import { Code, Book, Smartphone } from "lucide-react";
+import { ApiDocumentationCard } from "@/components/admin/api/ApiDocumentationCard";
+import { ApiEndpointsTable } from "@/components/admin/api/ApiEndpointsTable";
+import { IntegrationGuideCard } from "@/components/admin/api/IntegrationGuideCard";
 
 const AdminAPI = () => {
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard");
-  };
-
   const apiEndpoints = [
     {
       category: "Jobs API",
       endpoints: [
-        { method: "GET", path: "/api/jobs", description: "Search jobs with filters" },
-        { method: "GET", path: "/api/jobs/:id", description: "Get job by ID" },
-        { method: "POST", path: "/api/jobs/:id/save", description: "Save job to wishlist" },
-        { method: "POST", path: "/api/jobs/:id/apply", description: "Apply to job" },
+        { 
+          method: "GET", 
+          path: "/api/jobs", 
+          description: "Search jobs with filters",
+          params: ["query", "location", "type", "experienceLevel", "skills", "salaryMin", "salaryMax", "page", "limit"],
+          example: `const results = await JobsApi.searchJobs({
+  query: 'frontend developer',
+  location: 'Nairobi',
+  experienceLevel: 'Mid'
+});`,
+          response: `{
+  "jobs": [...],
+  "total": 150,
+  "page": 1,
+  "limit": 10
+}`
+        },
+        { 
+          method: "GET", 
+          path: "/api/jobs/:id", 
+          description: "Get job by ID",
+          params: ["id"],
+          example: `const job = await JobsApi.getJobById('job123');`,
+          response: `{
+  "id": "job123",
+  "title": "Frontend Developer",
+  "company": "TechCorp",
+  ...
+}`
+        },
+        { 
+          method: "POST", 
+          path: "/api/jobs/:id/save", 
+          description: "Save job to wishlist",
+          params: ["id"],
+          example: `await JobsApi.saveJob('job123');`
+        },
+        { 
+          method: "POST", 
+          path: "/api/jobs/:id/apply", 
+          description: "Apply to job",
+          params: ["id", "coverLetter", "resume"],
+          example: `await JobsApi.applyToJob('job123', {
+  coverLetter: 'Dear Hiring Manager...',
+  resume: 'resume_file_id'
+});`
+        },
       ]
     },
     {
       category: "Profile API",
       endpoints: [
-        { method: "GET", path: "/api/profile", description: "Get user profile" },
-        { method: "PUT", path: "/api/profile", description: "Update user profile" },
-        { method: "POST", path: "/api/profile/image", description: "Upload profile image" },
-        { method: "POST", path: "/api/profile/resume", description: "Upload resume" },
+        { 
+          method: "GET", 
+          path: "/api/profile", 
+          description: "Get user profile",
+          example: `const profile = await ProfileApi.getProfile();`
+        },
+        { 
+          method: "PUT", 
+          path: "/api/profile", 
+          description: "Update user profile",
+          params: ["name", "bio", "skills", "location", "phone"],
+          example: `const updated = await ProfileApi.updateProfile({
+  name: 'John Doe',
+  bio: 'Updated bio'
+});`
+        },
+        { 
+          method: "POST", 
+          path: "/api/profile/image", 
+          description: "Upload profile image",
+          params: ["imageFile"],
+          example: `const imageUrl = await ProfileApi.uploadProfileImage(file);`
+        },
+        { 
+          method: "POST", 
+          path: "/api/profile/resume", 
+          description: "Upload resume",
+          params: ["resumeFile"],
+          example: `const resumeId = await ProfileApi.uploadResume(file);`
+        },
       ]
     },
     {
       category: "Applications API",
       endpoints: [
-        { method: "GET", path: "/api/applications", description: "Get all applications" },
-        { method: "POST", path: "/api/applications", description: "Submit new application" },
-        { method: "PUT", path: "/api/applications/:id/status", description: "Update application status" },
-        { method: "DELETE", path: "/api/applications/:id", description: "Withdraw application" },
+        { 
+          method: "GET", 
+          path: "/api/applications", 
+          description: "Get all applications",
+          example: `const applications = await ApplicationsApi.getApplications();`
+        },
+        { 
+          method: "POST", 
+          path: "/api/applications", 
+          description: "Submit new application",
+          params: ["jobId", "coverLetter", "resume", "customAnswers"],
+          example: `const app = await ApplicationsApi.submitApplication({
+  jobId: 'job123',
+  coverLetter: 'My cover letter...'
+});`
+        },
+        { 
+          method: "PUT", 
+          path: "/api/applications/:id/status", 
+          description: "Update application status",
+          params: ["id", "status"],
+          example: `await ApplicationsApi.updateApplicationStatus('app123', 'Interview');`
+        },
+        { 
+          method: "DELETE", 
+          path: "/api/applications/:id", 
+          description: "Withdraw application",
+          params: ["id"],
+          example: `await ApplicationsApi.withdrawApplication('app123');`
+        },
       ]
     },
     {
       category: "Career Paths API",
       endpoints: [
-        { method: "GET", path: "/api/career-paths", description: "Get all career paths" },
-        { method: "GET", path: "/api/career-paths/:id", description: "Get career path by ID" },
-        { method: "POST", path: "/api/career-paths/:id/enroll", description: "Enroll in career path" },
-        { method: "PUT", path: "/api/career-paths/:pathId/steps/:stepId", description: "Update step progress" },
+        { 
+          method: "GET", 
+          path: "/api/career-paths", 
+          description: "Get all career paths",
+          example: `const paths = await CareerPathsApi.getCareerPaths();`
+        },
+        { 
+          method: "GET", 
+          path: "/api/career-paths/:id", 
+          description: "Get career path by ID",
+          params: ["id"],
+          example: `const path = await CareerPathsApi.getCareerPathById('path123');`
+        },
+        { 
+          method: "POST", 
+          path: "/api/career-paths/:id/enroll", 
+          description: "Enroll in career path",
+          params: ["id"],
+          example: `await CareerPathsApi.enrollInCareerPath('path123');`
+        },
+        { 
+          method: "PUT", 
+          path: "/api/career-paths/:pathId/steps/:stepId", 
+          description: "Update step progress",
+          params: ["pathId", "stepId", "completed"],
+          example: `await CareerPathsApi.updateStepProgress('path123', 'step456', true);`
+        },
       ]
     },
     {
       category: "Skills API",
       endpoints: [
-        { method: "GET", path: "/api/skills", description: "Get user skills" },
-        { method: "POST", path: "/api/skills", description: "Add new skill" },
-        { method: "POST", path: "/api/skills/:id/assess", description: "Start skill assessment" },
-        { method: "POST", path: "/api/skills/:id/submit", description: "Submit skill assessment" },
+        { 
+          method: "GET", 
+          path: "/api/skills", 
+          description: "Get user skills",
+          example: `const skills = await SkillsApi.getUserSkills();`
+        },
+        { 
+          method: "POST", 
+          path: "/api/skills", 
+          description: "Add new skill",
+          params: ["name", "category", "level"],
+          example: `const skill = await SkillsApi.addSkill('Vue.js', 'Frontend');`
+        },
+        { 
+          method: "POST", 
+          path: "/api/skills/:id/assess", 
+          description: "Start skill assessment",
+          params: ["id"],
+          example: `const questions = await SkillsApi.startSkillAssessment('skill123');`
+        },
+        { 
+          method: "POST", 
+          path: "/api/skills/:id/submit", 
+          description: "Submit skill assessment",
+          params: ["id", "answers"],
+          example: `const result = await SkillsApi.submitSkillAssessment('skill123', [0, 2, 1, 3]);`
+        },
       ]
     }
   ];
@@ -65,35 +200,79 @@ const AdminAPI = () => {
     {
       category: "Mobile Config",
       endpoints: [
-        { method: "GET", path: "/api/mobile/config", description: "Get mobile app configuration" },
-        { method: "GET", path: "/api/mobile/updates", description: "Check for app updates" },
+        { 
+          method: "GET", 
+          path: "/api/mobile/config", 
+          description: "Get mobile app configuration",
+          example: `const config = await MobileApi.getAppConfig();`,
+          response: `{
+  "appVersion": "1.0.0",
+  "apiVersion": "v1",
+  "features": ["offline_mode", "push_notifications"],
+  "maintenanceMode": false
+}`
+        },
+        { 
+          method: "GET", 
+          path: "/api/mobile/updates", 
+          description: "Check for app updates",
+          example: `const update = await MobileApi.checkForUpdates();`,
+          response: `{
+  "hasUpdate": false
+}`
+        },
       ]
     },
     {
       category: "Push Notifications",
       endpoints: [
-        { method: "POST", path: "/api/mobile/notifications/register", description: "Register device for notifications" },
-        { method: "POST", path: "/api/mobile/notifications/send", description: "Send push notification" },
+        { 
+          method: "POST", 
+          path: "/api/mobile/notifications/register", 
+          description: "Register device for notifications",
+          params: ["deviceToken", "platform", "userId"],
+          example: `await MobileApi.registerForPushNotifications(deviceToken);`
+        },
+        { 
+          method: "POST", 
+          path: "/api/mobile/notifications/send", 
+          description: "Send push notification",
+          params: ["title", "body", "data", "scheduledAt"],
+          example: `await MobileApi.sendPushNotification({
+  title: "New Job Match",
+  body: "We found 3 new jobs for you"
+});`
+        },
       ]
     },
     {
       category: "Offline Sync",
       endpoints: [
-        { method: "GET", path: "/api/mobile/sync", description: "Download offline data" },
-        { method: "POST", path: "/api/mobile/sync", description: "Upload offline changes" },
+        { 
+          method: "GET", 
+          path: "/api/mobile/sync", 
+          description: "Download offline data",
+          example: `const data = await MobileApi.syncOfflineData();`,
+          response: `{
+  "jobs": [...],
+  "profile": {...},
+  "applications": [...],
+  "lastSync": "2024-06-15T10:00:00Z"
+}`
+        },
+        { 
+          method: "POST", 
+          path: "/api/mobile/sync", 
+          description: "Upload offline changes",
+          params: ["applications", "profileUpdates"],
+          example: `await MobileApi.uploadOfflineData({
+  applications: [...],
+  profileUpdates: {...}
+});`
+        },
       ]
     }
   ];
-
-  const getMethodColor = (method: string) => {
-    switch (method) {
-      case "GET": return "bg-green-100 text-green-800";
-      case "POST": return "bg-blue-100 text-blue-800";
-      case "PUT": return "bg-yellow-100 text-yellow-800";
-      case "DELETE": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
 
   return (
     <AdminLayout>
@@ -103,7 +282,7 @@ const AdminAPI = () => {
             API Management
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl">
-            Access and manage the Visiondrill API endpoints and documentation for both web and mobile applications.
+            Comprehensive API documentation and endpoints for both web and mobile applications.
           </p>
         </div>
 
@@ -126,144 +305,61 @@ const AdminAPI = () => {
           <TabsContent value="endpoints" className="space-y-6">
             <div className="grid gap-6">
               {apiEndpoints.map((category) => (
-                <Card key={category.category}>
-                  <CardHeader>
-                    <CardTitle className="text-xl">{category.category}</CardTitle>
-                    <CardDescription>
-                      Available endpoints for {category.category.toLowerCase()}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {category.endpoints.map((endpoint, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <Badge className={getMethodColor(endpoint.method)}>
-                              {endpoint.method}
-                            </Badge>
-                            <code className="text-sm bg-gray-100 px-2 py-1 rounded">
-                              {endpoint.path}
-                            </code>
-                            <span className="text-sm text-gray-600">{endpoint.description}</span>
-                          </div>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => copyToClipboard(endpoint.path)}
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                <ApiEndpointsTable 
+                  key={category.category}
+                  category={category.category}
+                  endpoints={category.endpoints}
+                />
               ))}
             </div>
           </TabsContent>
 
           <TabsContent value="documentation" className="space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Book className="h-5 w-5" />
-                    Website API Documentation
-                  </CardTitle>
-                  <CardDescription>
-                    Complete documentation for the main website API endpoints
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-gray-600">
-                    Comprehensive guide covering all website API endpoints, request/response formats, and authentication.
-                  </p>
-                  <Button className="w-full" onClick={() => window.open('/docs/website-api.md', '_blank')}>
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    View Website API Docs
-                  </Button>
-                </CardContent>
-              </Card>
+              <ApiDocumentationCard
+                title="Website API Documentation"
+                description="Complete documentation for the main website API endpoints"
+                features={[
+                  "REST API endpoints",
+                  "Request/Response schemas", 
+                  "Authentication guide",
+                  "Error handling",
+                  "Code examples"
+                ]}
+                docPath="/docs/website-api.md"
+                icon={Book}
+                color="#3B82F6"
+              />
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Smartphone className="h-5 w-5" />
-                    Mobile API Documentation
-                  </CardTitle>
-                  <CardDescription>
-                    Mobile-specific API documentation for Capacitor apps
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-gray-600">
-                    Documentation for mobile-specific features like push notifications, offline sync, and app updates.
-                  </p>
-                  <Button className="w-full" onClick={() => window.open('/docs/mobile-api.md', '_blank')}>
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    View Mobile API Docs
-                  </Button>
-                </CardContent>
-              </Card>
+              <ApiDocumentationCard
+                title="Mobile API Documentation"
+                description="Mobile-specific API documentation for Capacitor apps"
+                features={[
+                  "Push notifications",
+                  "Offline sync",
+                  "App updates",
+                  "Native features",
+                  "Capacitor integration"
+                ]}
+                docPath="/docs/mobile-api.md"
+                icon={Smartphone}
+                color="#10B981"
+              />
 
-              <Card className="md:col-span-2">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Code className="h-5 w-5" />
-                    Integration Guide
-                  </CardTitle>
-                  <CardDescription>
-                    Step-by-step guide for integrating APIs into your applications
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-gray-600">
-                    Learn how to integrate the APIs with React hooks, state management, error handling, and testing strategies.
-                  </p>
-                  <Button className="w-full" onClick={() => window.open('/docs/api-integration-guide.md', '_blank')}>
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    View Integration Guide
-                  </Button>
-                </CardContent>
-              </Card>
+              <div className="md:col-span-2">
+                <IntegrationGuideCard />
+              </div>
             </div>
           </TabsContent>
 
           <TabsContent value="mobile" className="space-y-6">
             <div className="grid gap-6">
               {mobileEndpoints.map((category) => (
-                <Card key={category.category}>
-                  <CardHeader>
-                    <CardTitle className="text-xl">{category.category}</CardTitle>
-                    <CardDescription>
-                      Mobile-specific endpoints for {category.category.toLowerCase()}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {category.endpoints.map((endpoint, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <Badge className={getMethodColor(endpoint.method)}>
-                              {endpoint.method}
-                            </Badge>
-                            <code className="text-sm bg-gray-100 px-2 py-1 rounded">
-                              {endpoint.path}
-                            </code>
-                            <span className="text-sm text-gray-600">{endpoint.description}</span>
-                          </div>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => copyToClipboard(endpoint.path)}
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                <ApiEndpointsTable 
+                  key={category.category}
+                  category={category.category}
+                  endpoints={category.endpoints}
+                />
               ))}
             </div>
           </TabsContent>
