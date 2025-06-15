@@ -10,9 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Edit, Trash2, ExternalLink, Search, Filter, Upload } from "lucide-react";
-import { usePartners, Partner } from "@/hooks/use-partners";
+import { usePartners, Partner, PartnersProvider } from "@/hooks/use-partners";
 
-const AdminPartners = () => {
+const AdminPartnersContent = () => {
   const { partners, addPartner, updatePartner, deletePartner, isLoading } = usePartners();
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -110,258 +110,266 @@ const AdminPartners = () => {
   const stats = getStats();
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Partner Management</h1>
-            <p className="text-muted-foreground">Manage partner organizations and their showcase images</p>
-          </div>
-          <Button onClick={handleAddPartner} disabled={isLoading}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Partner
-          </Button>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Partner Management</h1>
+          <p className="text-muted-foreground">Manage partner organizations and their showcase images</p>
         </div>
+        <Button onClick={handleAddPartner} disabled={isLoading}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Partner
+        </Button>
+      </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Partners</p>
-                  <p className="text-2xl font-bold">{stats.total}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Employers</p>
-                  <p className="text-2xl font-bold text-blue-600">{stats.employers}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Education</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.education}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Recruiting</p>
-                  <p className="text-2xl font-bold text-purple-600">{stats.recruiting}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filters */}
-        <div className="flex gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search partners..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-48">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="employer">Employers</SelectItem>
-              <SelectItem value="education">Educational Institutions</SelectItem>
-              <SelectItem value="recruiting">Recruiting Agencies</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Partners Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPartners.map((partner) => (
-            <Card key={partner.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{partner.name}</CardTitle>
-                  <Badge className={getCategoryColor(partner.category)}>
-                    {partner.category}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-center">
-                  <img 
-                    src={partner.logo} 
-                    alt={`${partner.name} logo`}
-                    className="h-20 w-20 object-contain rounded-full shadow-md"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&h=100&fit=crop&crop=center";
-                    }}
-                  />
-                </div>
-                {partner.description && (
-                  <p className="text-sm text-muted-foreground text-center line-clamp-2">
-                    {partner.description}
-                  </p>
-                )}
-                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <ExternalLink className="h-4 w-4" />
-                  <a href={partner.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                    Visit Website
-                  </a>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handleEditPartner(partner)} className="flex-1" disabled={isLoading}>
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleDeletePartner(partner.id)} className="flex-1" disabled={isLoading}>
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {filteredPartners.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No partners found matching your criteria.</p>
-          </div>
-        )}
-
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingPartner ? "Edit Partner" : "Add New Partner"}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="name">Partner Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Enter partner name"
-                />
-              </div>
-              
-              <div>
-                <Label>Logo *</Label>
-                <Tabs value={logoUploadMethod} onValueChange={(value) => setLogoUploadMethod(value as "url" | "upload")}>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="url">URL</TabsTrigger>
-                    <TabsTrigger value="upload">Upload</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="url" className="space-y-2">
-                    <Input
-                      value={formData.logo}
-                      onChange={(e) => setFormData(prev => ({ ...prev, logo: e.target.value }))}
-                      placeholder="Enter logo URL"
-                    />
-                  </TabsContent>
-                  <TabsContent value="upload" className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                        id="logo-upload"
-                      />
-                      <Label htmlFor="logo-upload" className="flex-1">
-                        <div className="flex items-center justify-center gap-2 p-2 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:border-gray-400 transition-colors">
-                          <Upload className="h-4 w-4" />
-                          <span className="text-sm">{uploadedFile ? uploadedFile.name : "Choose file"}</span>
-                        </div>
-                      </Label>
-                    </div>
-                    {uploadedFile && (
-                      <p className="text-xs text-muted-foreground">
-                        Note: File upload is simulated. In production, this would upload to your storage service.
-                      </p>
-                    )}
-                  </TabsContent>
-                </Tabs>
-              </div>
-
-              <div>
-                <Label htmlFor="website">Website URL *</Label>
-                <Input
-                  id="website"
-                  value={formData.website}
-                  onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                  placeholder="https://partner-website.com"
-                />
-              </div>
-              <div>
-                <Label htmlFor="category">Category *</Label>
-                <Select value={formData.category} onValueChange={(value: Partner["category"]) => setFormData(prev => ({ ...prev, category: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="employer">Employer</SelectItem>
-                    <SelectItem value="education">Educational Institution</SelectItem>
-                    <SelectItem value="recruiting">Recruiting Agency</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Brief description of the partner"
-                  rows={3}
-                />
-              </div>
-              {formData.logo && (
-                <div className="flex justify-center">
-                  <img 
-                    src={formData.logo} 
-                    alt="Preview"
-                    className="h-20 w-20 object-contain rounded-full shadow-md"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&h=100&fit=crop&crop=center";
-                    }}
-                  />
-                </div>
-              )}
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1" disabled={isLoading}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSavePartner} className="flex-1" disabled={isLoading || !formData.name || !formData.logo || !formData.website}>
-                  {isLoading ? "Saving..." : editingPartner ? "Update" : "Add"} Partner
-                </Button>
+                <p className="text-sm font-medium text-muted-foreground">Total Partners</p>
+                <p className="text-2xl font-bold">{stats.total}</p>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Employers</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.employers}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Education</p>
+                <p className="text-2xl font-bold text-green-600">{stats.education}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Recruiting</p>
+                <p className="text-2xl font-bold text-purple-600">{stats.recruiting}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Filters */}
+      <div className="flex gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search partners..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={filterCategory} onValueChange={setFilterCategory}>
+          <SelectTrigger className="w-48">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Filter by category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="employer">Employers</SelectItem>
+            <SelectItem value="education">Educational Institutions</SelectItem>
+            <SelectItem value="recruiting">Recruiting Agencies</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Partners Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredPartners.map((partner) => (
+          <Card key={partner.id} className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">{partner.name}</CardTitle>
+                <Badge className={getCategoryColor(partner.category)}>
+                  {partner.category}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-center">
+                <img 
+                  src={partner.logo} 
+                  alt={`${partner.name} logo`}
+                  className="h-20 w-20 object-contain rounded-full shadow-md"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&h=100&fit=crop&crop=center";
+                  }}
+                />
+              </div>
+              {partner.description && (
+                <p className="text-sm text-muted-foreground text-center line-clamp-2">
+                  {partner.description}
+                </p>
+              )}
+              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                <ExternalLink className="h-4 w-4" />
+                <a href={partner.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                  Visit Website
+                </a>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => handleEditPartner(partner)} className="flex-1" disabled={isLoading}>
+                  <Edit className="h-4 w-4 mr-1" />
+                  Edit
+                </Button>
+                <Button variant="destructive" size="sm" onClick={() => handleDeletePartner(partner.id)} className="flex-1" disabled={isLoading}>
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Delete
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {filteredPartners.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">No partners found matching your criteria.</p>
+        </div>
+      )}
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingPartner ? "Edit Partner" : "Add New Partner"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name">Partner Name *</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter partner name"
+              />
+            </div>
+            
+            <div>
+              <Label>Logo *</Label>
+              <Tabs value={logoUploadMethod} onValueChange={(value) => setLogoUploadMethod(value as "url" | "upload")}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="url">URL</TabsTrigger>
+                  <TabsTrigger value="upload">Upload</TabsTrigger>
+                </TabsList>
+                <TabsContent value="url" className="space-y-2">
+                  <Input
+                    value={formData.logo}
+                    onChange={(e) => setFormData(prev => ({ ...prev, logo: e.target.value }))}
+                    placeholder="Enter logo URL"
+                  />
+                </TabsContent>
+                <TabsContent value="upload" className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="logo-upload"
+                    />
+                    <Label htmlFor="logo-upload" className="flex-1">
+                      <div className="flex items-center justify-center gap-2 p-2 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:border-gray-400 transition-colors">
+                        <Upload className="h-4 w-4" />
+                        <span className="text-sm">{uploadedFile ? uploadedFile.name : "Choose file"}</span>
+                      </div>
+                    </Label>
+                  </div>
+                  {uploadedFile && (
+                    <p className="text-xs text-muted-foreground">
+                      Note: File upload is simulated. In production, this would upload to your storage service.
+                    </p>
+                  )}
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            <div>
+              <Label htmlFor="website">Website URL *</Label>
+              <Input
+                id="website"
+                value={formData.website}
+                onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                placeholder="https://partner-website.com"
+              />
+            </div>
+            <div>
+              <Label htmlFor="category">Category *</Label>
+              <Select value={formData.category} onValueChange={(value: Partner["category"]) => setFormData(prev => ({ ...prev, category: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="employer">Employer</SelectItem>
+                  <SelectItem value="education">Educational Institution</SelectItem>
+                  <SelectItem value="recruiting">Recruiting Agency</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Brief description of the partner"
+                rows={3}
+              />
+            </div>
+            {formData.logo && (
+              <div className="flex justify-center">
+                <img 
+                  src={formData.logo} 
+                  alt="Preview"
+                  className="h-20 w-20 object-contain rounded-full shadow-md"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&h=100&fit=crop&crop=center";
+                  }}
+                />
+              </div>
+            )}
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1" disabled={isLoading}>
+                Cancel
+              </Button>
+              <Button onClick={handleSavePartner} className="flex-1" disabled={isLoading || !formData.name || !formData.logo || !formData.website}>
+                {isLoading ? "Saving..." : editingPartner ? "Update" : "Add"} Partner
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+const AdminPartners = () => {
+  return (
+    <AdminLayout>
+      <PartnersProvider>
+        <AdminPartnersContent />
+      </PartnersProvider>
     </AdminLayout>
   );
 };
