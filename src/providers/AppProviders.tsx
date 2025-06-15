@@ -19,20 +19,20 @@ const queryClient = new QueryClient({
 
 export const AppProviders = ({ children }: { children: React.ReactNode }) => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-          <TooltipProvider>
-            <AuthProvider>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+            <TooltipProvider>
               <FeatureProvider>
                 {children}
                 <Toaster />
                 <Sonner />
               </FeatureProvider>
-            </AuthProvider>
-          </TooltipProvider>
-        </ThemeProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+            </TooltipProvider>
+          </ThemeProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </AuthProvider>
   );
 };
