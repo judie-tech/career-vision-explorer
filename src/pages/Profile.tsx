@@ -1,13 +1,20 @@
-
 import { useState } from "react";
 import Layout from "@/components/layout/Layout";
+import { 
+  Tabs, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
 import { useJobApplications } from "@/hooks/use-job-applications";
 import { useSkillsAssessment } from "@/hooks/use-skills-assessment";
 import { useInterviewSchedule } from "@/hooks/use-interview-schedule";
 import { useUserProfile } from "@/hooks/use-user-profile";
 
-import ProfileHeader from "@/components/profile/ProfileHeader";
-import ProfileTabs from "@/components/profile/ProfileTabs";
+// Profile components
+import ProfileInfoCard from "@/components/profile/ProfileInfoCard";
+import ProfileCompletionCard from "@/components/profile/ProfileCompletionCard";
+import ApplicationStatsCard from "@/components/profile/ApplicationStatsCard";
+import ProfileTabsContent from "@/components/profile/ProfileTabsContent";
 import ProfileDialogs from "@/components/profile/ProfileDialogs";
 
 const Profile = () => {
@@ -102,26 +109,80 @@ const Profile = () => {
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30">
         <div className="container py-8 max-w-7xl mx-auto px-4 sm:px-6">
-          <ProfileHeader
-            currentProfile={currentProfile}
-            verifiedSkills={safeVerifiedSkills}
-            totalSkills={safeTotalSkills}
-            applicationStats={applicationStats}
-            onEditProfile={() => setShowEditProfileDialog(true)}
-            onImageUpload={handleImageUpload}
-          />
+          {/* Enhanced profile section with better spacing */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <div className="lg:col-span-2">
+              <ProfileInfoCard
+                userName={currentProfile.name}
+                userRole={currentProfile.role}
+                userEducation={currentProfile.education}
+                userExperience={currentProfile.experience}
+                userLocation={currentProfile.location}
+                userBio={currentProfile.bio}
+                profileImage={currentProfile.profileImage}
+                onEditProfile={() => setShowEditProfileDialog(true)}
+                onImageUpload={handleImageUpload}
+              />
+            </div>
+            
+            <div className="space-y-8">
+              <ProfileCompletionCard
+                profileCompletionScore={currentProfile.profileComplete}
+                verifiedSkills={safeVerifiedSkills}
+                totalSkills={safeTotalSkills}
+              />
+              
+              <ApplicationStatsCard
+                applicationStats={applicationStats}
+              />
+            </div>
+          </div>
           
-          <ProfileTabs
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            skills={safeSkills}
-            recentAssessments={recentAssessments}
-            upcomingInterviews={upcomingInterviews}
-            onShowSkillsDialog={() => setShowSkillsDialog(true)}
-            onShowInterviewDialog={() => setShowInterviewDialog(true)}
-            onUpdateSkill={handleUpdateSkill}
-            onVerifySkill={handleVerifySkill}
-          />
+          {/* Enhanced tabs section */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden backdrop-blur-sm">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/80 to-blue-50/30">
+                <TabsList className="w-full justify-start h-auto p-0 bg-transparent rounded-none">
+                  <TabsTrigger 
+                    value="overview" 
+                    className="px-8 py-5 rounded-none data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:shadow-none font-medium text-gray-600 data-[state=active]:text-blue-600 hover:bg-white/50 transition-all duration-200"
+                  >
+                    Overview
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="resume" 
+                    className="px-8 py-5 rounded-none data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:shadow-none font-medium text-gray-600 data-[state=active]:text-blue-600 hover:bg-white/50 transition-all duration-200"
+                  >
+                    Resume & Skills
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="assessments" 
+                    className="px-8 py-5 rounded-none data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:shadow-none font-medium text-gray-600 data-[state=active]:text-blue-600 hover:bg-white/50 transition-all duration-200"
+                  >
+                    Assessments
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="learning" 
+                    className="px-8 py-5 rounded-none data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:shadow-none font-medium text-gray-600 data-[state=active]:text-blue-600 hover:bg-white/50 transition-all duration-200"
+                  >
+                    Learning Paths
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              
+              <div className="p-8">
+                <ProfileTabsContent
+                  skills={safeSkills}
+                  recentAssessments={recentAssessments}
+                  upcomingInterviews={upcomingInterviews}
+                  onShowSkillsDialog={() => setShowSkillsDialog(true)}
+                  onShowInterviewDialog={() => setShowInterviewDialog(true)}
+                  onUpdateSkill={handleUpdateSkill}
+                  onVerifySkill={handleVerifySkill}
+                />
+              </div>
+            </Tabs>
+          </div>
 
           <ProfileDialogs
             showApplicationDialog={showApplicationDialog}
