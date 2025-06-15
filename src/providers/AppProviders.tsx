@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { FeatureProvider } from "@/hooks/use-features";
 import { AuthProvider } from "@/hooks/use-auth";
 import { UserProfileProvider } from "@/hooks/use-user-profile";
+import { CareerPathsProvider } from "@/hooks/use-career-paths";
 
 // Optimize query client for faster loading
 const queryClient = new QueryClient({
@@ -30,9 +31,11 @@ export const AppProviders = ({ children }: { children: React.ReactNode }) => {
             <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
               <TooltipProvider>
                 <FeatureProvider>
-                  {children}
-                  <Toaster />
-                  <Sonner />
+                  <CareerPathsProvider>
+                    {children}
+                    <Toaster />
+                    <Sonner />
+                  </CareerPathsProvider>
                 </FeatureProvider>
               </TooltipProvider>
             </ThemeProvider>
