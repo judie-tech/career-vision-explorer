@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import Layout from "@/components/layout/Layout";
+import DashboardLayout from "@/components/admin/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApplicationDetailsDialog } from "@/components/jobseeker/ApplicationDetailsDialog";
 import { QuickStatsCards } from "@/components/jobseeker/dashboard/QuickStatsCards";
@@ -20,7 +20,7 @@ const JobSeekerDashboard = () => {
   };
 
   return (
-    <Layout>
+    <DashboardLayout title="Job Seeker Dashboard" role="jobseeker">
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 relative overflow-hidden">
         {/* Background decorative elements */}
         <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none"></div>
@@ -82,7 +82,7 @@ const JobSeekerDashboard = () => {
         open={applicationDialogOpen}
         onOpenChange={setApplicationDialogOpen}
       />
-    </Layout>
+    </DashboardLayout>
   );
 };
 
