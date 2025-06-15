@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { useJobApplications } from "@/hooks/use-job-applications";
@@ -77,8 +76,10 @@ const Profile = () => {
   };
 
   const handleImageUpload = async (imageUrl: string) => {
+    console.log("Uploading image:", imageUrl.substring(0, 50) + "...");
     if (updateProfile) {
-      await updateProfile({ profileImage: imageUrl });
+      const success = await updateProfile({ profileImage: imageUrl });
+      console.log("Image upload success:", success);
     }
   };
 
@@ -97,6 +98,7 @@ const Profile = () => {
   };
 
   const currentProfile = userProfile || defaultProfile;
+  console.log("Current profile image:", currentProfile.profileImage?.substring(0, 50));
   
   return (
     <Layout>
