@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HeroSection } from "./about/HeroSection";
@@ -9,6 +8,8 @@ import { StatsSection } from "./about/StatsSection";
 import { Feature, HeroContent, MissionContent, StoryContent, StatItem } from "@/types/about-content";
 
 export const AboutPageManagement = () => {
+  // ... keep existing code (state initialization for heroContent, missionContent, storyContent, features, achievements)
+
   const [heroContent, setHeroContent] = useState<HeroContent>({
     title: "Navigate your career journey with confidence",
     subtitle: "We believe that everyone deserves to find meaningful work that aligns with their skills, values, and aspirations. Our AI-driven platform connects talent with opportunity.",
@@ -114,7 +115,10 @@ export const AboutPageManagement = () => {
         </TabsContent>
 
         <TabsContent value="stats">
-          <StatsSection stats={stats} />
+          <StatsSection 
+            stats={stats} 
+            setStats={setStats}
+          />
         </TabsContent>
       </Tabs>
     </div>
