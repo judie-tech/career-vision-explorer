@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ApplicationDetailsDialog } from "@/components/jobseeker/ApplicationDetailsDialog";
 import { 
   Calendar, 
   MapPin, 
@@ -26,6 +27,8 @@ import {
 const JobSeekerDashboard = () => {
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState("overview");
+  const [selectedApplication, setSelectedApplication] = useState<any>(null);
+  const [applicationDialogOpen, setApplicationDialogOpen] = useState(false);
 
   // Mock data for job recommendations
   const jobRecommendations = [
@@ -70,6 +73,11 @@ const JobSeekerDashboard = () => {
 
   const handleApplyNow = (jobId: string) => {
     navigate(`/jobs/${jobId}`);
+  };
+
+  const handleViewApplication = (application: any) => {
+    setSelectedApplication(application);
+    setApplicationDialogOpen(true);
   };
 
   // Mock data for other sections
@@ -399,7 +407,11 @@ const JobSeekerDashboard = () => {
                         <div className="text-sm text-gray-500">
                           Updated on {update.date}
                         </div>
-                        <Button variant="outline" className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-all duration-200">
+                        <Button 
+                          variant="outline" 
+                          className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-all duration-200"
+                          onClick={() => handleViewApplication(update)}
+                        >
                           View Application
                           <ChevronRight className="h-4 w-4 ml-2" />
                         </Button>
@@ -456,6 +468,12 @@ const JobSeekerDashboard = () => {
           </Tabs>
         </div>
       </div>
+
+      <ApplicationDetailsDialog
+        application={selectedApplication}
+        open={applicationDialogOpen}
+        onOpenChange={setApplicationDialogOpen}
+      />
     </Layout>
   );
 };
