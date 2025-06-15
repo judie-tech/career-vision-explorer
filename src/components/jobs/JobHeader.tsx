@@ -1,7 +1,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { MapPin, Briefcase, Clock, BarChart3 } from "lucide-react";
+import { MapPin, Briefcase, Clock, BarChart3, Building } from "lucide-react";
 
 interface JobHeaderProps {
   job: {
@@ -11,6 +11,9 @@ interface JobHeaderProps {
     type: string;
     posted: string;
     matchScore: number;
+    companyInfo?: {
+      logoUrl?: string;
+    };
   };
 }
 
@@ -32,28 +35,54 @@ export const JobHeader = ({ job }: JobHeaderProps) => {
       
       <CardHeader className="pb-4">
         <div className="flex justify-between items-start">
-          <div className="space-y-4">
-            <div>
-              <CardTitle className="text-3xl mb-3">
-                {job.title}
-              </CardTitle>
-              <CardDescription className="text-xl font-medium">
-                {job.company}
-              </CardDescription>
+          <div className="flex items-start gap-4">
+            {/* Company Logo */}
+            <div className="flex-shrink-0">
+              {job.companyInfo?.logoUrl ? (
+                <img 
+                  src={job.companyInfo.logoUrl} 
+                  alt={`${job.company} logo`}
+                  className="w-16 h-16 rounded-lg object-contain border bg-white"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    if (e.currentTarget.nextElementSibling) {
+                      (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex';
+                    }
+                  }}
+                />
+              ) : null}
+              <div 
+                className={`w-16 h-16 rounded-lg border bg-gray-100 flex items-center justify-center ${
+                  job.companyInfo?.logoUrl ? 'hidden' : 'flex'
+                }`}
+              >
+                <Building className="h-8 w-8 text-gray-400" />
+              </div>
             </div>
             
-            <div className="flex items-center gap-6 text-sm">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="h-4 w-4 text-primary" />
-                {job.location}
+            <div className="space-y-4">
+              <div>
+                <CardTitle className="text-3xl mb-3">
+                  {job.title}
+                </CardTitle>
+                <CardDescription className="text-xl font-medium">
+                  {job.company}
+                </CardDescription>
               </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Briefcase className="h-4 w-4 text-primary" />
-                {job.type}
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="h-4 w-4 text-primary" />
-                {job.posted}
+              
+              <div className="flex items-center gap-6 text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  {job.location}
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Briefcase className="h-4 w-4 text-primary" />
+                  {job.type}
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Clock className="h-4 w-4 text-primary" />
+                  {job.posted}
+                </div>
               </div>
             </div>
           </div>

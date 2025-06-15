@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Layout from "@/components/layout/Layout";
@@ -52,7 +51,8 @@ const mockJobDetails = {
       size: "50-100 employees",
       industry: "Technology",
       founded: "2018",
-      website: "https://techsolutions.co.ke"
+      website: "https://techsolutions.co.ke",
+      logoUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop&crop=center"
     }
   },
   "2": {
@@ -92,7 +92,8 @@ const mockJobDetails = {
       size: "100-200 employees",
       industry: "Software Development",
       founded: "2015",
-      website: "https://innovativesystems.co.ke"
+      website: "https://innovativesystems.co.ke",
+      logoUrl: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400&h=400&fit=crop&crop=center"
     }
   },
   "3": {
@@ -132,7 +133,8 @@ const mockJobDetails = {
       size: "20-50 employees",
       industry: "Digital Agency",
       founded: "2019",
-      website: "https://creativedigital.co.ke"
+      website: "https://creativedigital.co.ke",
+      logoUrl: "https://images.unsplash.com/photo-1572044162444-ad60f128bdea?w=400&h=400&fit=crop&crop=center"
     }
   },
   "4": {
@@ -172,7 +174,8 @@ const mockJobDetails = {
       size: "30-70 employees",
       industry: "Data Analytics",
       founded: "2020",
-      website: "https://datainsights.co.ke"
+      website: "https://datainsights.co.ke",
+      logoUrl: "https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=400&fit=crop&crop=center"
     }
   },
   "5": {
@@ -212,7 +215,8 @@ const mockJobDetails = {
       size: "200-500 employees",
       industry: "Technology",
       founded: "2012",
-      website: "https://techcorp.co.ke"
+      website: "https://techcorp.co.ke",
+      logoUrl: "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=400&h=400&fit=crop&crop=center"
     }
   }
 };

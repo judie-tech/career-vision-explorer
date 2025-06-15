@@ -17,6 +17,9 @@ interface Job {
   skills: string[];
   description: string;
   experienceLevel?: string;
+  companyInfo?: {
+    logoUrl?: string;
+  };
 }
 
 interface JobCardProps {
@@ -45,25 +48,52 @@ export const JobCard = ({ job, isApplied, isSaved, onApply, onSave }: JobCardPro
       
       <CardHeader className="pb-4">
         <div className="flex justify-between items-start">
-          <div className="space-y-2">
-            <CardTitle className="text-2xl group-hover:text-primary transition-colors duration-200 flex items-center gap-3">
-              {job.title}
-              <Badge className={`text-sm px-3 py-1 font-bold ${
-                job.matchScore >= 90 ? 'bg-green-500 hover:bg-green-600' : 
-                job.matchScore >= 80 ? 'bg-blue-500 hover:bg-blue-600' : 
-                job.matchScore >= 70 ? 'bg-yellow-500 hover:bg-yellow-600' : 
-                'bg-orange-500 hover:bg-orange-600'
-              } text-white border-0`}>
-                {job.matchScore}% Match
-              </Badge>
-              {isApplied && (
-                <Badge className="bg-green-100 text-green-800 border-green-200">
-                  Applied ✓
+          <div className="flex items-start gap-3">
+            {/* Company Logo */}
+            <div className="flex-shrink-0">
+              {job.companyInfo?.logoUrl ? (
+                <img 
+                  src={job.companyInfo.logoUrl} 
+                  alt={`${job.company} logo`}
+                  className="w-12 h-12 rounded-lg object-contain border bg-white"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    if (e.currentTarget.nextElementSibling) {
+                      (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex';
+                    }
+                  }}
+                />
+              ) : null}
+              <div 
+                className={`w-12 h-12 rounded-lg border bg-gray-100 flex items-center justify-center ${
+                  job.companyInfo?.logoUrl ? 'hidden' : 'flex'
+                }`}
+              >
+                <Building className="h-6 w-6 text-gray-400" />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <CardTitle className="text-2xl group-hover:text-primary transition-colors duration-200 flex items-center gap-3">
+                {job.title}
+                <Badge className={`text-sm px-3 py-1 font-bold ${
+                  job.matchScore >= 90 ? 'bg-green-500 hover:bg-green-600' : 
+                  job.matchScore >= 80 ? 'bg-blue-500 hover:bg-blue-600' : 
+                  job.matchScore >= 70 ? 'bg-yellow-500 hover:bg-yellow-600' : 
+                  'bg-orange-500 hover:bg-orange-600'
+                } text-white border-0`}>
+                  {job.matchScore}% Match
                 </Badge>
-              )}
-            </CardTitle>
-            <CardDescription className="text-lg font-medium">{job.company}</CardDescription>
+                {isApplied && (
+                  <Badge className="bg-green-100 text-green-800 border-green-200">
+                    Applied ✓
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription className="text-lg font-medium">{job.company}</CardDescription>
+            </div>
           </div>
+          
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"

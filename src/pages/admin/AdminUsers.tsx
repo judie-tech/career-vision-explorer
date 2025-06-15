@@ -7,6 +7,8 @@ import { UserHeader } from "@/components/admin/users/UserHeader";
 import { UserFilters } from "@/components/admin/users/UserFilters";
 import { UserTable } from "@/components/admin/users/UserTable";
 import { UserDialogs } from "@/components/admin/users/UserDialogs";
+import { CompanyLogoManagement } from "@/components/admin/companies/CompanyLogoManagement";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AdminUsers = () => {
   const { toast } = useToast();
@@ -105,42 +107,62 @@ const AdminUsers = () => {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <UserHeader onAddClick={handleAddClick} />
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">User Management</h1>
+          <p className="text-muted-foreground">
+            Manage user accounts and company logos
+          </p>
+        </div>
 
-        <UserFilters
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          roleFilter={roleFilter}
-          setRoleFilter={setRoleFilter}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-        />
+        <Tabs defaultValue="users" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="companies">Company Logos</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="users" className="space-y-6">
+            <UserHeader onAddClick={handleAddClick} />
 
-        <UserTable
-          users={filteredUsers}
-          onViewClick={handleViewClick}
-          onEditClick={handleEditClick}
-          onDeleteClick={handleDeleteClick}
-          onToggleStatus={handleToggleStatus}
-        />
+            <UserFilters
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              roleFilter={roleFilter}
+              setRoleFilter={setRoleFilter}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+            />
 
-        <UserDialogs
-          selectedUser={selectedUser}
-          isViewDialogOpen={isViewDialogOpen}
-          setIsViewDialogOpen={setIsViewDialogOpen}
-          isEditDialogOpen={isEditDialogOpen}
-          setIsEditDialogOpen={setIsEditDialogOpen}
-          isAddDialogOpen={isAddDialogOpen}
-          setIsAddDialogOpen={setIsAddDialogOpen}
-          isDeleteDialogOpen={isDeleteDialogOpen}
-          setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-          editForm={editForm}
-          setEditForm={setEditForm}
-          onAddUser={handleAddUser}
-          onEditUser={handleEditUser}
-          onDeleteUser={handleDeleteUser}
-          isLoading={isLoading}
-        />
+            <UserTable
+              users={filteredUsers}
+              onViewClick={handleViewClick}
+              onEditClick={handleEditClick}
+              onDeleteClick={handleDeleteClick}
+              onToggleStatus={handleToggleStatus}
+            />
+
+            <UserDialogs
+              selectedUser={selectedUser}
+              isViewDialogOpen={isViewDialogOpen}
+              setIsViewDialogOpen={setIsViewDialogOpen}
+              isEditDialogOpen={isEditDialogOpen}
+              setIsEditDialogOpen={setIsEditDialogOpen}
+              isAddDialogOpen={isAddDialogOpen}
+              setIsAddDialogOpen={setIsAddDialogOpen}
+              isDeleteDialogOpen={isDeleteDialogOpen}
+              setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+              editForm={editForm}
+              setEditForm={setEditForm}
+              onAddUser={handleAddUser}
+              onEditUser={handleEditUser}
+              onDeleteUser={handleDeleteUser}
+              isLoading={isLoading}
+            />
+          </TabsContent>
+          
+          <TabsContent value="companies">
+            <CompanyLogoManagement />
+          </TabsContent>
+        </Tabs>
       </div>
     </AdminLayout>
   );
