@@ -46,18 +46,24 @@ export const UserProfileProvider = ({ children }: { children: ReactNode }) => {
   const updateProfile = async (profileData: Partial<UserProfile>): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log("Updating profile with:", profileData);
       
-      setUserProfile(prev => ({
-        ...prev!,
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const updatedProfile = {
+        ...userProfile,
         ...profileData,
-        profileComplete: calculateProfileCompletion({ ...prev!, ...profileData }),
-      }));
+        profileComplete: calculateProfileCompletion({ ...userProfile, ...profileData }),
+      };
+      
+      console.log("Setting new profile:", updatedProfile);
+      setUserProfile(updatedProfile);
       
       toast.success("Profile updated successfully");
       return true;
     } catch (error) {
+      console.error("Failed to update profile:", error);
       toast.error("Failed to update profile");
       return false;
     } finally {
