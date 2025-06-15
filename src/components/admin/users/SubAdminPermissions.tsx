@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -98,6 +98,11 @@ export const SubAdminPermissions = ({ user, onPermissionsChange }: SubAdminPermi
   const [localPermissions, setLocalPermissions] = useState<Partial<FeatureFlags>>(
     user.permissions || {}
   );
+
+  // Sync local permissions when user changes
+  useEffect(() => {
+    setLocalPermissions(user.permissions || {});
+  }, [user]);
 
   const handlePermissionToggle = (featureKey: keyof FeatureFlags, enabled: boolean) => {
     const newPermissions = { ...localPermissions, [featureKey]: enabled };

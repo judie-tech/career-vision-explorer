@@ -42,27 +42,32 @@ export const UserManagementTab = () => {
   });
 
   const handleEditClick = (user: User) => {
+    console.log('Editing user:', user);
     setSelectedUser(user);
     setEditForm({ ...user });
     setIsEditDialogOpen(true);
   };
 
   const handleViewClick = (user: User) => {
+    console.log('Viewing user:', user);
     setSelectedUser(user);
     setIsViewDialogOpen(true);
   };
 
   const handleDeleteClick = (user: User) => {
+    console.log('Deleting user:', user);
     setSelectedUser(user);
     setIsDeleteDialogOpen(true);
   };
 
   const handleAddClick = () => {
+    console.log('Adding new user');
     setEditForm({
       name: "",
       email: "",
       role: "jobseeker",
       status: "active",
+      permissions: {},
     });
     setIsAddDialogOpen(true);
   };
@@ -77,33 +82,55 @@ export const UserManagementTab = () => {
       return;
     }
     
+    console.log('Creating user with data:', editForm);
     const success = await createUser(editForm as Omit<User, 'id' | 'joinDate'>);
     if (success) {
       setIsAddDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "User created successfully",
+      });
     }
   };
 
   const handleEditUser = async () => {
     if (!selectedUser?.id) return;
     
+    console.log('Updating user:', selectedUser.id, 'with data:', editForm);
     const success = await updateUser(selectedUser.id, editForm);
     if (success) {
       setIsEditDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "User updated successfully",
+      });
     }
   };
 
   const handleDeleteUser = async () => {
     if (!selectedUser?.id) return;
     
+    console.log('Deleting user:', selectedUser.id);
     const success = await deleteUser(selectedUser.id);
     if (success) {
       setIsDeleteDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "User deleted successfully",
+      });
     }
   };
 
   const handleToggleStatus = async (user: User) => {
     const newStatus = user.status === "active" ? "inactive" : "active";
-    await updateUser(user.id, { status: newStatus });
+    console.log('Toggling user status:', user.id, 'to:', newStatus);
+    const success = await updateUser(user.id, { status: newStatus });
+    if (success) {
+      toast({
+        title: "Success",
+        description: `User ${newStatus === "active" ? "activated" : "deactivated"} successfully`,
+      });
+    }
   };
 
   return (

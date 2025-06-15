@@ -68,8 +68,15 @@ const mockUsers: User[] = [
       jobMatching: true,
       skillsAssessment: true,
       userRegistration: true,
+      profileCreation: true,
       partnerShowcase: false,
       blogSection: false,
+      testimonials: true,
+      ctaSection: false,
+      microlearning: true,
+      aiInterviewPractice: false,
+      careerPaths: true,
+      applicationTracking: true,
     },
   },
 ];
@@ -80,16 +87,26 @@ export const UsersProvider = ({ children }: { children: ReactNode }) => {
 
   const createUser = async (userData: Omit<User, 'id' | 'joinDate'>): Promise<boolean> => {
     setIsLoading(true);
+    console.log('Creating user:', userData);
+    
     try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const newUser: User = {
         ...userData,
         id: Date.now().toString(),
         joinDate: new Date().toISOString().split('T')[0],
+        // Initialize empty permissions for subadmin
+        permissions: userData.role === 'subadmin' ? (userData.permissions || {}) : undefined,
       };
+      
       setUsers(prev => [...prev, newUser]);
+      console.log('User created successfully:', newUser);
       toast.success("User created successfully");
       return true;
     } catch (error) {
+      console.error('Error creating user:', error);
       toast.error("Failed to create user");
       return false;
     } finally {
@@ -99,13 +116,21 @@ export const UsersProvider = ({ children }: { children: ReactNode }) => {
 
   const updateUser = async (id: string, userData: Partial<User>): Promise<boolean> => {
     setIsLoading(true);
+    console.log('Updating user:', id, 'with data:', userData);
+    
     try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       setUsers(prev => prev.map(user => 
         user.id === id ? { ...user, ...userData } : user
       ));
+      
+      console.log('User updated successfully');
       toast.success("User updated successfully");
       return true;
     } catch (error) {
+      console.error('Error updating user:', error);
       toast.error("Failed to update user");
       return false;
     } finally {
@@ -115,11 +140,18 @@ export const UsersProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteUser = async (id: string): Promise<boolean> => {
     setIsLoading(true);
+    console.log('Deleting user:', id);
+    
     try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       setUsers(prev => prev.filter(user => user.id !== id));
+      console.log('User deleted successfully');
       toast.success("User deleted successfully");
       return true;
     } catch (error) {
+      console.error('Error deleting user:', error);
       toast.error("Failed to delete user");
       return false;
     } finally {

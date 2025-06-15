@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { FeatureProvider } from "@/hooks/use-features";
+import { AuthProvider } from "@/hooks/use-auth";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,11 +23,13 @@ export const AppProviders = ({ children }: { children: React.ReactNode }) => {
       <BrowserRouter>
         <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
           <TooltipProvider>
-            <FeatureProvider>
-              {children}
-              <Toaster />
-              <Sonner />
-            </FeatureProvider>
+            <AuthProvider>
+              <FeatureProvider>
+                {children}
+                <Toaster />
+                <Sonner />
+              </FeatureProvider>
+            </AuthProvider>
           </TooltipProvider>
         </ThemeProvider>
       </BrowserRouter>
