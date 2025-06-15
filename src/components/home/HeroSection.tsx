@@ -20,7 +20,7 @@ const HeroSection = () => {
             <div className="mt-8 sm:mt-10 sm:flex sm:justify-center lg:justify-start">
               <div className="rounded-md shadow">
                 <Link to="/signup">
-                  <Button className="w-full px-8 py-6 text-lg bg-white text-career-blue hover:bg-gray-50 font-bold shadow-lg border-2 border-white">
+                  <Button className="w-full px-8 py-6 text-lg bg-career-blue text-white hover:bg-blue-700 font-bold shadow-lg border-2 border-career-blue">
                     Create Your Profile
                   </Button>
                 </Link>
