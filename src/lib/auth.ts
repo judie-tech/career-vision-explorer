@@ -78,6 +78,16 @@ export const authenticateUser = (email: string, password: string): User | null =
   return null;
 };
 
+// Get user by ID (for impersonation)
+export const getUserById = (id: string): User | null => {
+  const user = MOCK_USERS.find(u => u.id === id);
+  if (user) {
+    const { password: _, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  }
+  return null;
+};
+
 // Log out current user
 export const logoutUser = (): void => {
   localStorage.removeItem('visiondrillUser');

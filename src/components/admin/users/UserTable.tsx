@@ -1,5 +1,5 @@
 
-import { Eye, Edit, Trash, UserCheck, UserX, Users } from "lucide-react";
+import { Eye, Edit, Trash, UserCheck, UserX, Users, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { User } from "@/hooks/use-users";
+import { useAuth } from "@/hooks/use-auth";
 
 interface UserTableProps {
   users: User[];
@@ -27,6 +28,8 @@ export const UserTable = ({
   onDeleteClick,
   onToggleStatus,
 }: UserTableProps) => {
+  const { user: currentUser, impersonateUser, hasRole } = useAuth();
+
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case "admin": return "bg-gradient-to-r from-red-500 to-red-600 text-white border-0";
@@ -35,6 +38,32 @@ export const UserTable = ({
       case "jobseeker": return "bg-gradient-to-r from-green-500 to-green-600 text-white border-0";
       default: return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const canImpersonate = (targetUser: User) => {
+    if (!currentUser) return false;
+    
+    // Can't impersonate yourself
+    if (currentUser.id === targetUser.id) return false;
+    
+    // Only admins and subadmins can impersonate
+    if (!hasRole('admin') && !hasRole('subadmin')) return false;
+    
+    // Admins can impersonate anyone except other admins
+    if (hasRole('admin')) {
+      return targetUser.role !== 'admin';
+    }
+    
+    // Subadmins can only impersonate jobseekers and employers
+    if (hasRole('subadmin')) {
+      return targetUser.role === 'jobseeker' || targetUser.role === 'employer';
+    }
+    
+    return false;
+  };
+
+  const handleImpersonate = (targetUser: User) => {
+    impersonateUser(targetUser);
   };
 
   return (
@@ -116,6 +145,17 @@ export const UserTable = ({
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
+                  {canImpersonate(user) && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleImpersonate(user)}
+                      className="hover:bg-indigo-50 hover:text-indigo-600 transition-all duration-200"
+                      title={`Impersonate ${user.name}`}
+                    >
+                      <UserCog className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button 
                     variant="ghost" 
                     size="sm" 

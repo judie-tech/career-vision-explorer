@@ -1,4 +1,3 @@
-
 import { useUsers, User } from "@/hooks/use-users";
 import { useToast } from "@/hooks/use-toast";
 import { UserHeader } from "./UserHeader";
@@ -6,6 +5,7 @@ import { UserFilters } from "./UserFilters";
 import { UserTable } from "./UserTable";
 import { UserDialogs } from "./UserDialogs";
 import { useUserManagement } from "./UserManagementProvider";
+import { ImpersonationBar } from "../ImpersonationBar";
 
 export const UserManagementTab = () => {
   const { toast } = useToast();
@@ -135,6 +135,8 @@ export const UserManagementTab = () => {
 
   return (
     <div className="space-y-6">
+      <ImpersonationBar />
+
       <UserHeader onAddClick={handleAddClick} />
 
       <UserFilters

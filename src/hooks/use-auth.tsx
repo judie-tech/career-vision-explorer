@@ -19,14 +19,20 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   hasRole: (role: UserRole) => boolean;
+  impersonateUser: (user: User) => void;
+  stopImpersonation: () => void;
+  isImpersonating: boolean;
+  originalUser: User | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [originalUser, setOriginalUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isImpersonating, setIsImpersonating] = useState(false);
 
   useEffect(() => {
     // Check for existing user on mount
@@ -35,6 +41,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (currentUser) {
       setUser(currentUser);
       setIsAuthenticated(true);
+      
+      // Check if there's an impersonation session
+      const impersonationData = localStorage.getItem('visiondrillImpersonation');
+      if (impersonationData) {
+        try {
+          const { originalUser: storedOriginalUser, impersonatedUser } = JSON.parse(impersonationData);
+          setOriginalUser(storedOriginalUser);
+          setUser(impersonatedUser);
+          setIsImpersonating(true);
+          console.log('Restored impersonation session:', { originalUser: storedOriginalUser, impersonatedUser });
+        } catch (e) {
+          localStorage.removeItem('visiondrillImpersonation');
+        }
+      }
     }
     setIsLoading(false);
   }, []);
@@ -60,10 +80,56 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return false;
   };
 
+  const impersonateUser = (targetUser: User) => {
+    if (!user || (user.role !== 'admin' && user.role !== 'subadmin')) {
+      toast.error("Access Denied", {
+        description: "Only admins and subadmins can impersonate users",
+      });
+      return;
+    }
+
+    console.log('Starting impersonation:', { originalUser: user, targetUser });
+    
+    // Store impersonation session
+    const impersonationData = {
+      originalUser: user,
+      impersonatedUser: targetUser
+    };
+    localStorage.setItem('visiondrillImpersonation', JSON.stringify(impersonationData));
+    
+    setOriginalUser(user);
+    setUser(targetUser);
+    setIsImpersonating(true);
+    
+    toast.success("Impersonation Started", {
+      description: `Now viewing as ${targetUser.name}`,
+    });
+  };
+
+  const stopImpersonation = () => {
+    if (!isImpersonating || !originalUser) return;
+    
+    console.log('Stopping impersonation, returning to:', originalUser);
+    
+    // Clear impersonation session
+    localStorage.removeItem('visiondrillImpersonation');
+    
+    setUser(originalUser);
+    setOriginalUser(null);
+    setIsImpersonating(false);
+    
+    toast.success("Impersonation Stopped", {
+      description: `Returned to your original account`,
+    });
+  };
+
   const logout = () => {
     logoutUser();
+    localStorage.removeItem('visiondrillImpersonation');
     setUser(null);
+    setOriginalUser(null);
     setIsAuthenticated(false);
+    setIsImpersonating(false);
     toast.success("Logged out successfully");
   };
 
@@ -78,7 +144,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       isLoading, 
       login, 
       logout,
-      hasRole
+      hasRole,
+      impersonateUser,
+      stopImpersonation,
+      isImpersonating,
+      originalUser
     }}>
       {children}
     </AuthContext.Provider>
