@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,91 +9,29 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, Plus, TrendingUp, Users, DollarSign, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-
-interface MarketData {
-  id: string;
-  type: "job_openings" | "average_salary" | "remote_jobs";
-  value: number;
-  change: string;
-  label: string;
-  description?: string;
-}
-
-interface IndustryInsight {
-  id: string;
-  industry: string;
-  topRoles: string[];
-  averageSalary: string;
-  growthRate: string;
-  topSkills: string[];
-  description?: string;
-}
+import { useInsights } from "@/hooks/use-insights-provider";
 
 const InsightsManagement = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<"market" | "industry">("market");
+  const [activeTab, setActiveTab] = useState<"market" | "industry" | "regional">("market");
 
-  // Enhanced market data with more realistic values
-  const [marketData, setMarketData] = useState<MarketData[]>([
-    { 
-      id: "1", 
-      type: "job_openings", 
-      value: 128432, 
-      change: "+15%", 
-      label: "Active Job Openings",
-      description: "Total number of active job postings across all industries"
-    },
-    { 
-      id: "2", 
-      type: "average_salary", 
-      value: 112500, 
-      change: "+5%", 
-      label: "Average Annual Salary",
-      description: "Mean salary across all technology positions"
-    },
-    { 
-      id: "3", 
-      type: "remote_jobs", 
-      value: 68, 
-      change: "+12%", 
-      label: "Remote Opportunities",
-      description: "Percentage of jobs offering remote work options"
-    },
-  ]);
+  const {
+    marketData,
+    industryInsights,
+    regionalData,
+    updateMarketData,
+    addMarketData,
+    deleteMarketData,
+    updateIndustryInsight,
+    addIndustryInsight,
+    deleteIndustryInsight,
+    updateRegionalData,
+    addRegionalData,
+    deleteRegionalData,
+  } = useInsights();
 
-  // Enhanced industry data
-  const [industryData, setIndustryData] = useState<IndustryInsight[]>([
-    {
-      id: "1",
-      industry: "Technology & Software",
-      topRoles: ["Software Engineer", "Product Manager", "Data Scientist", "DevOps Engineer"],
-      averageSalary: "$125,000",
-      growthRate: "+18%",
-      topSkills: ["JavaScript", "Python", "React", "AWS", "Machine Learning"],
-      description: "Leading sector in digital transformation and innovation"
-    },
-    {
-      id: "2",
-      industry: "Finance & Banking",
-      topRoles: ["Financial Analyst", "Investment Banker", "Risk Manager", "Fintech Developer"],
-      averageSalary: "$105,000",
-      growthRate: "+8%",
-      topSkills: ["Financial Modeling", "Risk Assessment", "SQL", "Python", "Regulatory Compliance"],
-      description: "Traditional finance embracing digital transformation"
-    },
-    {
-      id: "3",
-      industry: "Healthcare & Biotech",
-      topRoles: ["Data Analyst", "Healthcare IT", "Biotech Researcher", "Medical Device Engineer"],
-      averageSalary: "$98,000",
-      growthRate: "+22%",
-      topSkills: ["Healthcare Analytics", "Regulatory Affairs", "Clinical Research", "Medical Devices"],
-      description: "Rapidly growing sector with increasing digitalization"
-    },
-  ]);
-
-  const validateMarketData = (data: Partial<MarketData>): string | null => {
+  const validateMarketData = (data: any): string | null => {
     if (!data.label?.trim()) return "Label is required";
     if (!data.type) return "Type is required";
     if (data.value === undefined || data.value < 0) return "Value must be a positive number";
@@ -102,95 +39,97 @@ const InsightsManagement = () => {
     return null;
   };
 
-  const validateIndustryData = (data: Partial<IndustryInsight>): string | null => {
+  const validateIndustryData = (data: any): string | null => {
     if (!data.industry?.trim()) return "Industry name is required";
     if (!data.averageSalary?.trim()) return "Average salary is required";
     if (!data.growthRate?.trim()) return "Growth rate is required";
     return null;
   };
 
-  const handleAddMarketData = (data: Partial<MarketData>) => {
-    const validation = validateMarketData(data);
-    if (validation) {
-      toast.error(validation);
-      return;
-    }
+  const validateRegionalData = (data: any): string | null => {
+    if (!data.region?.trim()) return "Region name is required";
+    if (!data.averageSalary?.trim()) return "Average salary is required";
+    if (!data.jobGrowth?.trim()) return "Job growth is required";
+    return null;
+  };
 
-    const newItem: MarketData = {
-      id: Date.now().toString(),
-      type: data.type || "job_openings",
-      value: data.value || 0,
-      change: data.change || "0%",
-      label: data.label || "",
-      description: data.description || "",
-    };
-    setMarketData([...marketData, newItem]);
-    toast.success(`Market data "${newItem.label}" added successfully`);
+  const handleAddData = (data: any) => {
+    if (activeTab === "market") {
+      const validation = validateMarketData(data);
+      if (validation) {
+        toast.error(validation);
+        return;
+      }
+      addMarketData(data);
+      toast.success(`Market data "${data.label}" added successfully`);
+    } else if (activeTab === "industry") {
+      const validation = validateIndustryData(data);
+      if (validation) {
+        toast.error(validation);
+        return;
+      }
+      addIndustryInsight(data);
+      toast.success(`Industry data "${data.industry}" added successfully`);
+    } else if (activeTab === "regional") {
+      const validation = validateRegionalData(data);
+      if (validation) {
+        toast.error(validation);
+        return;
+      }
+      addRegionalData(data);
+      toast.success(`Regional data "${data.region}" added successfully`);
+    }
     setShowAddDialog(false);
   };
 
-  const handleAddIndustryData = (data: Partial<IndustryInsight>) => {
-    const validation = validateIndustryData(data);
-    if (validation) {
-      toast.error(validation);
-      return;
+  const handleEditData = (id: string, data: any) => {
+    if (activeTab === "market") {
+      const validation = validateMarketData(data);
+      if (validation) {
+        toast.error(validation);
+        return;
+      }
+      updateMarketData(id, data);
+      toast.success("Market data updated successfully");
+    } else if (activeTab === "industry") {
+      const validation = validateIndustryData(data);
+      if (validation) {
+        toast.error(validation);
+        return;
+      }
+      updateIndustryInsight(id, data);
+      toast.success("Industry data updated successfully");
+    } else if (activeTab === "regional") {
+      const validation = validateRegionalData(data);
+      if (validation) {
+        toast.error(validation);
+        return;
+      }
+      updateRegionalData(id, data);
+      toast.success("Regional data updated successfully");
     }
-
-    const newItem: IndustryInsight = {
-      id: Date.now().toString(),
-      industry: data.industry || "",
-      topRoles: data.topRoles || [],
-      averageSalary: data.averageSalary || "",
-      growthRate: data.growthRate || "",
-      topSkills: data.topSkills || [],
-      description: data.description || "",
-    };
-    setIndustryData([...industryData, newItem]);
-    toast.success(`Industry data "${newItem.industry}" added successfully`);
-    setShowAddDialog(false);
-  };
-
-  const handleEditMarketData = (id: string, data: Partial<MarketData>) => {
-    const validation = validateMarketData(data);
-    if (validation) {
-      toast.error(validation);
-      return;
-    }
-
-    setMarketData(marketData.map(item => 
-      item.id === id ? { ...item, ...data } : item
-    ));
-    toast.success("Market data updated successfully");
     setEditingItem(null);
   };
 
-  const handleEditIndustryData = (id: string, data: Partial<IndustryInsight>) => {
-    const validation = validateIndustryData(data);
-    if (validation) {
-      toast.error(validation);
-      return;
-    }
-
-    setIndustryData(industryData.map(item => 
-      item.id === id ? { ...item, ...data } : item
-    ));
-    toast.success("Industry data updated successfully");
-    setEditingItem(null);
-  };
-
-  const handleDeleteMarketData = (id: string) => {
-    const item = marketData.find(item => item.id === id);
-    if (item) {
-      setMarketData(marketData.filter(item => item.id !== id));
-      toast.success(`"${item.label}" deleted successfully`);
-    }
-  };
-
-  const handleDeleteIndustryData = (id: string) => {
-    const item = industryData.find(item => item.id === id);
-    if (item) {
-      setIndustryData(industryData.filter(item => item.id !== id));
-      toast.success(`"${item.industry}" deleted successfully`);
+  const handleDeleteData = (id: string) => {
+    if (activeTab === "market") {
+      const item = marketData.find(item => item.id === id);
+      if (item) {
+        deleteMarketData(id);
+        toast.success(`"${item.label}" deleted successfully`);
+      }
+    } else if (activeTab === "industry") {
+      const item = industryInsights.find(item => item.id === id);
+      if (item) {
+        deleteIndustryInsight(id);
+        toast.success(`"${item.industry}" deleted successfully`);
+      }
+    } else if (activeTab === "regional") {
+      const item = regionalData.find(item => item.id === id);
+      if (item) {
+        deleteRegionalData(id);
+        toast.success(`"${item.region}" deleted successfully`);
+      }
     }
   };
 
@@ -222,18 +161,44 @@ const InsightsManagement = () => {
     }
   };
 
+  const getCurrentData = () => {
+    switch (activeTab) {
+      case "market":
+        return marketData;
+      case "industry":
+        return industryInsights;
+      case "regional":
+        return regionalData;
+      default:
+        return [];
+    }
+  };
+
+  const getTabTitle = () => {
+    switch (activeTab) {
+      case "market":
+        return "Market Data";
+      case "industry":
+        return "Industry Data";
+      case "regional":
+        return "Regional Data";
+      default:
+        return "Data";
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Insights Management</h2>
           <p className="text-muted-foreground">
-            Manage market data and industry insights displayed on the public insights page
+            Manage market data, industry insights, and regional analysis displayed on the public insights page
           </p>
         </div>
         <Button onClick={() => setShowAddDialog(true)} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
-          Add {activeTab === "market" ? "Market Data" : "Industry Data"}
+          Add {getTabTitle()}
         </Button>
       </div>
 
@@ -252,7 +217,15 @@ const InsightsManagement = () => {
           className="flex items-center gap-2"
         >
           <Users className="h-4 w-4" />
-          Industry Data ({industryData.length})
+          Industry Data ({industryInsights.length})
+        </Button>
+        <Button 
+          variant={activeTab === "regional" ? "default" : "outline"}
+          onClick={() => setActiveTab("regional")}
+          className="flex items-center gap-2"
+        >
+          <DollarSign className="h-4 w-4" />
+          Regional Data ({regionalData.length})
         </Button>
       </div>
 
@@ -276,7 +249,7 @@ const InsightsManagement = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleDeleteMarketData(item.id)}
+                    onClick={() => handleDeleteData(item.id)}
                     className="text-destructive hover:text-destructive"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -290,11 +263,6 @@ const InsightsManagement = () => {
                 <p className={`text-xs ${getChangeColor(item.change)}`}>
                   {item.change} from last period
                 </p>
-                {item.description && (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {item.description}
-                  </p>
-                )}
               </CardContent>
             </Card>
           ))}
@@ -303,7 +271,7 @@ const InsightsManagement = () => {
 
       {activeTab === "industry" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {industryData.map((item) => (
+          {industryInsights.map((item) => (
             <Card key={item.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="flex items-center gap-2">
@@ -321,7 +289,7 @@ const InsightsManagement = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleDeleteIndustryData(item.id)}
+                    onClick={() => handleDeleteData(item.id)}
                     className="text-destructive hover:text-destructive"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -355,26 +323,56 @@ const InsightsManagement = () => {
                       )}
                     </div>
                   </div>
-                  <div>
-                    <span className="font-medium">Top Skills:</span>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {item.topSkills.slice(0, 3).map((skill, idx) => (
-                        <Badge key={idx} variant="outline" className="text-xs">
-                          {skill}
-                        </Badge>
-                      ))}
-                      {item.topSkills.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{item.topSkills.length - 3} more
-                        </Badge>
-                      )}
-                    </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {activeTab === "regional" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {regionalData.map((item) => (
+            <Card key={item.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  {item.region}
+                </CardTitle>
+                <div className="flex space-x-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditingItem(item)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteData(item.id)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Job Growth:</span>
+                    <Badge className="bg-green-100 text-green-800">
+                      {item.jobGrowth}
+                    </Badge>
                   </div>
-                  {item.description && (
-                    <p className="text-sm text-muted-foreground">
-                      {item.description}
-                    </p>
-                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Avg Salary:</span>
+                    <span className="font-semibold">{item.averageSalary}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Cost of Living:</span>
+                    <span className="text-sm">{item.costOfLiving}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -385,8 +383,7 @@ const InsightsManagement = () => {
       <AddDataDialog 
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
-        onAddMarket={handleAddMarketData}
-        onAddIndustry={handleAddIndustryData}
+        onAdd={handleAddData}
         type={activeTab}
       />
 
@@ -394,8 +391,8 @@ const InsightsManagement = () => {
         open={!!editingItem}
         onOpenChange={() => setEditingItem(null)}
         item={editingItem}
-        onSaveMarket={handleEditMarketData}
-        onSaveIndustry={handleEditIndustryData}
+        onSave={handleEditData}
+        type={activeTab}
       />
     </div>
   );
@@ -404,26 +401,23 @@ const InsightsManagement = () => {
 interface AddDataDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddMarket: (data: any) => void;
-  onAddIndustry: (data: any) => void;
-  type: "market" | "industry";
+  onAdd: (data: any) => void;
+  type: "market" | "industry" | "regional";
 }
 
-const AddDataDialog = ({ open, onOpenChange, onAddMarket, onAddIndustry, type }: AddDataDialogProps) => {
+const AddDataDialog = ({ open, onOpenChange, onAdd, type }: AddDataDialogProps) => {
   const [formData, setFormData] = useState<any>({});
   const [newRole, setNewRole] = useState("");
   const [newSkill, setNewSkill] = useState("");
+  const [newIndustry, setNewIndustry] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (type === "market") {
-      onAddMarket(formData);
-    } else {
-      onAddIndustry(formData);
-    }
+    onAdd(formData);
     setFormData({});
     setNewRole("");
     setNewSkill("");
+    setNewIndustry("");
   };
 
   const addRole = () => {
@@ -446,6 +440,16 @@ const AddDataDialog = ({ open, onOpenChange, onAddMarket, onAddIndustry, type }:
     }
   };
 
+  const addIndustry = () => {
+    if (newIndustry.trim() && !formData.topIndustries?.includes(newIndustry.trim())) {
+      setFormData({
+        ...formData,
+        topIndustries: [...(formData.topIndustries || []), newIndustry.trim()]
+      });
+      setNewIndustry("");
+    }
+  };
+
   const removeRole = (role: string) => {
     setFormData({
       ...formData,
@@ -460,12 +464,19 @@ const AddDataDialog = ({ open, onOpenChange, onAddMarket, onAddIndustry, type }:
     });
   };
 
+  const removeIndustry = (industry: string) => {
+    setFormData({
+      ...formData,
+      topIndustries: formData.topIndustries?.filter((i: string) => i !== industry) || []
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            Add {type === "market" ? "Market" : "Industry"} Data
+            Add {type === "market" ? "Market" : type === "industry" ? "Industry" : "Regional"} Data
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -519,18 +530,8 @@ const AddDataDialog = ({ open, onOpenChange, onAddMarket, onAddIndustry, type }:
                   required
                 />
               </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description || ""}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Optional description"
-                  rows={2}
-                />
-              </div>
             </>
-          ) : (
+          ) : type === "industry" ? (
             <>
               <div>
                 <Label htmlFor="industry">Industry Name *</Label>
@@ -606,15 +607,78 @@ const AddDataDialog = ({ open, onOpenChange, onAddMarket, onAddIndustry, type }:
                   ))}
                 </div>
               </div>
+            </>
+          ) : (
+            <>
               <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description || ""}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Optional description"
-                  rows={2}
+                <Label htmlFor="region">Region Name *</Label>
+                <Input
+                  id="region"
+                  value={formData.region || ""}
+                  onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+                  placeholder="e.g., Austin, TX"
+                  required
                 />
+              </div>
+              <div>
+                <Label htmlFor="averageSalary">Average Salary *</Label>
+                <Input
+                  id="averageSalary"
+                  value={formData.averageSalary || ""}
+                  onChange={(e) => setFormData({ ...formData, averageSalary: e.target.value })}
+                  placeholder="e.g., $95,000"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="jobGrowth">Job Growth *</Label>
+                <Input
+                  id="jobGrowth"
+                  value={formData.jobGrowth || ""}
+                  onChange={(e) => setFormData({ ...formData, jobGrowth: e.target.value })}
+                  placeholder="e.g., +15%"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="costOfLiving">Cost of Living *</Label>
+                <Select
+                  value={formData.costOfLiving || ""}
+                  onValueChange={(value) => setFormData({ ...formData, costOfLiving: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select cost of living" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Very Low">Very Low</SelectItem>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                    <SelectItem value="Very High">Very High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Top Industries</Label>
+                <div className="flex space-x-2">
+                  <Input
+                    value={newIndustry}
+                    onChange={(e) => setNewIndustry(e.target.value)}
+                    placeholder="Add an industry"
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addIndustry())}
+                  />
+                  <Button type="button" onClick={addIndustry} variant="outline">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {formData.topIndustries?.map((industry: string, idx: number) => (
+                    <Badge key={idx} variant="secondary" className="flex items-center gap-1">
+                      {industry}
+                      <button type="button" onClick={() => removeIndustry(industry)}>×</button>
+                    </Badge>
+                  ))}
+                </div>
               </div>
             </>
           )}
@@ -634,22 +698,19 @@ interface EditDataDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   item: any;
-  onSaveMarket: (id: string, data: any) => void;
-  onSaveIndustry: (id: string, data: any) => void;
+  onSave: (id: string, data: any) => void;
+  type: "market" | "industry" | "regional";
 }
 
-const EditDataDialog = ({ open, onOpenChange, item, onSaveMarket, onSaveIndustry }: EditDataDialogProps) => {
+const EditDataDialog = ({ open, onOpenChange, item, onSave, type }: EditDataDialogProps) => {
   const [formData, setFormData] = useState<any>({});
   const [newRole, setNewRole] = useState("");
   const [newSkill, setNewSkill] = useState("");
+  const [newIndustry, setNewIndustry] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (item?.type) {
-      onSaveMarket(item.id, formData);
-    } else {
-      onSaveIndustry(item.id, formData);
-    }
+    onSave(item.id, formData);
   };
 
   React.useEffect(() => {
@@ -680,6 +741,16 @@ const EditDataDialog = ({ open, onOpenChange, item, onSaveMarket, onSaveIndustry
     }
   };
 
+  const addIndustry = () => {
+    if (newIndustry.trim() && !formData.topIndustries?.includes(newIndustry.trim())) {
+      setFormData({
+        ...formData,
+        topIndustries: [...(formData.topIndustries || []), newIndustry.trim()]
+      });
+      setNewIndustry("");
+    }
+  };
+
   const removeRole = (role: string) => {
     setFormData({
       ...formData,
@@ -694,6 +765,13 @@ const EditDataDialog = ({ open, onOpenChange, item, onSaveMarket, onSaveIndustry
     });
   };
 
+  const removeIndustry = (industry: string) => {
+    setFormData({
+      ...formData,
+      topIndustries: formData.topIndustries?.filter((i: string) => i !== industry) || []
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -701,8 +779,7 @@ const EditDataDialog = ({ open, onOpenChange, item, onSaveMarket, onSaveIndustry
           <DialogTitle>Edit Data</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {item.type ? (
-            // Market data form
+          {type === "market" ? (
             <>
               <div>
                 <Label htmlFor="label">Label *</Label>
@@ -733,18 +810,8 @@ const EditDataDialog = ({ open, onOpenChange, item, onSaveMarket, onSaveIndustry
                   required
                 />
               </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description || ""}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={2}
-                />
-              </div>
             </>
-          ) : (
-            // Industry data form
+          ) : type === "industry" ? (
             <>
               <div>
                 <Label htmlFor="industry">Industry Name *</Label>
@@ -817,14 +884,75 @@ const EditDataDialog = ({ open, onOpenChange, item, onSaveMarket, onSaveIndustry
                   ))}
                 </div>
               </div>
+            </>
+          ) : (
+            <>
               <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description || ""}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={2}
+                <Label htmlFor="region">Region Name *</Label>
+                <Input
+                  id="region"
+                  value={formData.region || ""}
+                  onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+                  required
                 />
+              </div>
+              <div>
+                <Label htmlFor="averageSalary">Average Salary *</Label>
+                <Input
+                  id="averageSalary"
+                  value={formData.averageSalary || ""}
+                  onChange={(e) => setFormData({ ...formData, averageSalary: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="jobGrowth">Job Growth *</Label>
+                <Input
+                  id="jobGrowth"
+                  value={formData.jobGrowth || ""}
+                  onChange={(e) => setFormData({ ...formData, jobGrowth: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="costOfLiving">Cost of Living *</Label>
+                <Select
+                  value={formData.costOfLiving || ""}
+                  onValueChange={(value) => setFormData({ ...formData, costOfLiving: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select cost of living" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Very Low">Very Low</SelectItem>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                    <SelectItem value="Very High">Very High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Top Industries</Label>
+                <div className="flex space-x-2">
+                  <Input
+                    value={newIndustry}
+                    onChange={(e) => setNewIndustry(e.target.value)}
+                    placeholder="Add an industry"
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addIndustry())}
+                  />
+                  <Button type="button" onClick={addIndustry} variant="outline">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {formData.topIndustries?.map((industry: string, idx: number) => (
+                    <Badge key={idx} variant="secondary" className="flex items-center gap-1">
+                      {industry}
+                      <button type="button" onClick={() => removeIndustry(industry)}>×</button>
+                    </Badge>
+                  ))}
+                </div>
               </div>
             </>
           )}

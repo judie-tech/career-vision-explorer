@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import Layout from "@/components/layout/Layout";
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell } from "recharts";
 import { TrendingUp, TrendingDown, Users, DollarSign, Briefcase, MapPin, Filter, BarChart3, LineChart as LineChartIcon, PieChart as PieChartIcon, Sparkles } from "lucide-react";
-import useInsightsData from "@/hooks/use-insights-data";
+import { useInsights } from "@/hooks/use-insights-provider";
 
 const Insights = () => {
   const [industry, setIndustry] = useState("all-industries");
@@ -37,7 +36,7 @@ const Insights = () => {
     salaryByRoleData,
     jobTrendData,
     skillDemandData,
-  } = useInsightsData();
+  } = useInsights();
 
   const SKILL_COLORS = [
     "#3b82f6",
