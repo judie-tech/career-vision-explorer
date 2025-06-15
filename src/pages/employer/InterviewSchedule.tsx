@@ -4,18 +4,19 @@ import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/admin/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, ArrowLeft, Clock, User, Mail, MapPin, Video, Phone, Users, Briefcase } from "lucide-react";
+import { CalendarIcon, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import { useInterviews } from "@/hooks/use-interviews";
 import { useApplicants } from "@/hooks/use-applicants";
 import { useJobPosts } from "@/hooks/use-job-posts";
 import { toast } from "sonner";
+import { ApplicantSelectionSection } from "@/components/employer/interview/ApplicantSelectionSection";
+import { CandidateInformationSection } from "@/components/employer/interview/CandidateInformationSection";
+import { JobPositionSection } from "@/components/employer/interview/JobPositionSection";
+import { ScheduleInformationSection } from "@/components/employer/interview/ScheduleInformationSection";
+import { InterviewDetailsSection } from "@/components/employer/interview/InterviewDetailsSection";
+import { NotesSection } from "@/components/employer/interview/NotesSection";
+import { ActionButtonsSection } from "@/components/employer/interview/ActionButtonsSection";
 
 const InterviewSchedule = () => {
   const navigate = useNavigate();
@@ -111,13 +112,8 @@ const InterviewSchedule = () => {
     }
   };
 
-  const getInterviewTypeIcon = (type: string) => {
-    switch (type) {
-      case "Video": return <Video className="h-4 w-4" />;
-      case "Phone": return <Phone className="h-4 w-4" />;
-      case "In-Person": return <MapPin className="h-4 w-4" />;
-      default: return <Video className="h-4 w-4" />;
-    }
+  const handleCancel = () => {
+    navigate("/employer/dashboard");
   };
 
   return (
@@ -154,212 +150,48 @@ const InterviewSchedule = () => {
             
             <CardContent className="p-6">
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Applicant Selection Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Users className="h-5 w-5 text-blue-600" />
-                    <Label className="text-base font-medium">Select Existing Applicant (Optional)</Label>
-                  </div>
-                  <select
-                    value={selectedApplicantId}
-                    onChange={(e) => handleApplicantSelect(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Select an applicant or enter manually below</option>
-                    {applicants.map((applicant) => (
-                      <option key={applicant.id} value={applicant.id}>
-                        {applicant.name} - {applicant.position}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <ApplicantSelectionSection
+                  applicants={applicants}
+                  selectedApplicantId={selectedApplicantId}
+                  onApplicantSelect={handleApplicantSelect}
+                />
 
-                {/* Candidate Information Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <User className="h-5 w-5 text-blue-600" />
-                    <Label className="text-base font-medium">Candidate Information</Label>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="candidateName" className="text-sm font-medium text-gray-700">
-                        Candidate Name *
-                      </Label>
-                      <Input
-                        id="candidateName"
-                        value={candidateName}
-                        onChange={(e) => setCandidateName(e.target.value)}
-                        placeholder="Enter candidate name"
-                        className="mt-1"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="candidateEmail" className="text-sm font-medium text-gray-700">
-                        Candidate Email *
-                      </Label>
-                      <Input
-                        id="candidateEmail"
-                        type="email"
-                        value={candidateEmail}
-                        onChange={(e) => setCandidateEmail(e.target.value)}
-                        placeholder="candidate@example.com"
-                        className="mt-1"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
+                <CandidateInformationSection
+                  candidateName={candidateName}
+                  candidateEmail={candidateEmail}
+                  onNameChange={setCandidateName}
+                  onEmailChange={setCandidateEmail}
+                />
 
-                {/* Job Position Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Briefcase className="h-5 w-5 text-blue-600" />
-                    <Label className="text-base font-medium">Job Position</Label>
-                  </div>
-                  <select
-                    value={selectedJobId}
-                    onChange={(e) => setSelectedJobId(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  >
-                    <option value="">Select a job position</option>
-                    {jobs.map((job) => (
-                      <option key={job.id} value={job.id}>
-                        {job.title} - {job.location}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <JobPositionSection
+                  jobs={jobs}
+                  selectedJobId={selectedJobId}
+                  onJobChange={setSelectedJobId}
+                />
 
-                {/* Schedule Information Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <CalendarIcon className="h-5 w-5 text-blue-600" />
-                    <Label className="text-base font-medium">Schedule Information</Label>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-sm font-medium text-gray-700">Interview Date *</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full mt-1 justify-start text-left font-normal",
-                              !date && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date ? format(date, "PPP") : "Pick a date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={date}
-                            onSelect={setDate}
-                            initialFocus
-                            disabled={(date) => date < new Date()}
-                            className="pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <div>
-                      <Label htmlFor="time" className="text-sm font-medium text-gray-700">
-                        Interview Time *
-                      </Label>
-                      <Input
-                        id="time"
-                        type="time"
-                        value={time}
-                        onChange={(e) => setTime(e.target.value)}
-                        className="mt-1"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
+                <ScheduleInformationSection
+                  date={date}
+                  time={time}
+                  onDateChange={setDate}
+                  onTimeChange={setTime}
+                />
 
-                {/* Interview Details Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Video className="h-5 w-5 text-blue-600" />
-                    <Label className="text-base font-medium">Interview Details</Label>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-sm font-medium text-gray-700">Interview Type</Label>
-                      <select
-                        value={interviewType}
-                        onChange={(e) => setInterviewType(e.target.value)}
-                        className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="Video">🎥 Video Call</option>
-                        <option value="Phone">📞 Phone Call</option>
-                        <option value="In-Person">🏢 In Person</option>
-                      </select>
-                    </div>
-                    <div>
-                      <Label htmlFor="interviewer" className="text-sm font-medium text-gray-700">
-                        Interviewer *
-                      </Label>
-                      <Input
-                        id="interviewer"
-                        value={interviewer}
-                        onChange={(e) => setInterviewer(e.target.value)}
-                        placeholder="Enter interviewer name"
-                        className="mt-1"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
+                <InterviewDetailsSection
+                  interviewType={interviewType}
+                  interviewer={interviewer}
+                  onInterviewTypeChange={setInterviewType}
+                  onInterviewerChange={setInterviewer}
+                />
 
-                {/* Notes Section */}
-                <div className="space-y-4">
-                  <Label htmlFor="notes" className="text-base font-medium text-gray-700">
-                    Additional Notes
-                  </Label>
-                  <Textarea
-                    id="notes"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Any additional information or instructions for the interview..."
-                    className="min-h-[100px]"
-                  />
-                </div>
+                <NotesSection
+                  notes={notes}
+                  onNotesChange={setNotes}
+                />
 
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t">
-                  <Button 
-                    type="submit" 
-                    className="flex-1 bg-blue-600 hover:bg-blue-700"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Clock className="h-4 w-4 mr-2 animate-spin" />
-                        Scheduling...
-                      </>
-                    ) : (
-                      <>
-                        <CalendarIcon className="h-4 w-4 mr-2" />
-                        Schedule Interview
-                      </>
-                    )}
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => navigate("/employer/dashboard")}
-                    disabled={isSubmitting}
-                    className="flex-1"
-                  >
-                    Cancel
-                  </Button>
-                </div>
+                <ActionButtonsSection
+                  isSubmitting={isSubmitting}
+                  onCancel={handleCancel}
+                />
               </form>
             </CardContent>
           </Card>
