@@ -7,8 +7,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
 import { TestimonialFormData } from "@/hooks/useTestimonialForm";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Camera, User } from "lucide-react";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface TestimonialFormProps {
   form: UseFormReturn<TestimonialFormData>;
@@ -19,23 +21,69 @@ interface TestimonialFormProps {
 
 const TestimonialForm = ({ form, onSubmit, onCancel, submitLabel }: TestimonialFormProps) => {
   const [imagePreview, setImagePreview] = useState<string | null>(form.getValues("image") || null);
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select a valid image file (JPG, PNG, GIF)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Image size must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    
+    try {
       const reader = new FileReader();
       reader.onload = (e) => {
         const imageUrl = e.target?.result as string;
         setImagePreview(imageUrl);
         form.setValue("image", imageUrl);
+        toast({
+          title: "Success",
+          description: "Profile image uploaded successfully",
+        });
       };
       reader.readAsDataURL(file);
+    } catch (error) {
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
     }
   };
 
   const removeImage = () => {
     setImagePreview(null);
     form.setValue("image", "");
+    toast({
+      title: "Image removed",
+      description: "Profile image has been removed",
+    });
+  };
+
+  const triggerFileInput = () => {
+    document.getElementById('profile-image-input')?.click();
   };
 
   return (
@@ -166,35 +214,62 @@ const TestimonialForm = ({ form, onSubmit, onCancel, submitLabel }: TestimonialF
               <FormLabel>Profile Image</FormLabel>
               <FormControl>
                 <div className="space-y-4">
-                  {imagePreview ? (
-                    <div className="relative inline-block">
-                      <img 
-                        src={imagePreview} 
-                        alt="Preview" 
-                        className="w-24 h-24 rounded-full object-cover border-2 border-border"
-                      />
+                  <div className="flex items-center space-x-4">
+                    <div className="relative">
+                      <Avatar className="h-20 w-20">
+                        <AvatarImage src={imagePreview || ""} alt="Profile preview" />
+                        <AvatarFallback className="bg-gray-100">
+                          <User className="h-8 w-8 text-gray-500" />
+                        </AvatarFallback>
+                      </Avatar>
+                      {imagePreview && (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute -top-2 -right-2 w-6 h-6 rounded-full p-0"
+                          onClick={removeImage}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      )}
                       <Button
                         type="button"
-                        variant="destructive"
                         size="sm"
-                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full p-0"
-                        onClick={removeImage}
+                        className="absolute bottom-0 right-0 rounded-full h-8 w-8 p-0"
+                        onClick={triggerFileInput}
+                        disabled={isUploading}
                       >
-                        <X className="h-3 w-3" />
+                        <Camera className="h-3 w-3" />
                       </Button>
                     </div>
-                  ) : (
-                    <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-                      <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground mb-2">Upload profile image</p>
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="w-full"
-                      />
+                    
+                    <div className="flex-1">
+                      <div className="space-y-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={triggerFileInput}
+                          disabled={isUploading}
+                          className="w-full"
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          {isUploading ? "Uploading..." : imagePreview ? "Change Image" : "Upload Image"}
+                        </Button>
+                        <p className="text-xs text-muted-foreground text-center">
+                          Supports JPG, PNG, GIF up to 5MB
+                        </p>
+                      </div>
                     </div>
-                  )}
+                  </div>
+                  
+                  <input
+                    id="profile-image-input"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
                 </div>
               </FormControl>
               <FormMessage />
@@ -224,7 +299,9 @@ const TestimonialForm = ({ form, onSubmit, onCancel, submitLabel }: TestimonialF
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit">{submitLabel}</Button>
+          <Button type="submit" disabled={isUploading}>
+            {isUploading ? "Processing..." : submitLabel}
+          </Button>
         </DialogFooter>
       </form>
     </Form>
