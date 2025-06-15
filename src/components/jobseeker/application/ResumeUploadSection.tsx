@@ -1,0 +1,75 @@
+
+import { Upload, FileText } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+
+interface ResumeUploadSectionProps {
+  resumeFile: File | null;
+  setResumeFile: (file: File | null) => void;
+}
+
+export const ResumeUploadSection = ({ resumeFile, setResumeFile }: ResumeUploadSectionProps) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error("Please upload a PDF or Word document");
+        return;
+      }
+      
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size must be less than 5MB");
+        return;
+      }
+      
+      setResumeFile(file);
+      toast.success("Resume uploaded successfully");
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Upload className="h-5 w-5 text-blue-600" />
+        <Label htmlFor="resume" className="text-lg font-semibold">Resume/CV</Label>
+      </div>
+      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+        <Input
+          id="resume"
+          type="file"
+          accept=".pdf,.doc,.docx"
+          onChange={handleFileChange}
+          className="hidden"
+          required
+        />
+        <label htmlFor="resume" className="cursor-pointer">
+          <div className="space-y-2">
+            <Upload className="h-8 w-8 text-gray-400 mx-auto" />
+            <div className="text-sm">
+              <span className="font-medium text-blue-600 hover:text-blue-500">
+                Click to upload
+              </span>
+              <span className="text-gray-500"> or drag and drop</span>
+            </div>
+            <p className="text-xs text-gray-500">PDF, DOC, DOCX up to 5MB</p>
+          </div>
+        </label>
+      </div>
+      {resumeFile && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <div className="flex items-center gap-2 text-green-800">
+            <FileText className="h-4 w-4" />
+            <span className="text-sm font-medium">{resumeFile.name}</span>
+            <span className="text-xs text-green-600">
+              ({(resumeFile.size / 1024 / 1024).toFixed(2)} MB)
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
