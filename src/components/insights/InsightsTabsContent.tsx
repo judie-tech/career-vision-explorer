@@ -1,0 +1,68 @@
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BarChart3, Users, MapPin } from "lucide-react";
+import MarketOverviewTab from "./MarketOverviewTab";
+import IndustryInsightsTab from "./IndustryInsightsTab";
+import RegionalAnalysisTab from "./RegionalAnalysisTab";
+import { MarketData, IndustryInsight, RegionalData, SalaryByRole, JobTrend, SkillDemand } from "@/hooks/use-insights-data";
+
+interface InsightsTabsContentProps {
+  marketData: MarketData[];
+  salaryByRoleData: SalaryByRole[];
+  jobTrendData: JobTrend[];
+  skillDemandData: SkillDemand[];
+  filteredIndustryInsights: IndustryInsight[];
+  filteredRegionalData: RegionalData[];
+}
+
+const InsightsTabsContent = ({
+  marketData,
+  salaryByRoleData,
+  jobTrendData,
+  skillDemandData,
+  filteredIndustryInsights,
+  filteredRegionalData,
+}: InsightsTabsContentProps) => {
+  return (
+    <Tabs defaultValue="market" className="space-y-6 sm:space-y-8">
+      <div className="flex justify-center">
+        <TabsList className="grid grid-cols-3 w-full max-w-lg h-12 sm:h-14 bg-white/80 backdrop-blur-sm border-2 p-1">
+          <TabsTrigger value="market" className="flex items-center gap-1 sm:gap-2 h-full data-[state=active]:bg-blue-500 data-[state=active]:text-white text-xs sm:text-sm">
+            <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Market Overview</span>
+            <span className="sm:hidden">Market</span>
+          </TabsTrigger>
+          <TabsTrigger value="industry" className="flex items-center gap-1 sm:gap-2 h-full data-[state=active]:bg-blue-500 data-[state=active]:text-white text-xs sm:text-sm">
+            <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Industry Insights</span>
+            <span className="sm:hidden">Industry</span>
+          </TabsTrigger>
+          <TabsTrigger value="regional" className="flex items-center gap-1 sm:gap-2 h-full data-[state=active]:bg-blue-500 data-[state=active]:text-white text-xs sm:text-sm">
+            <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Regional Analysis</span>
+            <span className="sm:hidden">Regional</span>
+          </TabsTrigger>
+        </TabsList>
+      </div>
+      
+      <TabsContent value="market">
+        <MarketOverviewTab
+          marketData={marketData}
+          salaryByRoleData={salaryByRoleData}
+          jobTrendData={jobTrendData}
+          skillDemandData={skillDemandData}
+        />
+      </TabsContent>
+
+      <TabsContent value="industry">
+        <IndustryInsightsTab filteredIndustryInsights={filteredIndustryInsights} />
+      </TabsContent>
+
+      <TabsContent value="regional">
+        <RegionalAnalysisTab filteredRegionalData={filteredRegionalData} />
+      </TabsContent>
+    </Tabs>
+  );
+};
+
+export default InsightsTabsContent;
