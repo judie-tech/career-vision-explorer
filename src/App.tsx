@@ -3,11 +3,16 @@ import { lazy, Suspense } from "react";
 import { AppProviders } from "@/providers/AppProviders";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMobileOptimizations } from "@/hooks/use-mobile-optimizations";
+import { usePerformanceOptimizations } from "@/hooks/use-performance-optimizations";
 
-// Lazy load the routes component
-const AppRoutes = lazy(() => import("@/routes/AppRoutes").then(module => ({ default: module.AppRoutes })));
+// Lazy load the routes component with better chunking
+const AppRoutes = lazy(() => 
+  import("@/routes/AppRoutes").then(module => ({ 
+    default: module.AppRoutes 
+  }))
+);
 
-// Loading fallback component
+// Enhanced loading fallback component
 const AppLoading = () => (
   <div className="min-h-screen bg-background">
     <div className="h-16 bg-white border-b">
@@ -36,6 +41,7 @@ const AppLoading = () => (
 
 function App() {
   useMobileOptimizations();
+  usePerformanceOptimizations();
 
   return (
     <AppProviders>

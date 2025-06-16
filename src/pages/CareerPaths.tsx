@@ -3,10 +3,14 @@ import { useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { useCareerPaths } from "@/hooks/use-career-paths";
 import { useToast } from "@/hooks/use-toast";
-import CareerPathsHero from "@/components/career/CareerPathsHero";
-import CareerPathsSearch from "@/components/career/CareerPathsSearch";
-import CareerPathsGrid from "@/components/career/CareerPathsGrid";
-import CareerPathsTabs from "@/components/career/CareerPathsTabs";
+import { LazyWrapper } from "@/components/ui/lazy-wrapper";
+import { lazy } from "react";
+
+// Lazy load heavy components
+const CareerPathsHero = lazy(() => import("@/components/career/CareerPathsHero"));
+const CareerPathsSearch = lazy(() => import("@/components/career/CareerPathsSearch"));
+const CareerPathsGrid = lazy(() => import("@/components/career/CareerPathsGrid"));
+const CareerPathsTabs = lazy(() => import("@/components/career/CareerPathsTabs"));
 
 const CareerPaths = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -60,26 +64,34 @@ const CareerPaths = () => {
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
         <div className="container py-12">
-          <CareerPathsHero />
+          <LazyWrapper>
+            <CareerPathsHero />
+          </LazyWrapper>
           
-          <CareerPathsSearch
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            selectedFilter={selectedFilter}
-            setSelectedFilter={setSelectedFilter}
-            totalPaths={popularPaths.length}
-            filteredCount={filteredPaths.length}
-            onClearSearch={handleClearSearch}
-          />
+          <LazyWrapper>
+            <CareerPathsSearch
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              selectedFilter={selectedFilter}
+              setSelectedFilter={setSelectedFilter}
+              totalPaths={popularPaths.length}
+              filteredCount={filteredPaths.length}
+              onClearSearch={handleClearSearch}
+            />
+          </LazyWrapper>
 
-          <CareerPathsGrid
-            filteredPaths={filteredPaths}
-            selectedFilter={selectedFilter}
-            onPathClick={handlePathClick}
-            onClearSearch={handleClearSearch}
-          />
+          <LazyWrapper>
+            <CareerPathsGrid
+              filteredPaths={filteredPaths}
+              selectedFilter={selectedFilter}
+              onPathClick={handlePathClick}
+              onClearSearch={handleClearSearch}
+            />
+          </LazyWrapper>
           
-          <CareerPathsTabs />
+          <LazyWrapper>
+            <CareerPathsTabs />
+          </LazyWrapper>
         </div>
       </div>
     </Layout>

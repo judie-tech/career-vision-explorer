@@ -1,6 +1,7 @@
 
 import { Link } from "react-router-dom";
-import { AspectRatio } from "@/components/ui/aspect-ratio"; 
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 
 interface CareerPathProps {
   careerPaths: Array<{
@@ -25,10 +26,12 @@ const CareerPathSection = ({ careerPaths }: CareerPathProps) => {
             <Link key={path.id} to={`/career-paths/${path.id}`} className="block hover:no-underline">
               <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 h-full flex flex-col">
                 <AspectRatio ratio={16/9} className="bg-gray-100">
-                  <img 
+                  <OptimizedImage 
                     src={path.image} 
                     alt={path.title}
-                    className="object-cover w-full h-full" 
+                    className="object-cover w-full h-full"
+                    loading="lazy"
+                    placeholder="/placeholder.svg"
                   />
                 </AspectRatio>
                 <div className="p-6">
