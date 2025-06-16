@@ -31,7 +31,7 @@ export const LazyWrapper = ({
 };
 
 // HOC for lazy loading components
-export const withLazyLoading = <P extends {}>(
+export const withLazyLoading = <P extends Record<string, any>>(
   componentLoader: () => Promise<{ default: React.ComponentType<P> }>,
   fallback?: ReactNode
 ) => {
@@ -39,7 +39,7 @@ export const withLazyLoading = <P extends {}>(
   
   return (props: P) => (
     <LazyWrapper fallback={fallback}>
-      <LazyComponent {...(props as P)} />
+      <LazyComponent {...props} />
     </LazyWrapper>
   );
 };
