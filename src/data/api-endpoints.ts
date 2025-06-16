@@ -1,53 +1,123 @@
-
 export const apiEndpoints = [
+  {
+    category: "Authentication API",
+    endpoints: [
+      { 
+        method: "POST", 
+        path: "/api/auth/login", 
+        description: "Authenticate user with credentials",
+        params: ["email", "password"],
+        example: `const response = await AuthApi.login({
+  email: 'user@example.com',
+  password: 'password123'
+});`,
+        response: `{
+  "success": true,
+  "user": {...},
+  "token": "auth_token_...",
+  "message": "Login successful"
+}`
+      },
+      { 
+        method: "POST", 
+        path: "/api/auth/signup", 
+        description: "Create new user account",
+        params: ["name", "email", "password", "role", "phoneNumber", "countryCode", "profileImage"],
+        example: `const response = await AuthApi.signup({
+  name: 'John Doe',
+  email: 'john@example.com',
+  password: 'password123',
+  role: 'jobseeker'
+});`,
+        response: `{
+  "success": true,
+  "user": {...},
+  "token": "auth_token_...",
+  "message": "Account created successfully"
+}`
+      },
+      { 
+        method: "POST", 
+        path: "/api/auth/logout", 
+        description: "Logout current user",
+        example: `await AuthApi.logout();`
+      },
+      { 
+        method: "POST", 
+        path: "/api/auth/refresh", 
+        description: "Refresh authentication token",
+        example: `const response = await AuthApi.refreshToken();`
+      },
+    ]
+  },
   {
     category: "Jobs API",
     endpoints: [
       { 
         method: "GET", 
         path: "/api/jobs", 
-        description: "Search jobs with filters",
-        params: ["query", "location", "type", "experienceLevel", "skills", "salaryMin", "salaryMax", "page", "limit"],
+        description: "Search jobs with advanced filters",
+        params: ["query", "location", "type", "experienceLevel", "skills", "salaryMin", "salaryMax", "page", "limit", "isRemote"],
         example: `const results = await JobsApi.searchJobs({
   query: 'frontend developer',
   location: 'Nairobi',
-  experienceLevel: 'Mid'
+  experienceLevel: 'Senior',
+  isRemote: true,
+  page: 1,
+  limit: 10
 });`,
         response: `{
   "jobs": [...],
   "total": 150,
   "page": 1,
-  "limit": 10
+  "limit": 10,
+  "hasMore": true
 }`
       },
       { 
         method: "GET", 
         path: "/api/jobs/:id", 
-        description: "Get job by ID",
+        description: "Get detailed job information by ID",
         params: ["id"],
         example: `const job = await JobsApi.getJobById('job123');`,
         response: `{
   "id": "job123",
-  "title": "Frontend Developer",
-  "company": "TechCorp",
-  ...
+  "title": "Senior Frontend Developer",
+  "company": "TechCorp Kenya",
+  "requirements": [...],
+  "benefits": [...],
+  "companyInfo": {...}
 }`
       },
       { 
         method: "POST", 
         path: "/api/jobs/:id/save", 
-        description: "Save job to wishlist",
+        description: "Save job to user's wishlist",
         params: ["id"],
         example: `await JobsApi.saveJob('job123');`
       },
       { 
+        method: "DELETE", 
+        path: "/api/jobs/:id/save", 
+        description: "Remove job from wishlist",
+        params: ["id"],
+        example: `await JobsApi.unsaveJob('job123');`
+      },
+      { 
+        method: "GET", 
+        path: "/api/jobs/saved", 
+        description: "Get user's saved jobs",
+        example: `const savedJobs = await JobsApi.getSavedJobs();`
+      },
+      { 
         method: "POST", 
         path: "/api/jobs/:id/apply", 
-        description: "Apply to job",
-        params: ["id", "coverLetter", "resume"],
+        description: "Submit job application",
+        params: ["id", "coverLetter", "resume", "customAnswers", "portfolioLinks"],
         example: `await JobsApi.applyToJob('job123', {
   coverLetter: 'Dear Hiring Manager...',
-  resume: 'resume_file_id'
+  resume: 'resume_file_id',
+  customAnswers: { question1: 'answer1' }
 });`
       },
     ]
@@ -58,32 +128,51 @@ export const apiEndpoints = [
       { 
         method: "GET", 
         path: "/api/profile", 
-        description: "Get user profile",
-        example: `const profile = await ProfileApi.getProfile();`
+        description: "Get authenticated user's profile",
+        example: `const profile = await ProfileApi.getProfile();`,
+        response: `{
+  "id": "user123",
+  "name": "John Doe",
+  "skills": [...],
+  "preferences": {...},
+  "profileComplete": 85,
+  "isVerified": true
+}`
       },
       { 
         method: "PUT", 
         path: "/api/profile", 
-        description: "Update user profile",
-        params: ["name", "bio", "skills", "location", "phone"],
+        description: "Update user profile information",
+        params: ["name", "bio", "skills", "location", "phone", "preferences"],
         example: `const updated = await ProfileApi.updateProfile({
   name: 'John Doe',
-  bio: 'Updated bio'
+  bio: 'Updated bio',
+  skills: ['React', 'TypeScript'],
+  preferences: {
+    jobTypes: ['Full-time'],
+    remoteWork: true
+  }
 });`
       },
       { 
         method: "POST", 
         path: "/api/profile/image", 
-        description: "Upload profile image",
+        description: "Upload and update profile image",
         params: ["imageFile"],
         example: `const imageUrl = await ProfileApi.uploadProfileImage(file);`
       },
       { 
         method: "POST", 
         path: "/api/profile/resume", 
-        description: "Upload resume",
+        description: "Upload resume document",
         params: ["resumeFile"],
         example: `const resumeId = await ProfileApi.uploadResume(file);`
+      },
+      { 
+        method: "DELETE", 
+        path: "/api/profile", 
+        description: "Delete user profile and all data",
+        example: `await ProfileApi.deleteProfile();`
       },
     ]
   },
@@ -93,32 +182,60 @@ export const apiEndpoints = [
       { 
         method: "GET", 
         path: "/api/applications", 
-        description: "Get all applications",
-        example: `const applications = await ApplicationsApi.getApplications();`
+        description: "Get all user's job applications",
+        example: `const applications = await ApplicationsApi.getApplications();`,
+        response: `[{
+  "id": "app123",
+  "status": "Interview",
+  "interviewDate": "2024-06-20",
+  "feedback": "...",
+  "matchScore": 95
+}]`
+      },
+      { 
+        method: "GET", 
+        path: "/api/applications/:id", 
+        description: "Get specific application details",
+        params: ["id"],
+        example: `const app = await ApplicationsApi.getApplicationById('app123');`
       },
       { 
         method: "POST", 
         path: "/api/applications", 
-        description: "Submit new application",
-        params: ["jobId", "coverLetter", "resume", "customAnswers"],
+        description: "Submit new job application",
+        params: ["jobId", "coverLetter", "resume", "customAnswers", "portfolioLinks", "availableStartDate"],
         example: `const app = await ApplicationsApi.submitApplication({
   jobId: 'job123',
-  coverLetter: 'My cover letter...'
+  coverLetter: 'My cover letter...',
+  availableStartDate: '2024-07-01',
+  salaryExpectation: 'KES 150,000/month'
 });`
       },
       { 
         method: "PUT", 
         path: "/api/applications/:id/status", 
-        description: "Update application status",
+        description: "Update application status (admin only)",
         params: ["id", "status"],
         example: `await ApplicationsApi.updateApplicationStatus('app123', 'Interview');`
       },
       { 
         method: "DELETE", 
         path: "/api/applications/:id", 
-        description: "Withdraw application",
+        description: "Withdraw job application",
         params: ["id"],
         example: `await ApplicationsApi.withdrawApplication('app123');`
+      },
+      { 
+        method: "GET", 
+        path: "/api/applications/stats", 
+        description: "Get application statistics",
+        example: `const stats = await ApplicationsApi.getApplicationStats();`,
+        response: `{
+  "total": 15,
+  "pending": 8,
+  "interviews": 3,
+  "offers": 1
+}`
       },
     ]
   },
@@ -128,7 +245,7 @@ export const apiEndpoints = [
       { 
         method: "GET", 
         path: "/api/career-paths", 
-        description: "Get all career paths",
+        description: "Get all available career paths",
         example: `const paths = await CareerPathsApi.getCareerPaths();`
       },
       { 
@@ -230,7 +347,7 @@ export const mobileEndpoints = [
         path: "/api/mobile/notifications/send", 
         description: "Send push notification",
         params: ["title", "body", "data", "scheduledAt"],
-        example: `await MobileApi.sendPushNotification({
+        example: `await MobileApi.sendPushNotifications({
   title: "New Job Match",
   body: "We found 3 new jobs for you"
 });`
