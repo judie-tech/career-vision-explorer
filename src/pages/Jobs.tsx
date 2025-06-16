@@ -10,7 +10,7 @@ const Jobs = () => {
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none"></div>
         
-        <div className="relative container py-12">
+        <div className="relative container py-6 sm:py-12 px-3 sm:px-4">
           <JobsContainer jobs={mockJobs} />
         </div>
       </div>
