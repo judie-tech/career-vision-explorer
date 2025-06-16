@@ -52,32 +52,21 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      const success = await login(values.email, values.password);
+      await login({
+        email: values.email,
+        password: values.password
+      });
       
-      if (success) {
-        toast.success("Welcome back!", {
-          description: "You've been successfully logged in.",
-        });
-        
-        // Redirect based on user role
-        if (user?.role === 'admin') {
-          navigate("/admin/dashboard");
-        } else if (user?.role === 'employer') {
-          navigate("/employer/dashboard");
-        } else if (user?.role === 'jobseeker') {
-          navigate("/jobseeker/dashboard");
-        } else {
-          navigate("/jobs");
-        }
-      } else {
-        toast.error("Login Failed", {
-          description: "Invalid email or password. Please check your credentials.",
-        });
-      }
-    } catch (error) {
+      toast.success("Welcome back!", {
+        description: "You've been successfully logged in.",
+      });
+      
+      // Simple redirect to home page - let user navigate where they want
+      navigate("/");
+    } catch (error: any) {
       console.error('Login error:', error);
-      toast.error("Login Error", {
-        description: "An unexpected error occurred. Please try again.",
+      toast.error("Login Failed", {
+        description: error.message || "Invalid email or password. Please check your credentials.",
       });
     } finally {
       setIsLoading(false);

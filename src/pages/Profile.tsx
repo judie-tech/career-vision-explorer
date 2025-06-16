@@ -97,7 +97,37 @@ const Profile = () => {
     profileImage: "/placeholder.svg"
   };
 
-  const currentProfile = userProfile || defaultProfile;
+  // Transform database profile to match UI format
+  const currentProfile = userProfile ? {
+    id: userProfile.user_id,
+    name: userProfile.name,
+    email: userProfile.email,
+    role: userProfile.account_type === 'job_seeker' ? 'Job Seeker' :
+          userProfile.account_type === 'employer' ? 'Employer' : 'Admin',
+    education: userProfile.education || "Not specified",
+    experience: userProfile.experience_years ? `${userProfile.experience_years} years` : "Not specified",
+    location: userProfile.location || "Not specified",
+    bio: userProfile.bio || "No bio available",
+    profileComplete: userProfile.profile_completion_percentage || 20,
+    joinDate: new Date(userProfile.created_at).toLocaleDateString(),
+    profileImage: userProfile.profile_image_url || "/placeholder.svg",
+    skills: userProfile.skills || [],
+    resume_link: userProfile.resume_link,
+    account_type: userProfile.account_type,
+    // Additional fields from enhanced schema
+    phone: userProfile.phone,
+    linkedin_url: userProfile.linkedin_url,
+    github_url: userProfile.github_url,
+    portfolio_url: userProfile.portfolio_url,
+    salary_expectation: userProfile.salary_expectation,
+    availability: userProfile.availability,
+    preferred_job_type: userProfile.preferred_job_type,
+    work_authorization: userProfile.work_authorization,
+    languages: userProfile.languages || [],
+    certifications: userProfile.certifications || [],
+    work_experience: userProfile.work_experience || [],
+    projects: userProfile.projects || []
+  } : defaultProfile;
   console.log("Current profile image:", currentProfile.profileImage?.substring(0, 50));
   
   return (

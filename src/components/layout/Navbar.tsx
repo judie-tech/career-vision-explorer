@@ -33,12 +33,12 @@ const Navbar = () => {
 
   const getDashboardUrl = () => {
     if (!user) return "/";
-    switch (user.role) {
+    switch (user.account_type) {
       case 'admin':
         return '/admin/dashboard';
       case 'employer':
         return '/employer/dashboard';
-      case 'jobseeker':
+      case 'job_seeker':
         return '/jobseeker/dashboard';
       default:
         return '/';
@@ -48,8 +48,11 @@ const Navbar = () => {
   const navigation = [
     { name: "Home", href: "/" },
     { name: "Jobs", href: "/jobs" },
+    { name: "AI Job Matching", href: "/ai-job-matching" },
     { name: "Career Paths", href: "/career-paths" },
     { name: "Skills", href: "/skills" },
+    { name: "Enhanced Skill Analysis", href: "/enhanced-skill-analysis" },
+    { name: "Interview Prep", href: "/interview-prep" },
     { name: "Insights", href: "/insights" },
     { name: "Partners", href: "/partners" },
   ];

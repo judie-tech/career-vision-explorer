@@ -9,8 +9,8 @@ interface ProtectedRouteProps {
   requiredRole?: "admin" | "jobseeker" | "employer";
 }
 
-export const ProtectedRoute = ({ 
-  children, 
+export const ProtectedRoute = ({
+  children,
   requiredRole
 }: ProtectedRouteProps) => {
   const { isAuthenticated, hasRole, isLoading, user } = useAuth();
@@ -27,33 +27,38 @@ export const ProtectedRoute = ({
         // Redirect to appropriate login page
         const loginUrl = location.pathname.startsWith('/admin') ? '/admin/login' : '/login';
         navigate(`${loginUrl}?returnUrl=${encodeURIComponent(location.pathname)}`);
-      } else if (requiredRole && !hasRole(requiredRole)) {
-        // Role-specific error message
-        const roleMessage = `You need ${requiredRole} permissions to access this page`;
+      } else if (requiredRole) {
+        // Map frontend role names to backend role names
+        const backendRole = requiredRole === 'jobseeker' ? 'job_seeker' : requiredRole;
         
-        toast.error("Access Denied", {
-          description: roleMessage,
-        });
-        
-        // Redirect based on current role
-        if (user) {
-          const dashboardUrl = getDashboardUrl(user.role);
-          navigate(dashboardUrl);
-        } else {
-          navigate("/login");
+        if (!hasRole(backendRole as 'admin' | 'job_seeker' | 'employer')) {
+          // Role-specific error message
+          const roleMessage = `You need ${requiredRole} permissions to access this page`;
+          
+          toast.error("Access Denied", {
+            description: roleMessage,
+          });
+          
+          // Redirect based on current role
+          if (user) {
+            const dashboardUrl = getDashboardUrl(user.account_type);
+            navigate(dashboardUrl);
+          } else {
+            navigate("/login");
+          }
         }
       }
     }
   }, [isAuthenticated, hasRole, isLoading, navigate, requiredRole, location.pathname, user]);
   
   // Helper function to get appropriate dashboard URL
-  const getDashboardUrl = (role: string) => {
-    switch (role) {
+  const getDashboardUrl = (accountType: string) => {
+    switch (accountType) {
       case 'admin':
         return '/admin/dashboard';
       case 'employer':
         return '/employer/dashboard';
-      case 'jobseeker':
+      case 'job_seeker':
         return '/jobseeker/dashboard';
       default:
         return '/';
@@ -70,8 +75,15 @@ export const ProtectedRoute = ({
   }
   
   // If not authenticated or doesn't have required role, don't render children
-  if (!isAuthenticated || (requiredRole && !hasRole(requiredRole))) {
+  if (!isAuthenticated) {
     return null;
+  }
+  
+  if (requiredRole) {
+    const backendRole = requiredRole === 'jobseeker' ? 'job_seeker' : requiredRole;
+    if (!hasRole(backendRole as 'admin' | 'job_seeker' | 'employer')) {
+      return null;
+    }
   }
   
   // If authenticated and has required role, render children

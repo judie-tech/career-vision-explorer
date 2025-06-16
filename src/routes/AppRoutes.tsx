@@ -38,6 +38,10 @@ const LearningPaths = lazy(() => import("@/pages/LearningPaths"));
 const Partners = lazy(() => import("@/pages/Partners"));
 const Insights = lazy(() => import("@/pages/Insights"));
 const JobSeekerSettings = lazy(() => import("@/pages/jobseeker/JobSeekerSettings"));
+const InterviewPrep = lazy(() => import("@/pages/InterviewPrep"));
+const SkillGapAnalysis = lazy(() => import("@/pages/SkillGapAnalysis"));
+const EnhancedSkillAnalysis = lazy(() => import("@/pages/EnhancedSkillAnalysis"));
+const AIJobMatching = lazy(() => import("@/pages/AIJobMatching"));
 const AdminUsers = lazy(() => import("@/pages/admin/AdminUsers"));
 const AdminJobseekers = lazy(() => import("@/pages/admin/AdminJobseekers"));
 const AdminJobs = lazy(() => import("@/pages/admin/AdminJobs"));
@@ -320,39 +324,45 @@ export const AppRoutes = () => {
           </ProtectedRoute>
         } />
         <Route path="/skills" element={
-          <ProtectedRoute>
-            <Suspense fallback={<PageLoader />}>
-              <Skills />
-            </Suspense>
-          </ProtectedRoute>
+          <Suspense fallback={<PageLoader />}>
+            <Skills />
+          </Suspense>
         } />
         <Route path="/career-paths" element={
-          <ProtectedRoute>
-            <Suspense fallback={<PageLoader />}>
-              <CareerPaths />
-            </Suspense>
-          </ProtectedRoute>
+          <Suspense fallback={<PageLoader />}>
+            <CareerPaths />
+          </Suspense>
         } />
         <Route path="/learning-paths" element={
-          <ProtectedRoute>
-            <Suspense fallback={<PageLoader />}>
-              <LearningPaths />
-            </Suspense>
-          </ProtectedRoute>
+          <Suspense fallback={<PageLoader />}>
+            <LearningPaths />
+          </Suspense>
         } />
-        <Route path="/partners" element={
-          <ProtectedRoute>
-            <Suspense fallback={<PageLoader />}>
-              <Partners />
-            </Suspense>
-          </ProtectedRoute>
-        } />
+        
         <Route path="/insights" element={
-          <ProtectedRoute>
-            <Suspense fallback={<PageLoader />}>
-              <Insights />
-            </Suspense>
-          </ProtectedRoute>
+          <Suspense fallback={<PageLoader />}>
+            <Insights />
+          </Suspense>
+        } />
+        <Route path="/interview-prep" element={
+          <Suspense fallback={<PageLoader />}>
+            <InterviewPrep />
+          </Suspense>
+        } />
+        <Route path="/skill-gap-analysis" element={
+          <Suspense fallback={<PageLoader />}>
+            <SkillGapAnalysis />
+          </Suspense>
+        } />
+        <Route path="/enhanced-skill-analysis" element={
+          <Suspense fallback={<PageLoader />}>
+            <EnhancedSkillAnalysis />
+          </Suspense>
+        } />
+        <Route path="/ai-job-matching" element={
+          <Suspense fallback={<PageLoader />}>
+            <AIJobMatching />
+          </Suspense>
         } />
         
         {/* Catch-all route for 404 */}

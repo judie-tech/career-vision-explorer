@@ -52,25 +52,20 @@ const signupSchema = z.object({
   }),
   countryCode: z.string().optional(),
   phoneNumber: z.string().optional(),
-  profileImage: z.string().min(1, {
-    message: "Profile image is required.",
-  }),
+  profileImage: z.string().optional(),
 }).refine((data) => {
-  // Phone number is required only for job seekers
-  if (data.role === "jobseeker") {
-    return data.countryCode && data.countryCode.length > 0 && 
-           data.phoneNumber && data.phoneNumber.length > 0 && 
-           /^\d+$/.test(data.phoneNumber);
+  if (data.role === 'jobseeker') {
+    return !!data.phoneNumber && data.phoneNumber.length > 0;
   }
   return true;
 }, {
-  message: "Phone number is required for job seekers.",
-  path: ["phoneNumber"],
+  message: 'Phone number is required for job seekers.',
+  path: ['phoneNumber'],
 });
 
 const Signup = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { register, login } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [linkedInImportOpen, setLinkedInImportOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -99,42 +94,73 @@ const Signup = () => {
   };
   
   const onSubmit = async (values: z.infer<typeof signupSchema>) => {
+    console.log('🚀 Form submitted with values:', values);
     setIsLoading(true);
-    console.log('Creating account with values:', values);
     
     try {
+      // Use default profile image if none provided
+      const finalProfileImage = values.profileImage || 'https://via.placeholder.com/150/4F46E5/FFFFFF?text=' + values.name.charAt(0);
+
+      console.log('📝 Registering user with data:', {
+        name: values.name,
+        email: values.email,
+        role: values.role,
+        finalProfileImage
+      });
+
+      // Map frontend role to backend role
+      const accountType = values.role === 'jobseeker' ? 'job_seeker' : 'employer';
+
+      // Register the new user using the real backend
+      await register({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+        account_type: accountType
+      });
+
+      console.log('✅ User registered successfully');
+
       // Store new user data for onboarding
-      setNewUserData(values);
+      setNewUserData({...values, profileImage: finalProfileImage});
       
       // Show success message
       toast.success("Account Created Successfully!", {
-        description: "You can now log in with your new credentials.",
+        description: "Welcome to Visiondrill! Let's set up your profile.",
       });
       
-      // Auto-login the user with their new credentials
-      const loginSuccess = await login(values.email, values.password);
-      
-      if (loginSuccess) {
-        toast.success("Welcome to Visiondrill!", {
-          description: "Let's set up your profile to find the perfect opportunities.",
-        });
-        setShowOnboarding(true);
-      } else {
-        // If auto-login fails, still allow manual login
-        toast.info("Account Created", {
-          description: "Please log in with your new credentials.",
-        });
-        navigate("/login");
-      }
-    } catch (error) {
-      console.error('Signup error:', error);
-      toast.error("Signup Failed", {
-        description: "Failed to create account. Please try again.",
+      console.log('✅ Registration includes auto-login');
+      toast.success("Welcome to Visiondrill!", {
+        description: "Let's set up your profile to find the perfect opportunities.",
+      });
+      setShowOnboarding(true);
+    } catch (error: any) {
+      console.error('💥 Signup error:', error);
+      toast.error("Registration Failed", {
+        description: error.message || "Failed to create account. Please try again.",
       });
     } finally {
       setIsLoading(false);
     }
   };
+
+  const onSubmitError = (errors: any) => {
+    console.log('🚨 Form validation errors:', errors);
+    // Show specific validation errors to user
+    Object.keys(errors).forEach(field => {
+      const error = errors[field];
+      if (error?.message) {
+        console.log(`❌ Validation error for ${field}:`, error.message);
+        toast.error("Form Validation Error", {
+          description: `${field}: ${error.message}`,
+        });
+      }
+    });
+  };
+
+  // Add form state debugging
+  const formValues = form.watch();
+  console.log('📊 Current form values:', formValues);
 
   const handleLinkedInSignup = () => {
     setLinkedInImportOpen(true);
@@ -144,16 +170,20 @@ const Signup = () => {
     setIsLoading(true);
     
     try {
+      // Generate unique email to avoid conflicts
+      const timestamp = Date.now();
       const linkedInData = {
         name: 'John Doe',
-        email: 'john.doe@example.com',
+        email: `john.doe${timestamp}@example.com`,
         password: 'linkedinpass123',
         profileImage: 'https://via.placeholder.com/150',
         role: selectedRole
       };
       
+      // Note: Backend will handle email validation
+      
       toast.success("LinkedIn Data Imported", {
-        description: selectedRole === "jobseeker" 
+        description: selectedRole === "jobseeker"
           ? "Please add your phone number to complete registration."
           : "Registration complete! Setting up your profile...",
       });
@@ -170,16 +200,24 @@ const Signup = () => {
       
       if (selectedRole === "employer") {
         // For employers, complete registration immediately since no phone needed
-        setTimeout(async () => {
-          const loginSuccess = await login(linkedInData.email, linkedInData.password);
-          if (loginSuccess) {
-            toast.success("Account created successfully!", {
-              description: "Let's set up your profile to find the perfect opportunities.",
-            });
-            setNewUserData(linkedInData);
-            setShowOnboarding(true);
-          }
-        }, 500);
+        try {
+          await register({
+            name: linkedInData.name,
+            email: linkedInData.email,
+            password: linkedInData.password,
+            account_type: 'employer'
+          });
+
+          toast.success("Account created successfully!", {
+            description: "Let's set up your profile to find the perfect opportunities.",
+          });
+          setNewUserData(linkedInData);
+          setShowOnboarding(true);
+        } catch (error: any) {
+          toast.error("Registration Failed", {
+            description: error.message || "Failed to create account. Please try again.",
+          });
+        }
       } else {
         toast.info("LinkedIn Import Complete", {
           description: "Profile information and photo imported. Please add your phone number to continue.",
@@ -227,7 +265,7 @@ const Signup = () => {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit, onSubmitError)} className="space-y-4">
                 <ProfileImageUpload
                   profileImage={profileImage}
                   onImageChange={handleImageChange}
@@ -321,10 +359,11 @@ const Signup = () => {
                   )}
                 />
                 
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full bg-career-blue hover:bg-career-blue/90 transition-colors"
                   disabled={isLoading}
+                  onClick={() => console.log('🔘 Create Account button clicked')}
                 >
                   {isLoading ? "Creating Account..." : "Create Account"}
                 </Button>
