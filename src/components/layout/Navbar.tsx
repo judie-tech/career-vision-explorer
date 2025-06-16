@@ -1,18 +1,48 @@
 
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Shield } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, Shield, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const isMobile = useIsMobile();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
+  const getDashboardUrl = () => {
+    if (!user) return "/";
+    switch (user.role) {
+      case 'admin':
+        return '/admin/dashboard';
+      case 'employer':
+        return '/employer/dashboard';
+      case 'jobseeker':
+        return '/jobseeker/dashboard';
+      default:
+        return '/';
+    }
   };
 
   const navigation = [
@@ -68,16 +98,45 @@ const Navbar = () => {
               <Shield className="h-4 w-4" />
               Admin
             </Link>
-            <Link to="/login">
-              <Button variant="ghost" size="sm">
-                Log in
-              </Button>
-            </Link>
-            <Link to="/signup">
-              <Button size="sm">
-                Sign up
-              </Button>
-            </Link>
+            
+            {isAuthenticated && user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    {user.name}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate(getDashboardUrl())}>
+                    Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" size="sm">
+                    Log in
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button size="sm">
+                    Sign up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -128,20 +187,53 @@ const Navbar = () => {
                 </Link>
               </div>
               <div className="mt-3 px-2 space-y-1">
-                <Link
-                  to="/login"
-                  className="block px-3 py-2 rounded-lg text-base font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Log in
-                </Link>
-                <Link
-                  to="/signup"
-                  className="block px-3 py-2 rounded-lg text-base font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Sign up
-                </Link>
+                {isAuthenticated && user ? (
+                  <>
+                    <div className="px-3 py-2 text-base font-medium text-muted-foreground">
+                      Signed in as {user.name}
+                    </div>
+                    <Link
+                      to={getDashboardUrl()}
+                      className="block px-3 py-2 rounded-lg text-base font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/profile"
+                      className="block px-3 py-2 rounded-lg text-base font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Profile
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsMenuOpen(false);
+                      }}
+                      className="block w-full text-left px-3 py-2 rounded-lg text-base font-medium text-red-600 hover:bg-accent transition-colors"
+                    >
+                      Log out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      className="block px-3 py-2 rounded-lg text-base font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Log in
+                    </Link>
+                    <Link
+                      to="/signup"
+                      className="block px-3 py-2 rounded-lg text-base font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Sign up
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

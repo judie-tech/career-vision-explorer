@@ -18,12 +18,13 @@ import {
   FormLabel, 
   FormMessage 
 } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/sonner";
 import Layout from "@/components/layout/Layout";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Linkedin } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 const loginSchema = z.object({
   email: z.string().email({
@@ -36,7 +37,7 @@ const loginSchema = z.object({
 
 const Login = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { login, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -47,31 +48,51 @@ const Login = () => {
     },
   });
   
-  const onSubmit = (values: z.infer<typeof loginSchema>) => {
+  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
     
-    // Simulate authentication
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: "Welcome back!",
-        description: "You've been successfully logged in.",
+    try {
+      const success = await login(values.email, values.password);
+      
+      if (success) {
+        toast.success("Welcome back!", {
+          description: "You've been successfully logged in.",
+        });
+        
+        // Redirect based on user role
+        if (user?.role === 'admin') {
+          navigate("/admin/dashboard");
+        } else if (user?.role === 'employer') {
+          navigate("/employer/dashboard");
+        } else if (user?.role === 'jobseeker') {
+          navigate("/jobseeker/dashboard");
+        } else {
+          navigate("/jobs");
+        }
+      } else {
+        toast.error("Login Failed", {
+          description: "Invalid email or password. Please check your credentials.",
+        });
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error("Login Error", {
+        description: "An unexpected error occurred. Please try again.",
       });
-      navigate("/jobs");
-    }, 1000);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleLinkedInLogin = () => {
     setIsLoading(true);
-    toast({
-      title: "LinkedIn Authentication",
+    toast.info("LinkedIn Authentication", {
       description: "Please complete authorization in the popup window.",
     });
     // In a real app, this would trigger OAuth flow
     setTimeout(() => {
       setIsLoading(false);
-      toast({
-        title: "Login Successful",
+      toast.success("Login Successful", {
         description: "You've been logged in with LinkedIn.",
       });
       navigate("/jobs");
@@ -144,6 +165,7 @@ const Login = () => {
                       className="w-full flex items-center justify-center gap-2 transition-colors hover:bg-gray-50"
                       onClick={handleLinkedInLogin}
                       disabled={isLoading}
+                      type="button"
                     >
                       <Linkedin className="h-4 w-4" />
                       LinkedIn

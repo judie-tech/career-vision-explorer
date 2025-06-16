@@ -16,8 +16,8 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
-// Mock users for demonstration
-const MOCK_USERS = [
+// Mock users for demonstration - will be extended dynamically
+let MOCK_USERS = [
   {
     id: '1',
     email: 'admin@visiondrill.com',
@@ -62,6 +62,53 @@ const getInitialAuthState = (): AuthState => {
   return { user: null, isAuthenticated: false };
 };
 
+// Create new user account
+export const createUser = (userData: {
+  name: string;
+  email: string;
+  password: string;
+  role: UserRole;
+  phoneNumber?: string;
+  countryCode?: string;
+  profileImage?: string;
+}): User | null => {
+  // Check if user already exists
+  const existingUser = MOCK_USERS.find(
+    (u) => u.email.toLowerCase() === userData.email.toLowerCase()
+  );
+
+  if (existingUser) {
+    throw new Error('User with this email already exists');
+  }
+
+  // Create new user
+  const newUser = {
+    id: (MOCK_USERS.length + 1).toString(),
+    email: userData.email,
+    password: userData.password,
+    name: userData.name,
+    role: userData.role,
+  };
+
+  // Add to mock users array
+  MOCK_USERS.push(newUser);
+
+  // Store additional user data in localStorage for profile completion
+  const profileData = {
+    phoneNumber: userData.phoneNumber,
+    countryCode: userData.countryCode,
+    profileImage: userData.profileImage,
+  };
+  localStorage.setItem(`visiondrillProfile_${newUser.id}`, JSON.stringify(profileData));
+
+  console.log('Created new user:', newUser);
+  console.log('Updated MOCK_USERS:', MOCK_USERS);
+
+  // Return user without password
+  const { password: _, ...userWithoutPassword } = newUser;
+  return userWithoutPassword;
+};
+
 // Authenticate user with email and password
 export const authenticateUser = (email: string, password: string): User | null => {
   const user = MOCK_USERS.find(
@@ -91,6 +138,7 @@ export const getUserById = (id: string): User | null => {
 // Log out current user
 export const logoutUser = (): void => {
   localStorage.removeItem('visiondrillUser');
+  localStorage.removeItem('visiondrillImpersonation');
 };
 
 // Get current user

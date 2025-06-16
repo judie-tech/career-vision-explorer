@@ -1,6 +1,6 @@
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { authenticateUser, logoutUser, getCurrentUser } from '@/lib/auth';
+import { authenticateUser, logoutUser, getCurrentUser, createUser } from '@/lib/auth';
 import { toast } from "@/components/ui/sonner";
 
 type UserRole = 'admin' | 'jobseeker' | 'employer' | 'subadmin';
@@ -17,6 +17,15 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
+  signup: (userData: {
+    name: string;
+    email: string;
+    password: string;
+    role: UserRole;
+    phoneNumber?: string;
+    countryCode?: string;
+    profileImage?: string;
+  }) => Promise<boolean>;
   logout: () => void;
   hasRole: (role: UserRole) => boolean;
   impersonateUser: (user: User) => void;
@@ -80,6 +89,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return false;
   };
 
+  const signup = async (userData: {
+    name: string;
+    email: string;
+    password: string;
+    role: UserRole;
+    phoneNumber?: string;
+    countryCode?: string;
+    profileImage?: string;
+  }): Promise<boolean> => {
+    setIsLoading(true);
+    console.log('Signup attempt:', userData.email);
+    
+    try {
+      // Simulate API request delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const newUser = createUser(userData);
+      console.log('User creation result:', newUser);
+      
+      if (newUser) {
+        // Auto-login the new user
+        setUser(newUser);
+        setIsAuthenticated(true);
+        setIsLoading(false);
+        return true;
+      }
+      
+      setIsLoading(false);
+      return false;
+    } catch (error) {
+      console.error('Signup error:', error);
+      setIsLoading(false);
+      throw error;
+    }
+  };
+
   const impersonateUser = (targetUser: User) => {
     if (!user || (user.role !== 'admin' && user.role !== 'subadmin')) {
       toast.error("Access Denied", {
@@ -125,7 +170,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     logoutUser();
-    localStorage.removeItem('visiondrillImpersonation');
     setUser(null);
     setOriginalUser(null);
     setIsAuthenticated(false);
@@ -142,7 +186,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       user, 
       isAuthenticated, 
       isLoading, 
-      login, 
+      login,
+      signup,
       logout,
       hasRole,
       impersonateUser,

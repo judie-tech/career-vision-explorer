@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Layout from "@/components/layout/Layout";
@@ -25,11 +26,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Linkedin } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import ProfileImageUpload from "@/components/auth/ProfileImageUpload";
 import PhoneNumberInput from "@/components/auth/PhoneNumberInput";
@@ -67,12 +69,14 @@ const signupSchema = z.object({
 });
 
 const Signup = () => {
-  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [linkedInImportOpen, setLinkedInImportOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState<string>("");
   const [linkedInDataImported, setLinkedInDataImported] = useState(false);
+  const [newUserData, setNewUserData] = useState<any>(null);
   
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
@@ -94,61 +98,116 @@ const Signup = () => {
     form.setValue('profileImage', imageUrl);
   };
   
-  const onSubmit = (values: z.infer<typeof signupSchema>) => {
+  const onSubmit = async (values: z.infer<typeof signupSchema>) => {
     setIsLoading(true);
-    console.log(values);
+    console.log('Creating account with values:', values);
     
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: "Account created!",
-        description: "Let's set up your profile to find the perfect opportunities.",
+    try {
+      // Store new user data for onboarding
+      setNewUserData(values);
+      
+      // Show success message
+      toast.success("Account Created Successfully!", {
+        description: "You can now log in with your new credentials.",
       });
-      setShowOnboarding(true);
-    }, 1000);
+      
+      // Auto-login the user with their new credentials
+      const loginSuccess = await login(values.email, values.password);
+      
+      if (loginSuccess) {
+        toast.success("Welcome to Visiondrill!", {
+          description: "Let's set up your profile to find the perfect opportunities.",
+        });
+        setShowOnboarding(true);
+      } else {
+        // If auto-login fails, still allow manual login
+        toast.info("Account Created", {
+          description: "Please log in with your new credentials.",
+        });
+        navigate("/login");
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      toast.error("Signup Failed", {
+        description: "Failed to create account. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleLinkedInSignup = () => {
     setLinkedInImportOpen(true);
   };
 
-  const handleLinkedInConnect = () => {
+  const handleLinkedInConnect = async () => {
     setIsLoading(true);
-    toast({
-      title: "LinkedIn Data Imported",
-      description: selectedRole === "jobseeker" 
-        ? "Please add your phone number to complete registration."
-        : "Registration complete! Setting up your profile...",
-    });
     
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const linkedInData = {
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+        password: 'linkedinpass123',
+        profileImage: 'https://via.placeholder.com/150',
+        role: selectedRole
+      };
+      
+      toast.success("LinkedIn Data Imported", {
+        description: selectedRole === "jobseeker" 
+          ? "Please add your phone number to complete registration."
+          : "Registration complete! Setting up your profile...",
+      });
+      
+      // Pre-fill form with LinkedIn data
+      form.setValue('name', linkedInData.name);
+      form.setValue('email', linkedInData.email);
+      form.setValue('password', linkedInData.password);
+      form.setValue('profileImage', linkedInData.profileImage);
+      setProfileImage(linkedInData.profileImage);
+      
       setLinkedInImportOpen(false);
       setLinkedInDataImported(true);
       
-      // Pre-fill form with LinkedIn data including profile image
-      form.setValue('name', 'John Doe');
-      form.setValue('email', 'john.doe@example.com');
-      form.setValue('password', 'linkedinpass123');
-      form.setValue('profileImage', 'https://via.placeholder.com/150'); // Simulate LinkedIn profile image
-      setProfileImage('https://via.placeholder.com/150');
-      
       if (selectedRole === "employer") {
         // For employers, complete registration immediately since no phone needed
-        setTimeout(() => {
-          toast({
-            title: "Account created!",
-            description: "Let's set up your profile to find the perfect opportunities.",
-          });
-          setShowOnboarding(true);
+        setTimeout(async () => {
+          const loginSuccess = await login(linkedInData.email, linkedInData.password);
+          if (loginSuccess) {
+            toast.success("Account created successfully!", {
+              description: "Let's set up your profile to find the perfect opportunities.",
+            });
+            setNewUserData(linkedInData);
+            setShowOnboarding(true);
+          }
         }, 500);
       } else {
-        toast({
-          title: "LinkedIn Import Complete",
+        toast.info("LinkedIn Import Complete", {
           description: "Profile information and photo imported. Please add your phone number to continue.",
         });
       }
-    }, 1500);
+    } catch (error) {
+      console.error('LinkedIn signup error:', error);
+      toast.error("LinkedIn Import Failed", {
+        description: "Failed to import LinkedIn data. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    
+    // Redirect based on user role
+    if (newUserData?.role === 'employer') {
+      navigate('/employer/dashboard');
+    } else {
+      navigate('/jobseeker/dashboard');
+    }
+    
+    toast.success("Welcome to Visiondrill!", {
+      description: "Your profile has been set up successfully.",
+    });
   };
   
   return (
@@ -300,7 +359,9 @@ const Signup = () => {
           </CardContent>
         </Card>
         
-        {showOnboarding && <OnboardingWizard onComplete={() => setShowOnboarding(false)} />}
+        {showOnboarding && (
+          <OnboardingWizard onComplete={handleOnboardingComplete} />
+        )}
         
         <LinkedInImportDialog
           open={linkedInImportOpen}
