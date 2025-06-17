@@ -27,19 +27,11 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
 interface AuthProviderProps {
   children: ReactNode;
 }
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -93,9 +85,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const userProfile = await profileService.getProfile();
         setProfile(userProfile);
       } catch (refreshError) {
-        console.error('Error refreshing token:', refreshError);
-        // If refresh fails, logout user
-        await logout();
+        console.error('Error refreshing token and loading profile:', refreshError);
+        // Don't log out, as this causes a login loop.
+        // The user is authenticated, but their profile data is unavailable.
+        // The UI should handle a null profile gracefully.
+        setProfile(null);
       }
     }
   };
@@ -103,8 +97,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const login = async (credentials: UserLogin) => {
     try {
       setIsLoading(true);
-      const response = await authService.login(credentials);
-      setUser(response.user);
+      const { user: loginUser } = await authService.login(credentials);
+      const user = await authService.getCurrentUser();
+      authService.setStoredUser(user);
+      setUser(user);
       await loadUserProfile();
       toast.success('Login successful!');
     } catch (error: any) {
@@ -119,8 +115,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const register = async (userData: UserRegister) => {
     try {
       setIsLoading(true);
-      const response = await authService.register(userData);
-      setUser(response.user);
+      await authService.register(userData);
+      const user = await authService.getCurrentUser();
+      authService.setStoredUser(user);
+      setUser(user);
       await loadUserProfile();
       toast.success('Registration successful! Welcome aboard!');
     } catch (error: any) {
@@ -220,7 +218,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const value: AuthContextType = {
     user,
     profile,
-    isAuthenticated: !!user && authService.isAuthenticated(),
+    isAuthenticated: !!user,
     isLoading,
     login,
     register,
@@ -243,54 +241,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 };
 
-// For backwards compatibility with existing code
-export const authenticateUser = async (email: string, password: string): Promise<User | null> => {
-  try {
-    const response = await authService.login({ email, password });
-    return response.user;
-  } catch (error) {
-    console.error('Authentication failed:', error);
-    return null;
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
   }
+  return context;
 };
 
-export const createUser = async (userData: {
-  name: string;
-  email: string;
-  password: string;
-  role: string;
-}): Promise<User | null> => {
-  try {
-    const accountType = userData.role === 'jobseeker' ? 'job_seeker' : 
-                       userData.role === 'employer' ? 'employer' : 'admin';
-    
-    const response = await authService.register({
-      name: userData.name,
-      email: userData.email,
-      password: userData.password,
-      account_type: accountType
-    });
-    return response.user;
-  } catch (error) {
-    console.error('User creation failed:', error);
-    throw error;
-  }
-};
-
-export const getCurrentUser = (): User | null => {
-  return authService.getStoredUser();
-};
-
-export const isAuthenticated = (): boolean => {
-  return authService.isAuthenticated();
-};
-
-export const logoutUser = async (): Promise<void> => {
-  await authService.logout();
-};
-
-export const getUserById = (id: string): User | null => {
-  // This would need to be implemented as an API call in a real system
-  const currentUser = getCurrentUser();
-  return currentUser?.user_id === id ? currentUser : null;
-};
+export default AuthProvider;

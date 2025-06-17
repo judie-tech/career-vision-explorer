@@ -34,7 +34,7 @@ class AuthService {
       localStorage.setItem('user', JSON.stringify(response.user));
     }
     
-    return response;
+    return { ...response, user: response.user };
   }
 
   async logout(): Promise<void> {
@@ -129,6 +129,10 @@ class AuthService {
       }
     }
     return null;
+  }
+
+  setStoredUser(user: User): void {
+    localStorage.setItem('user', JSON.stringify(user));
   }
 
   hasRole(role: 'job_seeker' | 'employer' | 'admin'): boolean {

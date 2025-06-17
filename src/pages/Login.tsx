@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -37,6 +37,7 @@ const loginSchema = z.object({
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   
@@ -61,8 +62,8 @@ const Login = () => {
         description: "You've been successfully logged in.",
       });
       
-      // Simple redirect to home page - let user navigate where they want
-      navigate("/");
+      const from = location.state?.from?.pathname || "/";
+      navigate(from, { replace: true });
     } catch (error: any) {
       console.error('Login error:', error);
       toast.error("Login Failed", {

@@ -54,7 +54,7 @@ const Navbar = () => {
     { name: "Enhanced Skill Analysis", href: "/enhanced-skill-analysis" },
     { name: "Interview Prep", href: "/interview-prep" },
     { name: "Insights", href: "/insights" },
-    { name: "Partners", href: "/partners" },
+    { name: "Profile", href: "/profile" },
   ];
 
   const isActive = (path: string) => location.pathname === path;

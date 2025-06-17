@@ -28,12 +28,14 @@ class ApiClient {
     const url = `${this.baseURL}${endpoint}`;
     const token = this.getToken();
 
-    const defaultHeaders: HeadersInit = {
-      'Content-Type': 'application/json',
-    };
+    const defaultHeaders: HeadersInit = {};
+
+    if (!(options.body instanceof FormData)) {
+      defaultHeaders['Content-Type'] = 'application/json';
+    }
 
     if (token) {
-      defaultHeaders.Authorization = `Bearer ${token}`;
+      (defaultHeaders as any).Authorization = `Bearer ${token}`;
     }
 
     const config: RequestInit = {

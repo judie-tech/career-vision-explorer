@@ -3,7 +3,7 @@ import { Profile, ProfileUpdate } from '../types/api';
 
 class ProfileService {
   async getProfile(): Promise<Profile> {
-    return await apiClient.get<Profile>('/profile/');
+    return await apiClient.get<Profile>('/profiles/me');
   }
 
   async updateProfile(profileData: ProfileUpdate): Promise<Profile> {
@@ -67,6 +67,10 @@ class ProfileService {
     return await apiClient.get<Profile[]>(endpoint);
   }
 
+  async parseResume(file: File): Promise<any> {
+    const response = await apiClient.uploadFile<any>('/ai/upload-and-parse-cv', file);
+    return response.data;
+  }
 }
 
 export const profileService = new ProfileService();

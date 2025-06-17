@@ -6,7 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { FeatureProvider } from "@/hooks/use-features";
-import { AuthProvider } from "@/hooks/use-auth";
+import AuthProvider from "@/hooks/use-auth";
 import { UserProfileProvider } from "@/hooks/use-user-profile";
 import { CareerPathsProvider } from "@/hooks/use-career-paths";
 

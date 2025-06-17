@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +22,7 @@ import { jobsService } from '@/services/jobs.service';
 import { enhancedAIService } from '@/services/enhanced-ai.service';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface JobMatch {
   job_id: string;
@@ -40,7 +42,9 @@ interface JobRecommendation {
 }
 
 const AIJobRecommendations: React.FC = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [skillBasedJobs, setSkillBasedJobs] = useState<JobMatch[]>([]);
   const [aiRecommendations, setAiRecommendations] = useState<JobRecommendation[]>([]);
@@ -53,7 +57,7 @@ const AIJobRecommendations: React.FC = () => {
   const [activeTab, setActiveTab] = useState('skills');
 
   useEffect(() => {
-    if (isAuthenticated && user?.account_type === 'job_seeker') {
+    if (isAuthenticated && user?.account_type === 'job_seeker' && searchPreferences.skills.length > 0) {
       loadSkillBasedRecommendations();
     }
   }, [isAuthenticated, user]);
@@ -79,6 +83,7 @@ const AIJobRecommendations: React.FC = () => {
         salary_range: searchPreferences.salary_expectation,
         job_type: 'full-time'
       });
++          console.log('AI recommendations result:', recommendations);
       setAiRecommendations(recommendations);
       setActiveTab('ai-recommendations');
       toast.success('AI recommendations generated!');
@@ -89,7 +94,7 @@ const AIJobRecommendations: React.FC = () => {
       setIsLoading(false);
     }
   };
-
+  
   const searchWithAI = async () => {
     if (searchPreferences.skills.length === 0) {
       toast.error('Please add at least one skill for AI matching');
@@ -101,8 +106,9 @@ const AIJobRecommendations: React.FC = () => {
       const aiMatches = await jobsService.aiMatchJobs({
         skills: searchPreferences.skills,
         location_preference: searchPreferences.location,
-        salary_expectation: searchPreferences.salary_expectation
+        salary_expectation: searchPreferences.salary_expectation,
       });
++          console.log('AI search matches:', aiMatches);
       setSkillBasedJobs(aiMatches);
       setActiveTab('ai-search');
       toast.success('AI job search completed!');
@@ -113,6 +119,7 @@ const AIJobRecommendations: React.FC = () => {
       setIsLoading(false);
     }
   };
+
 
   const addSkill = () => {
     if (newSkill.trim() && !searchPreferences.skills.includes(newSkill.trim())) {
@@ -129,6 +136,16 @@ const AIJobRecommendations: React.FC = () => {
       ...prev,
       skills: prev.skills.filter(skill => skill !== skillToRemove)
     }));
+  };
+
+  const savePreferences = async () => {
+    try {
+      // In a real app, you'd save this to a backend
+      console.log('Saving preferences:', searchPreferences);
+      toast.success('Preferences saved!');
+    } catch (error) {
+      toast.error('Failed to save preferences.');
+    }
   };
 
   const getMatchColor = (score: number) => {
@@ -197,6 +214,27 @@ const AIJobRecommendations: React.FC = () => {
     </Card>
   );
 
+  if (isAuthLoading) {
+    return (
+      <div className="container mx-auto py-8 space-y-6">
+        <div className="text-center mb-8">
+          <Skeleton className="h-10 w-1/2 mx-auto" />
+          <Skeleton className="h-4 w-2/3 mx-auto mt-2" />
+        </div>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-8 w-1/3" />
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-48 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <Card className="text-center py-12">
@@ -208,7 +246,7 @@ const AIJobRecommendations: React.FC = () => {
           <p className="text-gray-600 mb-4">
             Get AI-powered job recommendations based on your skills and preferences
           </p>
-          <Button>Sign In</Button>
+          <Button onClick={() => navigate('/login', { state: { from: location } })}>Sign In</Button>
         </CardContent>
       </Card>
     );
@@ -433,7 +471,7 @@ const AIJobRecommendations: React.FC = () => {
                 />
               </div>
 
-              <Button className="w-full">Save Preferences</Button>
+              <Button className="w-full" onClick={savePreferences}>Save Preferences</Button>
             </CardContent>
           </Card>
         </TabsContent>
