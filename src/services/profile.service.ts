@@ -3,7 +3,7 @@ import { Profile, ProfileUpdate } from '../types/api';
 
 class ProfileService {
   async getProfile(): Promise<Profile> {
-    return await apiClient.get<Profile>('/profiles/me');
+    return await apiClient.get<Profile>('/profile/');
   }
 
   async updateProfile(profileData: ProfileUpdate): Promise<Profile> {

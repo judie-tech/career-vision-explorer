@@ -1,4 +1,3 @@
-
 import { useState, createContext, useContext, ReactNode, useEffect } from 'react';
 import { useAuth } from './use-auth';
 import { toast } from "@/components/ui/sonner";
