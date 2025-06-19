@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -9,8 +9,11 @@ import { useJobApplications } from "@/hooks/use-job-applications";
 import { JobHeader } from "@/components/jobs/JobHeader";
 import { JobActions } from "@/components/jobs/JobActions";
 import { JobDetailsContent } from "@/components/jobs/JobDetailsContent";
+import { JobDetailsView } from "@/components/jobs/JobDetailsView";
 import { CompanyInfoCard } from "@/components/jobs/CompanyInfoCard";
 import { JobNotFound } from "@/components/jobs/JobNotFound";
+import { jobsService } from "@/services/jobs.service";
+import { useAuth } from "@/hooks/use-auth";
 
 // Mock job data - in a real app this would come from an API
 const mockJobDetails = {
@@ -228,10 +231,43 @@ const JobDetails = () => {
   const [isSaved, setIsSaved] = useState(false);
   
   const { getApplicationForJob } = useJobApplications();
-  
-  const job = id ? mockJobDetails[id as keyof typeof mockJobDetails] : null;
-  
-  if (!job) {
+  const { isAdmin, isEmployer, isJobSeeker } = useAuth();
+
+  const [job, setJob] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!id) {
+      setError("Invalid job ID");
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    jobsService.getJobById(id)
+      .then(fetchedJob => {
+        // Convert requirements, responsibilities, benefits from string to array if needed
+        if (fetchedJob) {
+          (fetchedJob as any).requirements = typeof fetchedJob.requirements === 'string' ? fetchedJob.requirements.split(/\r?\n|,/) : [];
+          (fetchedJob as any).responsibilities = (fetchedJob as any).responsibilities || [];
+          (fetchedJob as any).benefits = (fetchedJob as any).benefits || [];
+        }
+        setJob(fetchedJob);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError("Job not found");
+        setLoading(false);
+      });
+  }, [id]);
+
+  if (loading) {
+    return <Layout><div>Loading...</div></Layout>;
+  }
+
+  if (error || !job) {
     return (
       <Layout>
         <JobNotFound />
@@ -249,6 +285,10 @@ const JobDetails = () => {
     setIsSaved(!isSaved);
     toast.success(isSaved ? "Job removed from saved jobs" : "Job saved successfully");
   };
+
+  const handleJobUpdate = (updatedJob: any) => {
+    setJob(updatedJob);
+  };
   
   return (
     <Layout>
@@ -256,9 +296,9 @@ const JobDetails = () => {
         <div className="container py-8">
           {/* Back Button */}
           <div className="mb-8">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/jobs')} 
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/jobs')}
               className="mb-4"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -270,25 +310,29 @@ const JobDetails = () => {
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-8">
               <JobHeader job={job} />
-              <JobDetailsContent job={job} />
+              { (isAdmin() || isEmployer()) ? (
+                <JobDetailsContent job={job} onUpdate={handleJobUpdate} />
+              ) : (
+                <JobDetailsView job={job} />
+              )}
             </div>
             
             {/* Sidebar */}
             <div className="space-y-8">
-              <JobActions 
+              <JobActions
                 job={job}
                 isApplied={isApplied}
                 isSaved={isSaved}
                 onApply={handleApply}
                 onSave={handleSave}
               />
-              <CompanyInfoCard 
+              <CompanyInfoCard
                 company={{
                   name: job.company,
-                  size: job.companyInfo.size,
-                  industry: job.companyInfo.industry,
-                  founded: job.companyInfo.founded,
-                  website: job.companyInfo.website
+                  size: job.companyInfo?.size || "N/A",
+                  industry: job.companyInfo?.industry || "N/A",
+                  founded: job.companyInfo?.founded || "N/A",
+                  website: job.companyInfo?.website || "#"
                 }}
               />
             </div>

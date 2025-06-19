@@ -11,6 +11,8 @@ export interface Job {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  application_count?: number;
+  posted_by_company?: string;
   // Enhanced fields
   job_type?: 'Full-time' | 'Part-time' | 'Contract' | 'Internship' | 'Remote';
   experience_level?: 'Entry Level' | 'Mid Level' | 'Senior Level' | 'Executive';
@@ -28,7 +30,7 @@ export interface Job {
 export interface JobCreate {
   title: string;
   company: string;
-  requirements: string;
+  requirements: string[];
   location: string;
   salary_range?: string;
   job_type?: 'Full-time' | 'Part-time' | 'Contract' | 'Internship' | 'Remote';

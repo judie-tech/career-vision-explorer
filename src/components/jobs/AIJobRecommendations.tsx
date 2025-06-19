@@ -23,6 +23,14 @@ import { enhancedAIService } from '@/services/enhanced-ai.service';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface JobMatch {
   job_id: string;
@@ -202,7 +210,7 @@ const AIJobRecommendations: React.FC = () => {
         )}
         
         <div className="flex gap-2">
-          <Button size="sm" className="flex-1">
+          <Button size="sm" className="flex-1" onClick={() => handleViewDetails(job)}>
             <ExternalLink className="h-4 w-4 mr-2" />
             View Details
           </Button>
@@ -213,6 +221,14 @@ const AIJobRecommendations: React.FC = () => {
       </CardContent>
     </Card>
   );
+
+  const [selectedJob, setSelectedJob] = React.useState<JobMatch | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = React.useState(false);
+
+  const handleViewDetails = (job: JobMatch) => {
+    setSelectedJob(job);
+    setIsViewDialogOpen(true);
+  };
 
   if (isAuthLoading) {
     return (
@@ -477,6 +493,64 @@ const AIJobRecommendations: React.FC = () => {
         </TabsContent>
       </Tabs>
     </div>
+  );
+
+  return (
+    <>
+      <div className="container mx-auto py-8 space-y-6">
+        {/* ...existing content... */}
+      </div>
+
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedJob?.title}</DialogTitle>
+            <DialogDescription>
+              {selectedJob?.company} • {selectedJob?.location}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedJob && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-medium text-gray-900">Matched Skills</h3>
+                <ul className="list-disc list-inside space-y-1">
+                  {selectedJob.matched_skills.map((skill, idx) => (
+                    <li key={idx} className="text-gray-600">{skill}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-medium text-gray-900">Match Score</h3>
+                <p className="text-gray-600">{selectedJob.match_score}%</p>
+              </div>
+
+              <div>
+                <h3 className="font-medium text-gray-900">Location</h3>
+                <p className="text-gray-600">{selectedJob.location}</p>
+              </div>
+
+              <div>
+                <h3 className="font-medium text-gray-900">Salary Range</h3>
+                <p className="text-gray-600">{selectedJob.salary_range || "N/A"}</p>
+              </div>
+
+              <div>
+                <h3 className="font-medium text-gray-900">Posted Date</h3>
+                <p className="text-gray-600">{new Date(selectedJob.created_at).toLocaleDateString()}</p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

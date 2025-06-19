@@ -1,151 +1,214 @@
 
 import { create } from "zustand";
 import { toast } from "sonner";
+import { jobsService } from "../services/jobs.service";
+import { Job, JobCreate, JobUpdate } from "../types/api";
 
+// Define AdminJob UI type separately from API Job
 export interface AdminJob {
   id: string;
   title: string;
   company: string;
   location: string;
   postedDate: string;
-  status: "active" | "draft" | "expired";
+  status: "active" | "expired" | "draft";
   applications: number;
   description: string;
   requirements: string[];
   salary: string;
-  type: "full-time" | "part-time" | "contract" | "internship";
+  type: string;
   experience: string;
   department: string;
 }
+
+// Helper to convert API Job to AdminJob UI shape
+function toAdminJob(job: Job): AdminJob {
+  return {
+    id: job.job_id,
+    title: job.title,
+    company: job.company,
+    location: job.location,
+    postedDate: new Date(job.created_at).toISOString().split("T")[0],
+    status: job.is_active ? "active" : "expired",
+    applications: job.application_count ?? 0,
+    description: job.description ?? "",
+    requirements: job.requirements,
+    salary: job.salary_range ?? "",
+    type: job.job_type?.toLowerCase() || "full-time",
+    experience: job.experience_level ?? "",
+    department: job.posted_by_company ?? "",
+  };
+}
+
+function toAdminJobs(jobs: Job[]): AdminJob[] {
+  return jobs.map(toAdminJob);
+}
+
+// AdminJob UI shape
+export interface AdminJob {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  postedDate: string;
+  status: "active" | "expired" | "draft";
+  applications: number;
+  description: string;
+  requirements: string[];
+  salary: string;
+  type: string;
+  experience: string;
+  department: string;
+}
+
+// Convert API Job to UI AdminJob
+function toAdminJob(job: Job): AdminJob {
+  return {
+    id: job.job_id,
+    title: job.title,
+    company: job.company,
+    location: job.location,
+    postedDate: new Date(job.created_at).toISOString().split("T")[0],
+    status: job.is_active ? "active" : "expired",
+    applications: job.application_count ?? 0,
+    description: job.description ?? "",
+    requirements: job.requirements,
+    salary: job.salary_range ?? "",
+    type: job.job_type?.toLowerCase() || "full-time",
+    experience: job.experience_level ?? "",
+    department: job.posted_by_company ?? "",
+  };
+}
+
+function toAdminJobs(jobs: Job[]): AdminJob[] {
+  return jobs.map(toAdminJob);
+}
+
+// Helper to transform API Job into UI AdminJob shape
+function toAdminJob(job: Job): AdminJob {
+  return {
+    id: job.job_id,
+    title: job.title,
+    company: job.company,
+    location: job.location,
+    postedDate: new Date(job.created_at).toISOString().split("T")[0],
+    status: job.is_active ? "active" : "expired",
+    applications: job.application_count ?? 0,
+    description: job.description ?? "",
+    requirements: job.requirements.split(/\r?\n|,/),
+    salary: job.salary_range ?? "",
+    type: (job.job_type?.toLowerCase() as any) || "full-time",
+    experience: job.experience_level ?? "",
+    department: job.posted_by_company ?? "",
+  };
+}
+
+function toAdminJobs(jobs: Job[]): AdminJob[] {
+  return jobs.map(toAdminJob);
+}
+
+export interface AdminJob extends Job {}
 
 interface AdminJobsStore {
   jobs: AdminJob[];
   filteredJobs: AdminJob[];
   searchQuery: string;
   statusFilter: string;
-  addJob: (job: Omit<AdminJob, "id" | "postedDate" | "applications">) => void;
-  updateJob: (id: string, job: Partial<AdminJob>) => void;
-  deleteJob: (id: string) => void;
+  loading: boolean;
+  error: string | null;
+  fetchJobs: () => Promise<void>;
+  addJob: (job: JobCreate) => Promise<void>;
+  updateJob: (id: string, job: JobUpdate) => Promise<void>;
+  deleteJob: (id: string) => Promise<void>;
   setSearchQuery: (query: string) => void;
   setStatusFilter: (status: string) => void;
   getJobById: (id: string) => AdminJob | undefined;
 }
 
-const initialJobs: AdminJob[] = [
-  {
-    id: "1",
-    title: "Senior Frontend Developer",
-    company: "TechCorp Inc.",
-    location: "San Francisco, CA",
-    postedDate: "2023-05-12",
-    status: "active",
-    applications: 24,
-    description: "We are looking for a Senior Frontend Developer with React experience to join our team. You'll be working on our flagship product and collaborating with designers and backend engineers.",
-    requirements: ["5+ years React experience", "TypeScript proficiency", "Modern CSS frameworks", "Testing experience"],
-    salary: "$120,000 - $150,000",
-    type: "full-time",
-    experience: "Senior",
-    department: "Engineering"
-  },
-  {
-    id: "2", 
-    title: "Product Manager",
-    company: "InnovateSoft",
-    location: "New York, NY",
-    postedDate: "2023-05-10",
-    status: "active",
-    applications: 18,
-    description: "InnovateSoft is seeking a Product Manager to lead our product development initiatives. The ideal candidate has 5+ years of experience in SaaS products.",
-    requirements: ["Product management experience", "Agile methodologies", "Stakeholder management", "Data analysis skills"],
-    salary: "$100,000 - $130,000",
-    type: "full-time",
-    experience: "Mid-Senior",
-    department: "Product"
-  },
-  {
-    id: "3",
-    title: "Data Scientist",
-    company: "DataViz Analytics", 
-    location: "Remote",
-    postedDate: "2023-05-08",
-    status: "draft",
-    applications: 0,
-    description: "Join our data science team to work on cutting-edge machine learning models. We're looking for someone with a strong background in statistics and Python programming.",
-    requirements: ["Python/R proficiency", "Machine learning experience", "Statistical analysis", "Data visualization"],
-    salary: "$110,000 - $140,000",
-    type: "full-time",
-    experience: "Mid-Senior",
-    department: "Data"
-  },
-  {
-    id: "4",
-    title: "UX Designer",
-    company: "CreativeMinds",
-    location: "Chicago, IL", 
-    postedDate: "2023-04-15",
-    status: "expired",
-    applications: 32,
-    description: "As a UX Designer at CreativeMinds, you'll be responsible for creating intuitive and engaging user experiences for our clients across various industries.",
-    requirements: ["Design portfolio", "Figma/Sketch proficiency", "User research experience", "Prototyping skills"],
-    salary: "$80,000 - $100,000",
-    type: "full-time",
-    experience: "Mid-Level",
-    department: "Design"
-  }
-];
-
 export const useAdminJobs = create<AdminJobsStore>((set, get) => ({
-  jobs: initialJobs,
-  filteredJobs: initialJobs,
+  jobs: [],
+  filteredJobs: [],
   searchQuery: "",
   statusFilter: "all",
+  loading: false,
+  error: null,
 
-  addJob: (jobData) => {
-    const newJob: AdminJob = {
-      ...jobData,
-      id: crypto.randomUUID(),
-      postedDate: new Date().toISOString().split('T')[0],
-      applications: 0,
-    };
-
-    set((state) => {
-      const newJobs = [...state.jobs, newJob];
-      return {
-        jobs: newJobs,
-        filteredJobs: filterJobs(newJobs, state.searchQuery, state.statusFilter),
-      };
-    });
-
-    toast.success(`Job "${jobData.title}" has been created successfully`);
+  fetchJobs: async () => {
+    set({ loading: true, error: null });
+    try {
+      const jobs = await jobsService.getMyJobs(true);
+      set((state) => ({
+        jobs,
+        filteredJobs: filterJobs(jobs, state.searchQuery, state.statusFilter),
+        loading: false,
+        error: null,
+      }));
+    } catch (error: any) {
+      set({ loading: false, error: error?.message || "Failed to fetch jobs" });
+      toast.error("Failed to fetch jobs");
+    }
   },
 
-  updateJob: (id, updates) => {
-    set((state) => {
-      const newJobs = state.jobs.map(job => 
-        job.id === id ? { ...job, ...updates } : job
-      );
-      return {
-        jobs: newJobs,
-        filteredJobs: filterJobs(newJobs, state.searchQuery, state.statusFilter),
-      };
-    });
-
-    const job = get().jobs.find(j => j.id === id);
-    toast.success(`Job "${job?.title}" has been updated successfully`);
+  addJob: async (jobData) => {
+    set({ loading: true, error: null });
+    try {
+      const newJob = await jobsService.createJob(jobData);
+      set((state) => {
+        const newJobs = [...state.jobs, newJob];
+        return {
+          jobs: newJobs,
+          filteredJobs: filterJobs(newJobs, state.searchQuery, state.statusFilter),
+          loading: false,
+          error: null,
+        };
+      });
+      toast.success(`Job "${jobData.title}" has been created successfully`);
+    } catch (error: any) {
+      set({ loading: false, error: error?.message || "Failed to create job" });
+      toast.error("Failed to create job");
+    }
   },
 
-  deleteJob: (id) => {
-    const job = get().jobs.find(j => j.id === id);
-    
-    set((state) => {
-      const newJobs = state.jobs.filter(j => j.id !== id);
-      return {
-        jobs: newJobs,
-        filteredJobs: filterJobs(newJobs, state.searchQuery, state.statusFilter),
-      };
-    });
+  updateJob: async (id, updates) => {
+    set({ loading: true, error: null });
+    try {
+      const updatedJob = await jobsService.updateJob(id, updates);
+      set((state) => {
+        const newJobs = state.jobs.map(job =>
+          job.job_id === id ? updatedJob : job
+        );
+        return {
+          jobs: newJobs,
+          filteredJobs: filterJobs(newJobs, state.searchQuery, state.statusFilter),
+          loading: false,
+          error: null,
+        };
+      });
+      toast.success(`Job has been updated successfully`);
+    } catch (error: any) {
+      set({ loading: false, error: error?.message || "Failed to update job" });
+      toast.error("Failed to update job");
+    }
+  },
 
-    toast.success(`Job "${job?.title}" has been deleted successfully`);
+  deleteJob: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      await jobsService.deleteJob(id);
+      set((state) => {
+        const newJobs = state.jobs.filter(j => j.job_id !== id);
+        return {
+          jobs: newJobs,
+          filteredJobs: filterJobs(newJobs, state.searchQuery, state.statusFilter),
+          loading: false,
+          error: null,
+        };
+      });
+      toast.success(`Job has been deleted successfully`);
+    } catch (error: any) {
+      set({ loading: false, error: error?.message || "Failed to delete job" });
+      toast.error("Failed to delete job");
+    }
   },
 
   setSearchQuery: (query) => {
@@ -163,18 +226,21 @@ export const useAdminJobs = create<AdminJobsStore>((set, get) => ({
   },
 
   getJobById: (id) => {
-    return get().jobs.find(job => job.id === id);
+    return get().jobs.find(job => job.job_id === id);
   },
 }));
 
 function filterJobs(jobs: AdminJob[], searchQuery: string, statusFilter: string): AdminJob[] {
   return jobs.filter(job => {
-    const matchesSearch = searchQuery === "" || 
+    const matchesSearch = searchQuery === "" ||
       job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.location.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesStatus = statusFilter === "all" || job.status === statusFilter;
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "active" && job.is_active) ||
+      (statusFilter === "inactive" && !job.is_active);
 
     return matchesSearch && matchesStatus;
   });
