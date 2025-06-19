@@ -79,8 +79,13 @@ class EnhancedAIService {
     match_score: number;
     reasons: string[];
   }>> {
-    const response = await apiClient.post<JobRecommendationResponse>('/ai/job-recommendations', preferences);
-    return response.recommended_jobs;
+    try {
+      const response = await apiClient.post<any[]>('/ai/job-recommendations', preferences);
+      return response || [];
+    } catch (error) {
+      console.error('Error fetching job recommendations:', error);
+      return [];
+    }
   }
 
   // Get personalized skill recommendations for career growth

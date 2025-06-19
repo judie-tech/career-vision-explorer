@@ -32,6 +32,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
+import { Job } from '@/types/api';
+
 interface JobMatch {
   job_id: string;
   title: string;
@@ -43,19 +45,19 @@ interface JobMatch {
   created_at: string;
 }
 
-interface JobRecommendation {
-  job_id: string;
-  match_score: number;
+interface JobRecommendation extends Job {
   reasons: string[];
+  match_score: number;
 }
 
 const AIJobRecommendations: React.FC = () => {
-  const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const { user, profile, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [skillBasedJobs, setSkillBasedJobs] = useState<JobMatch[]>([]);
   const [aiRecommendations, setAiRecommendations] = useState<JobRecommendation[]>([]);
+  const [aiSearchResults, setAiSearchResults] = useState<JobMatch[]>([]);
   const [searchPreferences, setSearchPreferences] = useState({
     location: '',
     salary_expectation: '',
@@ -65,10 +67,18 @@ const AIJobRecommendations: React.FC = () => {
   const [activeTab, setActiveTab] = useState('skills');
 
   useEffect(() => {
-    if (isAuthenticated && user?.account_type === 'job_seeker' && searchPreferences.skills.length > 0) {
+    if (isAuthenticated && user?.account_type === 'job_seeker') {
       loadSkillBasedRecommendations();
+      if (profile) {
+        setSearchPreferences(prev => ({
+          ...prev,
+          location: profile.location || '',
+          salary_expectation: profile.salary_expectation || '',
+          skills: profile.skills || [],
+        }));
+      }
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, profile]);
 
   const loadSkillBasedRecommendations = async () => {
     try {
@@ -87,17 +97,34 @@ const AIJobRecommendations: React.FC = () => {
     try {
       setIsLoading(true);
       const recommendations = await enhancedAIService.getJobRecommendations({
-        location: searchPreferences.location,
-        salary_range: searchPreferences.salary_expectation,
+        location: searchPreferences.location || profile?.location,
+        salary_range: searchPreferences.salary_expectation || profile?.salary_expectation,
         job_type: 'full-time'
       });
-+          console.log('AI recommendations result:', recommendations);
-      setAiRecommendations(recommendations);
+      const recommendationPromises = recommendations.map(async (rec) => {
+        try {
+          const jobDetails = await jobsService.getJobById(rec.job_id);
+          return { ...jobDetails, ...rec };
+        } catch (error) {
+          console.error(`Failed to fetch details for job ${rec.job_id}:`, error);
+          return null;
+        }
+      });
+
+      const detailedRecommendations = (await Promise.all(recommendationPromises))
+        .filter((rec): rec is JobRecommendation => rec !== null);
+
+      if (detailedRecommendations.length < recommendations.length) {
+        toast.warning('Some recommended jobs could not be loaded.');
+      }
+      
+      setAiRecommendations(detailedRecommendations);
+      console.log('AI Recommendations set:', detailedRecommendations);
       setActiveTab('ai-recommendations');
       toast.success('AI recommendations generated!');
     } catch (error) {
-      console.error('Failed to get AI recommendations:', error);
-      toast.error('Failed to generate AI recommendations');
+      console.error('Failed to get AI recommendations:', (error as Error).message);
+      toast.error('Failed to generate AI recommendations. Please check the console for more details.');
     } finally {
       setIsLoading(false);
     }
@@ -116,8 +143,7 @@ const AIJobRecommendations: React.FC = () => {
         location_preference: searchPreferences.location,
         salary_expectation: searchPreferences.salary_expectation,
       });
-+          console.log('AI search matches:', aiMatches);
-      setSkillBasedJobs(aiMatches);
+      setAiSearchResults(aiMatches);
       setActiveTab('ai-search');
       toast.success('AI job search completed!');
     } catch (error) {
@@ -149,7 +175,6 @@ const AIJobRecommendations: React.FC = () => {
   const savePreferences = async () => {
     try {
       // In a real app, you'd save this to a backend
-      console.log('Saving preferences:', searchPreferences);
       toast.success('Preferences saved!');
     } catch (error) {
       toast.error('Failed to save preferences.');
@@ -162,70 +187,74 @@ const AIJobRecommendations: React.FC = () => {
     return 'bg-red-500';
   };
 
-  const JobCard: React.FC<{ job: JobMatch }> = ({ job }) => (
-    <Card className="hover:shadow-lg transition-shadow duration-200">
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-lg font-semibold text-gray-900">
-              {job.title}
-            </CardTitle>
-            <CardDescription className="text-gray-600">
-              {job.company}
-            </CardDescription>
+  const JobCard: React.FC<{ job: JobMatch | JobRecommendation }> = ({ job }) => {
+    const skills = ('matched_skills' in job) ? job.matched_skills : (job as JobRecommendation).skills_required || [];
+    
+    return (
+      <Card className="hover:shadow-lg transition-shadow duration-200">
+        <CardHeader>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="text-lg font-semibold text-gray-900">
+                {job.title}
+              </CardTitle>
+              <CardDescription className="text-gray-600">
+                {job.company}
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${getMatchColor(job.match_score)}`} />
+              <span className="text-sm font-medium">{job.match_score}% match</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full ${getMatchColor(job.match_score)}`} />
-            <span className="text-sm font-medium">{job.match_score}% match</span>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center gap-4 text-sm text-gray-600">
-          <div className="flex items-center gap-1">
-            <MapPin className="h-4 w-4" />
-            <span>{job.location}</span>
-          </div>
-          {job.salary_range && (
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-1">
-              <DollarSign className="h-4 w-4" />
-              <span>{job.salary_range}</span>
+              <MapPin className="h-4 w-4" />
+              <span>{job.location}</span>
+            </div>
+            {job.salary_range && (
+              <div className="flex items-center gap-1">
+                <DollarSign className="h-4 w-4" />
+                <span>{job.salary_range}</span>
+              </div>
+            )}
+          </div>
+          
+          {skills.length > 0 && (
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                Matched Skills
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {skills.map((skill, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {skill}
+                  </Badge>
+                ))}
+              </div>
             </div>
           )}
-        </div>
-        
-        {job.matched_skills.length > 0 && (
-          <div>
-            <Label className="text-sm font-medium text-gray-700 mb-2 block">
-              Matched Skills
-            </Label>
-            <div className="flex flex-wrap gap-2">
-              {job.matched_skills.map((skill, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
-                  {skill}
-                </Badge>
-              ))}
-            </div>
+          
+          <div className="flex gap-2">
+            <Button size="sm" className="flex-1" onClick={() => handleViewDetails(job)}>
+              <ExternalLink className="h-4 w-4 mr-2" />
+              View Details
+            </Button>
+            <Button size="sm" variant="outline">
+              <Heart className="h-4 w-4" />
+            </Button>
           </div>
-        )}
-        
-        <div className="flex gap-2">
-          <Button size="sm" className="flex-1" onClick={() => handleViewDetails(job)}>
-            <ExternalLink className="h-4 w-4 mr-2" />
-            View Details
-          </Button>
-          <Button size="sm" variant="outline">
-            <Heart className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
+        </CardContent>
+      </Card>
+    );
+  };
 
-  const [selectedJob, setSelectedJob] = React.useState<JobMatch | null>(null);
+  const [selectedJob, setSelectedJob] = React.useState<JobMatch | JobRecommendation | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = React.useState(false);
 
-  const handleViewDetails = (job: JobMatch) => {
+  const handleViewDetails = (job: JobMatch | JobRecommendation) => {
     setSelectedJob(job);
     setIsViewDialogOpen(true);
   };
@@ -269,236 +298,221 @@ const AIJobRecommendations: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          AI Job Recommendations
-        </h1>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          Discover opportunities that match your skills with our advanced AI matching system
-        </p>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="skills">Skill-Based</TabsTrigger>
-          <TabsTrigger value="ai-search">AI Search</TabsTrigger>
-          <TabsTrigger value="ai-recommendations">AI Recommendations</TabsTrigger>
-          <TabsTrigger value="preferences">Preferences</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="skills" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Jobs Matching Your Skills
-              </CardTitle>
-              <CardDescription>
-                Based on skills in your profile
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                onClick={loadSkillBasedRecommendations} 
-                disabled={isLoading}
-                className="mb-4"
-              >
-                {isLoading ? 'Loading...' : 'Refresh Recommendations'}
-              </Button>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {skillBasedJobs.map((job) => (
-              <JobCard key={job.job_id} job={job} />
-            ))}
-          </div>
-
-          {skillBasedJobs.length === 0 && !isLoading && (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">No job matches found. Try updating your skills in your profile.</p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="ai-search" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5" />
-                AI-Powered Job Search
-              </CardTitle>
-              <CardDescription>
-                Search with custom skills and preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="location-pref">Location Preference</Label>
-                <Input
-                  id="location-pref"
-                  placeholder="e.g. New York, Remote, San Francisco"
-                  value={searchPreferences.location}
-                  onChange={(e) => setSearchPreferences(prev => ({ ...prev, location: e.target.value }))}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="salary-exp">Salary Expectation</Label>
-                <Input
-                  id="salary-exp"
-                  placeholder="e.g. $80k-$120k, $100k+"
-                  value={searchPreferences.salary_expectation}
-                  onChange={(e) => setSearchPreferences(prev => ({ ...prev, salary_expectation: e.target.value }))}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Skills</Label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Add a skill"
-                    value={newSkill}
-                    onChange={(e) => setNewSkill(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addSkill()}
-                  />
-                  <Button onClick={addSkill} variant="outline">Add</Button>
-                </div>
-                
-                {searchPreferences.skills.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {searchPreferences.skills.map((skill) => (
-                      <Badge
-                        key={skill}
-                        variant="secondary"
-                        className="cursor-pointer"
-                        onClick={() => removeSkill(skill)}
-                      >
-                        {skill} ×
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <Button 
-                onClick={searchWithAI} 
-                disabled={isLoading || searchPreferences.skills.length === 0}
-                className="w-full"
-              >
-                {isLoading ? 'Searching...' : 'Search with AI'}
-              </Button>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {skillBasedJobs.map((job) => (
-              <JobCard key={job.job_id} job={job} />
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="ai-recommendations" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Star className="h-5 w-5" />
-                Personalized AI Recommendations
-              </CardTitle>
-              <CardDescription>
-                Based on your profile and career goals
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                onClick={getAIRecommendations} 
-                disabled={isLoading}
-                className="mb-4"
-              >
-                {isLoading ? 'Generating...' : 'Generate AI Recommendations'}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {aiRecommendations.length > 0 && (
-            <div className="space-y-4">
-              {aiRecommendations.map((rec, index) => (
-                <Card key={rec.job_id}>
-                  <CardContent className="pt-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="font-semibold">Recommended Job #{index + 1}</h3>
-                        <p className="text-sm text-gray-600">Match Score: {rec.match_score}%</p>
-                      </div>
-                      <Badge variant="outline">{rec.match_score}% match</Badge>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Why this job is recommended:</Label>
-                      <ul className="text-sm text-gray-600 space-y-1">
-                        {rec.reasons.map((reason, idx) => (
-                          <li key={idx} className="flex items-start gap-2">
-                            <span className="text-blue-500">•</span>
-                            <span>{reason}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    <Button className="mt-4" size="sm">View Job Details</Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="preferences" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="h-5 w-5" />
-                Search Preferences
-              </CardTitle>
-              <CardDescription>
-                Customize your job search criteria
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label>Preferred Location</Label>
-                <Input
-                  placeholder="City, State or Remote"
-                  value={searchPreferences.location}
-                  onChange={(e) => setSearchPreferences(prev => ({ ...prev, location: e.target.value }))}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Salary Expectation</Label>
-                <Input
-                  placeholder="e.g. $80,000 - $120,000"
-                  value={searchPreferences.salary_expectation}
-                  onChange={(e) => setSearchPreferences(prev => ({ ...prev, salary_expectation: e.target.value }))}
-                />
-              </div>
-
-              <Button className="w-full" onClick={savePreferences}>Save Preferences</Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-
-  return (
     <>
       <div className="container mx-auto py-8 space-y-6">
-        {/* ...existing content... */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            AI Job Recommendations
+          </h1>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Discover opportunities that match your skills with our advanced AI matching system
+          </p>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="skills">Skill-Based</TabsTrigger>
+            <TabsTrigger value="ai-search">AI Search</TabsTrigger>
+            <TabsTrigger value="ai-recommendations">AI Recommendations</TabsTrigger>
+            <TabsTrigger value="preferences">Preferences</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="skills" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Jobs Matching Your Skills
+                </CardTitle>
+                <CardDescription>
+                  Based on skills in your profile
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  onClick={loadSkillBasedRecommendations}
+                  disabled={isLoading}
+                  className="mb-4"
+                >
+                  {isLoading ? 'Loading...' : 'Refresh Recommendations'}
+                </Button>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {skillBasedJobs.map((job) => (
+                <JobCard key={job.job_id} job={job} />
+              ))}
+            </div>
+
+            {skillBasedJobs.length === 0 && !isLoading && (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">No job matches found. Try updating your skills in your profile.</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="ai-search" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5" />
+                  AI-Powered Job Search
+                </CardTitle>
+                <CardDescription>
+                  Search with custom skills and preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="location-pref">Location Preference</Label>
+                  <Input
+                    id="location-pref"
+                    placeholder="e.g. New York, Remote, San Francisco"
+                    value={searchPreferences.location}
+                    onChange={(e) => setSearchPreferences(prev => ({ ...prev, location: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="salary-exp">Salary Expectation</Label>
+                  <Input
+                    id="salary-exp"
+                    placeholder="e.g. $80k-$120k, $100k+"
+                    value={searchPreferences.salary_expectation}
+                    onChange={(e) => setSearchPreferences(prev => ({ ...prev, salary_expectation: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Skills</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add a skill"
+                      value={newSkill}
+                      onChange={(e) => setNewSkill(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && addSkill()}
+                    />
+                    <Button onClick={addSkill} variant="outline">Add</Button>
+                  </div>
+                  
+                  {searchPreferences.skills.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {searchPreferences.skills.map((skill) => (
+                        <Badge
+                          key={skill}
+                          variant="secondary"
+                          className="cursor-pointer"
+                          onClick={() => removeSkill(skill)}
+                        >
+                          {skill} ×
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <Button
+                  onClick={searchWithAI}
+                  disabled={isLoading || searchPreferences.skills.length === 0}
+                  className="w-full"
+                >
+                  {isLoading ? 'Searching...' : 'Search with AI'}
+                </Button>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {aiSearchResults.map((job) => (
+                <JobCard key={job.job_id} job={job} />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="ai-recommendations" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5" />
+                  Personalized AI Recommendations
+                </CardTitle>
+                <CardDescription>
+                  Based on your profile and career goals
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  onClick={getAIRecommendations}
+                  disabled={isLoading}
+                  className="mb-4"
+                >
+                  {isLoading ? 'Generating...' : 'Generate AI Recommendations'}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {aiRecommendations.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {aiRecommendations.map((job) => (
+                  <JobCard key={job.job_id} job={job} />
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Sparkles className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">
+                    No AI recommendations found at the moment.
+                  </p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Try updating your profile with more skills for better matches.
+                  </p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    If your profile is complete and you still see no recommendations, the AI service may need review.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="preferences" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Filter className="h-5 w-5" />
+                  Search Preferences
+                </CardTitle>
+                <CardDescription>
+                  Customize your job search criteria
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label>Preferred Location</Label>
+                  <Input
+                    placeholder="City, State or Remote"
+                    value={searchPreferences.location}
+                    onChange={(e) => setSearchPreferences(prev => ({ ...prev, location: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Salary Expectation</Label>
+                  <Input
+                    placeholder="e.g. $80,000 - $120,000"
+                    value={searchPreferences.salary_expectation}
+                    onChange={(e) => setSearchPreferences(prev => ({ ...prev, salary_expectation: e.target.value }))}
+                  />
+                </div>
+
+                <Button className="w-full" onClick={savePreferences}>Save Preferences</Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
@@ -515,7 +529,7 @@ const AIJobRecommendations: React.FC = () => {
               <div>
                 <h3 className="font-medium text-gray-900">Matched Skills</h3>
                 <ul className="list-disc list-inside space-y-1">
-                  {selectedJob.matched_skills.map((skill, idx) => (
+                  {(selectedJob && (('matched_skills' in selectedJob) ? selectedJob.matched_skills : (selectedJob as JobRecommendation).skills_required || [])).map((skill, idx) => (
                     <li key={idx} className="text-gray-600">{skill}</li>
                   ))}
                 </ul>

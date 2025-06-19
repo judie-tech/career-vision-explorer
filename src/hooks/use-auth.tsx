@@ -86,10 +86,8 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         setProfile(userProfile);
       } catch (refreshError) {
         console.error('Error refreshing token and loading profile:', refreshError);
-        // Don't log out, as this causes a login loop.
-        // The user is authenticated, but their profile data is unavailable.
-        // The UI should handle a null profile gracefully.
-        setProfile(null);
+        // If refresh fails, the session is invalid, so log out
+        await logout();
       }
     }
   };
