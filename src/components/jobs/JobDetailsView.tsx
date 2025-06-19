@@ -25,7 +25,7 @@ export const JobDetailsView = ({ job }: JobDetailsViewProps) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-md shadow-inner">
           <div>
             <label className="block font-semibold mb-1">Job ID</label>
-            <p>{fallbackText(job.id)}</p>
+            <p>{fallbackText(job.job_id)}</p>
           </div>
           <div>
             <label className="block font-semibold mb-1">Title</label>
@@ -86,7 +86,7 @@ export const JobDetailsView = ({ job }: JobDetailsViewProps) => {
         {/* Description */}
         <div className="bg-gray-50 p-6 rounded-md shadow-inner">
           <label className="block font-semibold mb-1">Description</label>
-          <p>{fallbackText(job.description)}</p>
+          <p>{job.description ? job.description : "N/A"}</p>
         </div>
 
         {/* Skills Required */}
@@ -106,9 +106,9 @@ export const JobDetailsView = ({ job }: JobDetailsViewProps) => {
         {/* Requirements */}
         <div className="bg-gray-50 p-6 rounded-md shadow-inner">
           <label className="block font-semibold mb-1">Requirements</label>
-          {job.requirements?.length ? (
+          {job.requirements ? (
             <ul className="list-disc list-inside">
-              {job.requirements.map((req: string, index: number) => (
+              {(typeof job.requirements === "string" ? job.requirements.split(/\r?\n|,/) : job.requirements).map((req: string, index: number) => (
                 <li key={index}>{req}</li>
               ))}
             </ul>

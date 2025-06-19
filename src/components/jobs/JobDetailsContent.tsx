@@ -19,50 +19,50 @@ interface JobDetailsContentProps {
 
 export const JobDetailsContent = ({ job, onUpdate }: JobDetailsContentProps) => {
  const [formData, setFormData] = useState<any>({
-   job_id: job.id || "",
+   job_id: job.job_id || "",
    title: job.title || "",
    company: job.company || "",
-   requirements: job.requirements || [],
+   requirements: job.requirements || "",
    location: job.location || "",
-   salary_range: job.salary || "",
+   salary_range: job.salary_range || "",
    posted_by: job.posted_by || "",
    is_active: job.is_active ?? true,
    created_at: job.created_at || "",
    updated_at: job.updated_at || "",
-   job_type: job.type || "",
-   experience_level: job.experienceLevel || "",
-   skills_required: job.skills || [],
+   job_type: job.job_type || "",
+   experience_level: job.experience_level || "",
+   skills_required: job.skills_required || [],
    description: job.description || "",
    benefits: job.benefits || [],
    application_deadline: job.application_deadline || "",
    remote_friendly: job.remote_friendly ?? false,
-   match_score: job.matchScore || 0,
+   match_score: job.match_score || 0,
    responsibilities: job.responsibilities || [],
-   company_info: job.companyInfo || {},
+   company_info: job.company_info || {},
  });
 
  useEffect(() => {
    setFormData({
-     job_id: job.id || "",
+     job_id: job.job_id || "",
      title: job.title || "",
      company: job.company || "",
-     requirements: job.requirements || [],
+     requirements: job.requirements || "",
      location: job.location || "",
-     salary_range: job.salary || "",
+     salary_range: job.salary_range || "",
      posted_by: job.posted_by || "",
      is_active: job.is_active ?? true,
      created_at: job.created_at || "",
      updated_at: job.updated_at || "",
-     job_type: job.type || "",
-     experience_level: job.experienceLevel || "",
-     skills_required: job.skills || [],
+     job_type: job.job_type || "",
+     experience_level: job.experience_level || "",
+     skills_required: job.skills_required || [],
      description: job.description || "",
      benefits: job.benefits || [],
      application_deadline: job.application_deadline || "",
      remote_friendly: job.remote_friendly ?? false,
-     match_score: job.matchScore || 0,
+     match_score: job.match_score || 0,
      responsibilities: job.responsibilities || [],
-     company_info: job.companyInfo || {},
+     company_info: job.company_info || {},
    });
  }, [job]);
 
@@ -274,16 +274,11 @@ export const JobDetailsContent = ({ job, onUpdate }: JobDetailsContentProps) => 
        {/* Requirements */}
        <div>
          <label className="block font-semibold mb-1">Requirements</label>
-         {formData.requirements.map((req: string, index: number) => (
-           <div key={index} className="flex items-center space-x-2 mb-2">
-             <Input
-               value={req}
-               onChange={(e) => handleArrayChange("requirements", index, e.target.value)}
-             />
-             <Button variant="destructive" onClick={() => handleRemoveArrayItem("requirements", index)}>Remove</Button>
-           </div>
-         ))}
-         <Button onClick={() => handleAddArrayItem("requirements")}>Add Requirement</Button>
+         <Textarea
+           value={formData.requirements}
+           onChange={(e) => handleInputChange("requirements", e.target.value)}
+           rows={4}
+         />
        </div>
 
        {/* Responsibilities */}
