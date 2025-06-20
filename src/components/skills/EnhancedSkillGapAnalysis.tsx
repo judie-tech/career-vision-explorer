@@ -343,11 +343,17 @@ const EnhancedSkillGapAnalysis: React.FC = () => {
                               {index + 1}
                             </div>
                             <div className="flex-1">
-                              <h4 className="font-medium text-gray-900">{step.title || 'Learning Step'}</h4>
-                              <p className="text-gray-600 text-sm mt-1">{step.description || 'Recommended learning activity'}</p>
-                              {step.estimated_duration && (
+                              <h4 className="font-medium text-gray-900">{step.skill || 'Learning Step'}</h4>
+                              <p className="text-gray-600 text-sm mt-1">
+                                {`Priority: ${step.priority || 'N/A'}. Resources: ${
+                                  step.resources && step.resources.length > 0
+                                    ? step.resources.map((r: any) => r.name || r.type).join(', ')
+                                    : 'Recommended learning activity'
+                                }`}
+                              </p>
+                              {step.timeline && (
                                 <Badge variant="outline" className="mt-2">
-                                  {step.estimated_duration}
+                                  {step.timeline}
                                 </Badge>
                               )}
                             </div>
