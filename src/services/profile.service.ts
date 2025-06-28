@@ -3,11 +3,11 @@ import { Profile, ProfileUpdate } from '../types/api';
 
 class ProfileService {
   async getProfile(): Promise<Profile> {
-    return await apiClient.get<Profile>('/profile/');
+    return await apiClient.get<Profile>('/profile');
   }
 
   async updateProfile(profileData: ProfileUpdate): Promise<Profile> {
-    return await apiClient.put<Profile>('/profile/', profileData);
+    return await apiClient.put<Profile>('/profile', profileData);
   }
 
   async getPublicProfile(userId: string): Promise<{
@@ -39,6 +39,10 @@ class ProfileService {
     return await apiClient.delete(`/profile/skills/${encodeURIComponent(skill)}`);
   }
 
+  async updateSkills(skills: string[]): Promise<{ message: string }> {
+    return await apiClient.put('/profile/skills', { skills });
+  }
+
   // Search profiles with filters
   async searchProfiles(params: {
     skills?: string[];
@@ -67,7 +71,7 @@ class ProfileService {
     return await apiClient.get<Profile[]>(endpoint);
   }
 
-  async parseResume(file: File): Promise<any> {
+  async uploadAndParseCv(file: File): Promise<any> {
     const response = await apiClient.uploadFile<any>('/ai/upload-and-parse-cv', file);
     return response.data;
   }

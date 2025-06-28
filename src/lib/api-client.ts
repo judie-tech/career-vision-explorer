@@ -35,7 +35,7 @@ class ApiClient {
     }
 
     if (token) {
-      (defaultHeaders as any).Authorization = `Bearer ${token}`;
+      defaultHeaders.Authorization = `Bearer ${this.getToken()}`;
     }
 
     const config: RequestInit = {

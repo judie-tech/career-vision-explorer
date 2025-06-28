@@ -3,20 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Heart, Share2, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
-
-interface JobActionsProps {
-  job: {
-    id: string;
-    salary: string;
-  };
-  isApplied: boolean;
-  isSaved: boolean;
-  onApply: () => void;
-  onSave: () => void;
-}
-
-export const JobActions = ({ job, isApplied, isSaved, onApply, onSave }: JobActionsProps) => {
-  const handleShare = () => {
+ 
+ interface JobActionsProps {
+   job: {
+     id: string;
+     salary: string;
+   };
+   isApplied: boolean;
+   isSaved: boolean;
+   onApply: () => void;
+   onSave: () => void;
+ }
+ 
+ export const JobActions = ({ job, isApplied, isSaved, onApply, onSave }: JobActionsProps) => {
+   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
     toast.success("Job link copied to clipboard");
   };

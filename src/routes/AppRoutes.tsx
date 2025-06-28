@@ -16,11 +16,12 @@ const NotFound = lazy(() => import("@/pages/NotFound"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const Skills = lazy(() => import("@/pages/Skills"));
 const CareerPaths = lazy(() => import("@/pages/CareerPaths"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
 
 // Lazy load admin pages
 const AdminLogin = lazy(() => import("@/pages/admin/AdminLogin"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
-const JobSeekerDashboard = lazy(() => import("@/pages/admin/JobSeekerDashboard"));
+const JobSeekerDashboard = lazy(() => import("@/pages/jobseeker/JobSeekerDashboard"));
 const AdminAPI = lazy(() => import("@/pages/admin/AdminAPI"));
 
 // Lazy load employer pages
@@ -313,6 +314,13 @@ export const AppRoutes = () => {
           <ProtectedRoute requiredRole="jobseeker">
             <Suspense fallback={<PageLoader />}>
               <JobSeekerSettings />
+            </Suspense>
+          </ProtectedRoute>
+        } />
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Suspense fallback={<PageLoader />}>
+              <Dashboard />
             </Suspense>
           </ProtectedRoute>
         } />

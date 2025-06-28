@@ -54,12 +54,7 @@ class ApplicationsService {
   }
 
   async reviewApplication(applicationId: string, status: 'Reviewed' | 'Accepted' | 'Rejected', notes?: string): Promise<Application> {
-    const params = new URLSearchParams();
-    params.append('status', status);
-    if (notes) {
-      params.append('notes', notes);
-    }
-    return await apiClient.post<Application>(`/applications/${applicationId}/review?${params.toString()}`);
+    return await apiClient.post<Application>(`/applications/${applicationId}/review`, { status, notes });
   }
 
   // Application analytics

@@ -1,6 +1,5 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -9,6 +8,7 @@ import { FeatureProvider } from "@/hooks/use-features";
 import AuthProvider from "@/hooks/use-auth";
 import { UserProfileProvider } from "@/hooks/use-user-profile";
 import { CareerPathsProvider } from "@/hooks/use-career-paths";
+import { JobApplicationsProvider } from "@/hooks/use-job-applications";
 
 // Optimize query client for faster loading
 const queryClient = new QueryClient({
@@ -24,9 +24,9 @@ const queryClient = new QueryClient({
 
 export const AppProviders = ({ children }: { children: React.ReactNode }) => {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <UserProfileProvider>
+    <AuthProvider>
+      <UserProfileProvider>
+        <JobApplicationsProvider>
           <QueryClientProvider client={queryClient}>
             <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
               <TooltipProvider>
@@ -40,8 +40,8 @@ export const AppProviders = ({ children }: { children: React.ReactNode }) => {
               </TooltipProvider>
             </ThemeProvider>
           </QueryClientProvider>
-        </UserProfileProvider>
-      </AuthProvider>
-    </BrowserRouter>
+        </JobApplicationsProvider>
+      </UserProfileProvider>
+    </AuthProvider>
   );
 };

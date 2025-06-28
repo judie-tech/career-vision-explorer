@@ -2,30 +2,35 @@
 import React from "react";
 import { Briefcase, Eye, Calendar, Star } from "lucide-react";
 import { StatCard } from "./StatCard";
+import { useJobApplications } from "@/hooks/use-job-applications";
+import { useProfile } from "@/hooks/use-user-profile";
 
 export const QuickStatsCards = () => {
+  const { applications, isLoading: applicationsLoading } = useJobApplications();
+  const { profile, isLoading: profileLoading } = useProfile();
+
   const stats = [
     {
       icon: Briefcase,
-      value: "12",
+      value: applicationsLoading ? "..." : applications.length.toString(),
       label: "Applications",
       gradient: "from-blue-500 to-blue-600"
     },
     {
       icon: Eye,
-      value: "3",
+      value: "0", // Placeholder for now
       label: "Profile Views",
       gradient: "from-green-500 to-green-600"
     },
     {
       icon: Calendar,
-      value: "2",
+      value: "0", // Placeholder for now
       label: "Interviews",
       gradient: "from-purple-500 to-purple-600"
     },
     {
       icon: Star,
-      value: "85%",
+      value: profileLoading ? "..." : `${profile?.profile_completeness || 0}%`,
       label: "Profile Score",
       gradient: "from-orange-500 to-orange-600"
     }

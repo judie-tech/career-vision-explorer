@@ -2,7 +2,7 @@ import { apiClient } from '../lib/api-client';
 import { Job, JobCreate, JobUpdate, PaginatedResponse } from '../types/api';
 
 export interface JobSearchParams {
-  search?: string;
+  title?: string;
   company?: string;
   location?: string;
   salary_range?: string;
@@ -48,9 +48,8 @@ class JobsService {
     return await apiClient.delete<{ message: string }>(`/jobs/${jobId}`);
   }
 
-  async getMyJobs(includeInactive: boolean = false): Promise<Job[]> {
-    const params = includeInactive ? '?include_inactive=true' : '';
-    return await apiClient.get<Job[]>(`/jobs/my-jobs${params}`);
+  async getMyJobs(): Promise<Job[]> {
+    return await apiClient.get<Job[]>(`/jobs/my-jobs`);
   }
 
   async activateJob(jobId: string): Promise<Job> {
@@ -114,16 +113,7 @@ class JobsService {
     matched_skills: string[];
     created_at: string;
   }>> {
-    const queryParams = new URLSearchParams();
-    params.skills.forEach(skill => queryParams.append('skills', skill));
-    if (params.location_preference) {
-      queryParams.append('location_preference', params.location_preference);
-    }
-    if (params.salary_expectation) {
-      queryParams.append('salary_expectation', params.salary_expectation);
-    }
-    
-    return await apiClient.post(`/jobs/ai-match?${queryParams.toString()}`);
+    return await apiClient.post(`/jobs/ai-match`, params);
   }
 
   // Get employer dashboard data

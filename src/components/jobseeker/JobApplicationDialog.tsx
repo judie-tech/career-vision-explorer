@@ -7,6 +7,8 @@ import { JobSummaryCard } from "./application/JobSummaryCard";
 import { CoverLetterSection } from "./application/CoverLetterSection";
 import { ResumeUploadSection } from "./application/ResumeUploadSection";
 import { ApplicationActions } from "./application/ApplicationActions";
+import { applicationsService } from "@/services";
+import { ApplicationCreate } from "@/types/api";
 
 interface JobApplicationDialogProps {
   job: any;
@@ -18,7 +20,7 @@ export const JobApplicationDialog = ({ job, open, onOpenChange }: JobApplication
   const [coverLetter, setCoverLetter] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { addApplication } = useJobApplications();
+  const { refetch } = useJobApplications();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,19 +29,20 @@ export const JobApplicationDialog = ({ job, open, onOpenChange }: JobApplication
     setIsSubmitting(true);
     
     try {
-      // Simulate upload delay for better UX
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const applicationData: ApplicationCreate = {
+        job_id: job.id,
+        cover_letter: coverLetter,
+      };
       
-      addApplication({
-        jobId: job.id,
-        jobTitle: job.title,
-        company: job.company || "Unknown Company",
-      });
+      await applicationsService.createApplication(applicationData, resumeFile);
 
+      toast.success("Application submitted successfully!");
+      refetch(); // Refetch the applications list to update the UI
       onOpenChange(false);
       setCoverLetter("");
       setResumeFile(null);
     } catch (error) {
+      console.error("Application submission error:", error);
       toast.error("Failed to submit application. Please try again.");
     } finally {
       setIsSubmitting(false);
