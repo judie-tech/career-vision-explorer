@@ -48,8 +48,14 @@ class JobsService {
     return await apiClient.delete<{ message: string }>(`/jobs/${jobId}`);
   }
 
-  async getMyJobs(): Promise<Job[]> {
-    return await apiClient.get<Job[]>(`/jobs/my-jobs`);
+  async getMyJobs(includeInactive = false): Promise<Job[]> {
+    const endpoint = includeInactive ? `/jobs/my-jobs?include_inactive=true` : '/jobs/my-jobs';
+    return await apiClient.get<Job[]>(endpoint);
+  }
+
+  async getAllJobs(includeInactive = false): Promise<Job[]> {
+    const endpoint = includeInactive ? `/admin/jobs?include_inactive=true` : '/admin/jobs';
+    return await apiClient.get<Job[]>(endpoint);
   }
 
   async activateJob(jobId: string): Promise<Job> {

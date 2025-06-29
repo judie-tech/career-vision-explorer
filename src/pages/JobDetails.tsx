@@ -68,7 +68,7 @@ const JobDetails = () => {
   }
   
   // The reliable calculation: This line now only runs AFTER the gatekeeper has confirmed all data is present.
-  const isApplied = !!getApplicationForJob(job.id);
+  const isApplied = !!getApplicationForJob(job.job_id);
 
   const handleApply = () => {
     setApplicationDialogOpen(true);
