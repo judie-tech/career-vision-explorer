@@ -36,35 +36,63 @@ const Jobs = () => {
   const loadJobs = async () => {
     try {
       setLoading(true);
-      const response = await jobsService.getJobs({
-        limit: 50,
-        is_active: true
-      });
-      // Transform API data to match frontend format
-      const transformedJobs = (response.jobs || []).map((apiJob: any) => ({
-        id: apiJob.job_id,
-        title: apiJob.title,
-        company: apiJob.company,
-        location: apiJob.location,
-        type: apiJob.job_type || "Full-time",
-        salary: apiJob.salary_range || "Competitive",
-        posted: new Date(apiJob.created_at).toLocaleDateString(),
-        matchScore: 85, // Default match score - could be calculated based on user skills
-        skills: apiJob.skills_required || [],
-        description: apiJob.description || apiJob.requirements,
-        experienceLevel: apiJob.experience_level || "Mid Level",
-        companyInfo: {
-          logoUrl: undefined // Could be added to profile table later
-        }
-      }));
+      console.log('Loading jobs from backend API...');
       
+      // Use the general jobs endpoint that doesn't require authentication
+      const jobsResponse = await jobsService.getJobs({
+        is_active: true,
+        page: 1,
+        limit: 50, // Load more jobs for better user experience
+        sort_by: 'created_at',
+        sort_order: 'desc'
+      });
+      
+      console.log('Jobs response from API:', jobsResponse);
+      
+      // Extract jobs array from the paginated response
+      const apiJobs = jobsResponse.jobs || [];
+      
+      if (apiJobs.length === 0) {
+        console.warn('No jobs found in API response, falling back to mock data');
+        const { mockJobs } = await import("@/data/mockJobs");
+        setJobs(mockJobs);
+        toast.info('Showing sample jobs. Backend has no jobs in database.');
+        return;
+      }
+      
+      // Transform API data to match frontend format
+      const transformedJobs = apiJobs.map((apiJob: any) => {
+        console.log('Transforming job:', apiJob);
+        return {
+          id: apiJob.job_id || apiJob.id,
+          title: apiJob.title,
+          company: apiJob.company,
+          location: apiJob.location,
+          type: apiJob.job_type || "Full-time",
+          salary: apiJob.salary_range || "Competitive",
+          posted: apiJob.created_at ? new Date(apiJob.created_at).toLocaleDateString() : 'Recently',
+          matchScore: Math.floor(Math.random() * 30) + 70, // Random match score for display
+          skills: apiJob.skills_required || apiJob.skills || [],
+          description: apiJob.description || apiJob.requirements || 'No description available',
+          experienceLevel: apiJob.experience_level || "Mid Level",
+          companyInfo: {
+            logoUrl: undefined // Could be added to profile table later
+          }
+        };
+      });
+      
+      console.log('Transformed jobs:', transformedJobs);
       setJobs(transformedJobs);
+      toast.success(`Loaded ${transformedJobs.length} jobs from database`);
+      
     } catch (error: any) {
-      console.error('Error loading jobs:', error);
-      toast.error('Failed to load jobs from database');
+      console.error('Error loading jobs from API:', error);
+      console.log('Falling back to mock data due to error');
+      
       // Fallback to mock data if backend is not available
       const { mockJobs } = await import("@/data/mockJobs");
       setJobs(mockJobs);
+      toast.error('Failed to load jobs from database. Showing sample data.');
     } finally {
       setLoading(false);
     }

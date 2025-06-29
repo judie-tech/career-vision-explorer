@@ -67,17 +67,8 @@ class JobsService {
   }
 
   // Search jobs by user's skills
-  async searchJobsBySkills(): Promise<Array<{
-    job_id: string;
-    title: string;
-    company: string;
-    location: string;
-    salary_range?: string;
-    match_score: number;
-    matched_skills: string[];
-    created_at: string;
-  }>> {
-    return await apiClient.get('/jobs/search');
+  async searchJobsBySkills(): Promise<Job[]> {
+    return await apiClient.get<Job[]>('/jobs/search');
   }
 
   // Get global job statistics
