@@ -75,6 +75,15 @@ class ProfileService {
     const response = await apiClient.uploadFile<any>('/ai/upload-and-parse-cv', file);
     return response.data;
   }
+
+  async parseResume(file: File): Promise<{
+    updated_profile: Profile;
+    parsed_data: any;
+    cv_file_url: string;
+  }> {
+    const response = await apiClient.uploadFile<any>('/ai/upload-and-parse-cv', file);
+    return response;
+  }
 }
 
 export const profileService = new ProfileService();

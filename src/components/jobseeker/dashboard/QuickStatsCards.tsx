@@ -30,7 +30,7 @@ export const QuickStatsCards = () => {
     },
     {
       icon: Star,
-      value: profileLoading ? "..." : `${profile?.profile_completeness || 0}%`,
+      value: profileLoading ? "..." : `${profile?.profile_completion_percentage || 0}%`,
       label: "Profile Score",
       gradient: "from-orange-500 to-orange-600"
     }

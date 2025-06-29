@@ -1,9 +1,9 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from "recharts";
 import { TrendingUp, TrendingDown, Users, DollarSign, Briefcase, BarChart3, LineChart as LineChartIcon, PieChart as PieChartIcon, Sparkles } from "lucide-react";
 import { MarketData, SalaryByRole, JobTrend, SkillDemand } from "@/hooks/use-insights-data";
+import { ErrorBoundary } from "react-error-boundary";
 
 interface MarketOverviewTabProps {
   marketData: MarketData[];
@@ -97,34 +97,16 @@ const MarketOverviewTab = ({ marketData, salaryByRoleData, jobTrendData, skillDe
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-60 sm:h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={salaryByRoleData}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} />
-                  <Tooltip 
-                    formatter={(value) => [`$${value.toLocaleString()}`, "Avg. Salary"]}
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                      border: 'none', 
-                      borderRadius: '8px', 
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                      fontSize: '12px'
-                    }}
-                  />
-                  <Bar dataKey="salary" fill="url(#barGradient)" radius={[4, 4, 0, 0]} />
-                  <defs>
-                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#3b82f6" />
-                      <stop offset="100%" stopColor="#1d4ed8" />
-                    </linearGradient>
-                  </defs>
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="h-60 sm:h-80 flex flex-col justify-center">
+              <div className="space-y-3">
+                {salaryByRoleData.map((role, index) => (
+                  <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm font-medium text-gray-700">{role.name}</span>
+                    <span className="text-lg font-bold text-blue-600">${role.salary.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-4 text-center">Chart temporarily unavailable - showing data table</p>
             </div>
           </CardContent>
         </Card>
@@ -137,34 +119,16 @@ const MarketOverviewTab = ({ marketData, salaryByRoleData, jobTrendData, skillDe
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-60 sm:h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={jobTrendData}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="month" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                      border: 'none', 
-                      borderRadius: '8px', 
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                      fontSize: '12px'
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="jobs"
-                    stroke="#8b5cf6"
-                    strokeWidth={3}
-                    activeDot={{ r: 6, fill: "#8b5cf6" }}
-                    name="Job Openings"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="h-60 sm:h-80 flex flex-col justify-center">
+              <div className="grid grid-cols-3 gap-2">
+                {jobTrendData.slice(-6).map((trend, index) => (
+                  <div key={index} className="text-center p-2 bg-purple-50 rounded-lg">
+                    <div className="text-xs text-gray-600">{trend.month}</div>
+                    <div className="text-sm font-bold text-purple-600">{trend.jobs.toLocaleString()}</div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-4 text-center">Chart temporarily unavailable - showing recent trends</p>
             </div>
           </CardContent>
         </Card>
@@ -179,35 +143,19 @@ const MarketOverviewTab = ({ marketData, salaryByRoleData, jobTrendData, skillDe
           </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-          <div className="h-60 sm:h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={skillDemandData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {skillDemandData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={SKILL_COLORS[index % SKILL_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  formatter={(value) => [`${value}%`, "Demand"]}
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                    border: 'none', 
-                    borderRadius: '8px', 
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                    fontSize: '12px'
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+          <div className="h-60 sm:h-80 flex flex-col justify-center">
+            <div className="space-y-3">
+              {skillDemandData.map((skill, index) => (
+                <div key={index} className="flex justify-between items-center p-3 rounded-lg" style={{ backgroundColor: `${SKILL_COLORS[index % SKILL_COLORS.length]}15` }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: SKILL_COLORS[index % SKILL_COLORS.length] }}></div>
+                    <span className="text-sm font-medium text-gray-700">{skill.name}</span>
+                  </div>
+                  <span className="text-sm font-bold" style={{ color: SKILL_COLORS[index % SKILL_COLORS.length] }}>{skill.value}%</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-4 text-center">Chart temporarily unavailable - showing skill data</p>
           </div>
           <div className="space-y-4 sm:space-y-6">
             <h3 className="text-lg sm:text-xl font-bold text-gray-900">Key Market Insights</h3>

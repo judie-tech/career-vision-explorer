@@ -45,6 +45,19 @@ const Navbar = () => {
     }
   };
 
+  const getDashboardLink = () => {
+    if (!isAuthenticated || !user) return null;
+    
+    const dashboardUrl = getDashboardUrl();
+    const dashboardName = user.account_type === 'admin' ? 'Admin Dashboard' : 'Dashboard';
+    
+    return {
+      name: dashboardName,
+      href: dashboardUrl,
+      icon: user.account_type === 'admin' ? Shield : User
+    };
+  };
+
   const navigation = [
     { name: "Home", href: "/" },
     { name: "Jobs", href: "/jobs" },
@@ -56,6 +69,7 @@ const Navbar = () => {
     { name: "Insights", href: "/insights" },
     { name: "Profile", href: "/profile" },
   ];
+
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -90,17 +104,31 @@ const Navbar = () => {
 
           <div className="hidden md:flex md:items-center md:space-x-2">
             <ThemeToggle />
-            <Link
-              to="/admin"
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                location.pathname.startsWith('/admin')
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              <Shield className="h-4 w-4" />
-              Admin
-            </Link>
+            {/* Dashboard Link - Show for authenticated users */}
+            {isAuthenticated && user && (() => {
+              const dashboardInfo = getDashboardLink();
+              if (!dashboardInfo) return null;
+              
+              const Icon = dashboardInfo.icon;
+              const isDashboardActive = location.pathname.startsWith(dashboardInfo.href) || 
+                                      (user.account_type === 'admin' && location.pathname.startsWith('/admin')) ||
+                                      (user.account_type === 'employer' && location.pathname.startsWith('/employer')) ||
+                                      (user.account_type === 'job_seeker' && location.pathname.startsWith('/jobseeker'));
+              
+              return (
+                <Link
+                  to={dashboardInfo.href}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isDashboardActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {dashboardInfo.name}
+                </Link>
+              );
+            })()}
             
             {isAuthenticated && user ? (
               <DropdownMenu>
@@ -175,20 +203,34 @@ const Navbar = () => {
               </Link>
             ))}
             <div className="pt-4 pb-3 border-t border-border">
-              <div className="flex items-center px-3 space-x-2">
-                <Link
-                  to="/admin"
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base font-medium transition-colors ${
-                    location.pathname.startsWith('/admin')
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  }`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <Shield className="h-4 w-4" />
-                  Admin
-                </Link>
-              </div>
+              {/* Dashboard Link - Show for authenticated users */}
+              {isAuthenticated && user && (() => {
+                const dashboardInfo = getDashboardLink();
+                if (!dashboardInfo) return null;
+                
+                const Icon = dashboardInfo.icon;
+                const isDashboardActive = location.pathname.startsWith(dashboardInfo.href) || 
+                                        (user.account_type === 'admin' && location.pathname.startsWith('/admin')) ||
+                                        (user.account_type === 'employer' && location.pathname.startsWith('/employer')) ||
+                                        (user.account_type === 'job_seeker' && location.pathname.startsWith('/jobseeker'));
+                
+                return (
+                  <div className="flex items-center px-3 space-x-2">
+                    <Link
+                      to={dashboardInfo.href}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base font-medium transition-colors ${
+                        isDashboardActive
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {dashboardInfo.name}
+                    </Link>
+                  </div>
+                );
+              })()}
               <div className="mt-3 px-2 space-y-1">
                 {isAuthenticated && user ? (
                   <>

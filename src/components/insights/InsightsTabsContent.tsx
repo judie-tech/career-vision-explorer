@@ -5,6 +5,7 @@ import MarketOverviewTab from "./MarketOverviewTab";
 import IndustryInsightsTab from "./IndustryInsightsTab";
 import RegionalAnalysisTab from "./RegionalAnalysisTab";
 import { MarketData, IndustryInsight, RegionalData, SalaryByRole, JobTrend, SkillDemand } from "@/hooks/use-insights-data";
+import { ErrorBoundary } from "react-error-boundary";
 
 interface InsightsTabsContentProps {
   marketData: MarketData[];
@@ -24,7 +25,16 @@ const InsightsTabsContent = ({
   filteredRegionalData,
 }: InsightsTabsContentProps) => {
   return (
-    <Tabs defaultValue="market" className="space-y-6 sm:space-y-8">
+    <ErrorBoundary 
+      FallbackComponent={({ error }) => (
+        <div className="text-center py-12">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Something went wrong</h3>
+          <p className="text-gray-600 mb-4">We're working to fix this issue. Please try again later.</p>
+          <p className="text-xs text-gray-500">{error?.message}</p>
+        </div>
+      )}
+    >
+      <Tabs defaultValue="market" className="space-y-6 sm:space-y-8">
       <div className="flex justify-center">
         <TabsList className="grid grid-cols-3 w-full max-w-lg h-12 sm:h-14 bg-white/80 backdrop-blur-sm border-2 p-1">
           <TabsTrigger value="market" className="flex items-center gap-1 sm:gap-2 h-full data-[state=active]:bg-blue-500 data-[state=active]:text-white text-xs sm:text-sm">
@@ -62,6 +72,7 @@ const InsightsTabsContent = ({
         <RegionalAnalysisTab filteredRegionalData={filteredRegionalData} />
       </TabsContent>
     </Tabs>
+    </ErrorBoundary>
   );
 };
 

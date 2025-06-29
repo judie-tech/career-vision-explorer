@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   User, 
   Mail, 
@@ -21,7 +22,12 @@ import {
   Edit3,
   Save,
   X,
-  UploadCloud
+  UploadCloud,
+  DollarSign,
+  Building,
+  FileText,
+  Download,
+  Settings
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { profileService } from "@/services/profile.service";
@@ -275,6 +281,120 @@ const Profile: React.FC = () => {
                       </div>
                     ) : null}
 
+                    {editing ? (
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="date"
+                          value={editForm.date_of_birth || ''}
+                          onChange={(e) => setEditForm({ ...editForm, date_of_birth: e.target.value })}
+                          className="text-sm"
+                        />
+                      </div>
+                    ) : profile?.date_of_birth ? (
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">Born {new Date(profile.date_of_birth).toLocaleDateString()}</span>
+                      </div>
+                    ) : null}
+
+                    {editing ? (
+                      <div className="flex items-center gap-3">
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        <Input
+                          value={editForm.salary_expectation || ''}
+                          onChange={(e) => setEditForm({ ...editForm, salary_expectation: e.target.value })}
+                          placeholder="Salary expectation"
+                          className="text-sm"
+                        />
+                      </div>
+                    ) : profile?.salary_expectation ? (
+                      <div className="flex items-center gap-3">
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{profile.salary_expectation}</span>
+                      </div>
+                    ) : null}
+
+                    {editing ? (
+                      <div className="flex items-center gap-3">
+                        <Briefcase className="h-4 w-4 text-muted-foreground" />
+                        <Select value={editForm.preferred_job_type || ''} onValueChange={(value) => setEditForm({ ...editForm, preferred_job_type: value as any })}>
+                          <SelectTrigger className="text-sm">
+                            <SelectValue placeholder="Preferred job type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Full-time">Full-time</SelectItem>
+                            <SelectItem value="Part-time">Part-time</SelectItem>
+                            <SelectItem value="Contract">Contract</SelectItem>
+                            <SelectItem value="Internship">Internship</SelectItem>
+                            <SelectItem value="Remote">Remote</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : profile?.preferred_job_type ? (
+                      <div className="flex items-center gap-3">
+                        <Briefcase className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{profile.preferred_job_type}</span>
+                      </div>
+                    ) : null}
+
+                    {editing ? (
+                      <div className="flex items-center gap-3">
+                        <Building className="h-4 w-4 text-muted-foreground" />
+                        <Input
+                          value={editForm.work_authorization || ''}
+                          onChange={(e) => setEditForm({ ...editForm, work_authorization: e.target.value })}
+                          placeholder="Work authorization status"
+                          className="text-sm"
+                        />
+                      </div>
+                    ) : profile?.work_authorization ? (
+                      <div className="flex items-center gap-3">
+                        <Building className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{profile.work_authorization}</span>
+                      </div>
+                    ) : null}
+
+                    {editing ? (
+                      <div className="flex items-center gap-3">
+                        <Briefcase className="h-4 w-4 text-muted-foreground" />
+                        <Select value={editForm.availability || ''} onValueChange={(value) => setEditForm({ ...editForm, availability: value as any })}>
+                          <SelectTrigger className="text-sm">
+                            <SelectValue placeholder="Availability status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Available">Available</SelectItem>
+                            <SelectItem value="Not Available">Not Available</SelectItem>
+                            <SelectItem value="Available in 2 weeks">Available in 2 weeks</SelectItem>
+                            <SelectItem value="Available in 1 month">Available in 1 month</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : profile?.availability ? (
+                      <div className="flex items-center gap-3">
+                        <Briefcase className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{profile.availability}</span>
+                      </div>
+                    ) : null}
+
+                    {editing ? (
+                      <div className="flex items-center gap-3">
+                        <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="number"
+                          value={editForm.experience_years || ''}
+                          onChange={(e) => setEditForm({ ...editForm, experience_years: parseInt(e.target.value) || 0 })}
+                          placeholder="Years of experience"
+                          className="text-sm"
+                        />
+                      </div>
+                    ) : profile?.experience_years ? (
+                      <div className="flex items-center gap-3">
+                        <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{profile.experience_years} years experience</span>
+                      </div>
+                    ) : null}
+
                     <div className="flex items-center gap-3">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">
@@ -354,18 +474,57 @@ const Profile: React.FC = () => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Parse Resume</CardTitle>
+                  <CardTitle>Resume Management</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      Upload your resume (PDF or DOCX) to automatically fill in your profile details.
-                    </p>
-                    <Input type="file" onChange={handleFileChange} accept=".pdf,.docx" />
-                    <Button onClick={handleResumeParse} disabled={isParsing || !resumeFile} className="w-full">
-                      {isParsing ? "Extracting..." : "Extract from CV"}
-                      <UploadCloud className="ml-2 h-4 w-4" />
-                    </Button>
+                    {/* Current Resume Link */}
+                    {profile?.resume_link && (
+                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-blue-600" />
+                            <span className="text-sm font-medium text-blue-800">Current Resume</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" asChild>
+                              <a href={profile.resume_link} target="_blank" rel="noopener noreferrer">
+                                <Download className="h-3 w-3 mr-1" />
+                                Download
+                              </a>
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Resume Upload/Parse */}
+                    <div className="border-t pt-4">
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Upload your resume (PDF or DOCX) to automatically fill in your profile details.
+                      </p>
+                      <Input type="file" onChange={handleFileChange} accept=".pdf,.docx" />
+                      <Button onClick={handleResumeParse} disabled={isParsing || !resumeFile} className="w-full mt-2">
+                        {isParsing ? "Extracting..." : "Extract from CV"}
+                        <UploadCloud className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    {/* Manual Resume Link */}
+                    {editing && (
+                      <div className="border-t pt-4">
+                        <label className="text-sm font-medium mb-2 block">Resume Link (URL)</label>
+                        <Input
+                          value={editForm.resume_link || ''}
+                          onChange={(e) => setEditForm({ ...editForm, resume_link: e.target.value })}
+                          placeholder="https://your-resume-url.com"
+                          className="text-sm"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Add a direct link to your resume (Google Drive, Dropbox, etc.)
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -393,6 +552,18 @@ const Profile: React.FC = () => {
                       <span className="text-muted-foreground">Availability</span>
                       <Badge variant="outline">{profile?.availability}</Badge>
                     </div>
+                    {profile?.profile_completion_percentage && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Profile Complete</span>
+                        <span className="font-medium">{profile.profile_completion_percentage}%</span>
+                      </div>
+                    )}
+                    {profile?.updated_at && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Last Updated</span>
+                        <span className="text-xs">{new Date(profile.updated_at).toLocaleDateString()}</span>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -498,13 +669,24 @@ const Profile: React.FC = () => {
                     <CardTitle>Languages</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {profile?.languages?.map((lang, index) => (
-                        <Badge key={index} variant="outline">
-                          {lang}
-                        </Badge>
-                      ))}
-                    </div>
+                    {editing ? (
+                      <Textarea
+                        value={editForm.languages?.join(', ') || ''}
+                        onChange={(e) => setEditForm({ 
+                          ...editForm, 
+                          languages: e.target.value.split(',').map(lang => lang.trim()).filter(lang => lang)
+                        })}
+                        placeholder="Languages (comma-separated)"
+                      />
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {profile?.languages?.map((lang, index) => (
+                          <Badge key={index} variant="outline">
+                            {lang}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -513,16 +695,75 @@ const Profile: React.FC = () => {
                     <CardTitle>Certifications</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2">
-                      {profile?.certifications?.map((cert, index) => (
-                        <div key={index} className="text-sm">
-                          {cert}
-                        </div>
-                      ))}
-                    </div>
+                    {editing ? (
+                      <Textarea
+                        value={editForm.certifications?.join('\n') || ''}
+                        onChange={(e) => setEditForm({ 
+                          ...editForm, 
+                          certifications: e.target.value.split('\n').map(cert => cert.trim()).filter(cert => cert)
+                        })}
+                        placeholder="Certifications (one per line)"
+                      />
+                    ) : (
+                      <div className="space-y-2">
+                        {profile?.certifications?.map((cert, index) => (
+                          <div key={index} className="text-sm">
+                            {cert}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
+              
+              {/* Preferences */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Job Preferences
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {editing ? (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Job Search Preferences</label>
+                        <Textarea
+                          value={JSON.stringify(editForm.preferences || {}, null, 2)}
+                          onChange={(e) => {
+                            try {
+                              const preferences = JSON.parse(e.target.value);
+                              setEditForm({ ...editForm, preferences });
+                            } catch {
+                              // Handle invalid JSON gracefully
+                            }
+                          }}
+                          placeholder='{\n  "remote_work": true,\n  "travel_willingness": "low",\n  "company_size": "startup",\n  "industry_preferences": ["tech", "finance"]\n}'
+                          rows={6}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          JSON format for complex preferences (remote work, company size, industry, etc.)
+                        </p>
+                      </div>
+                    </div>
+                  ) : profile?.preferences && Object.keys(profile.preferences).length > 0 ? (
+                    <div className="space-y-2">
+                      {Object.entries(profile.preferences).map(([key, value]) => (
+                        <div key={key} className="flex justify-between text-sm">
+                          <span className="text-muted-foreground capitalize">{key.replace('_', ' ')}</span>
+                          <span className="font-medium">
+                            {Array.isArray(value) ? value.join(', ') : String(value)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-sm">No job preferences set</p>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>

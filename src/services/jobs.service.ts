@@ -110,7 +110,26 @@ class JobsService {
     matched_skills: string[];
     created_at: string;
   }>> {
-    return await apiClient.post(`/jobs/ai-match`, params);
+    const queryParams = new URLSearchParams();
+    
+    // Add skills as multiple query parameters
+    params.skills.forEach(skill => {
+      queryParams.append('skills', skill);
+    });
+    
+    if (params.location_preference) {
+      queryParams.append('location_preference', params.location_preference);
+    }
+    
+    if (params.salary_expectation) {
+      queryParams.append('salary_expectation', params.salary_expectation);
+    }
+    
+    const queryString = queryParams.toString();
+    const endpoint = `/jobs/ai-match?${queryString}`;
+    
+    // Backend expects POST request with query parameters
+    return await apiClient.post(endpoint, {});
   }
 
   // Get employer dashboard data

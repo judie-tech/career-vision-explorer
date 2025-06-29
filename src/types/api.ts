@@ -66,6 +66,18 @@ export interface Application {
   applied_at: string;
   cover_letter?: string;
   notes?: string;
+  // Additional fields from backend joins
+  job_title?: string;
+  company_name?: string;
+  applicant_name?: string;
+  applicant_email?: string;
+  // Compatibility field for components expecting job object
+  job?: {
+    title: string;
+    company: string;
+  };
+  // Compatibility field for created_at
+  created_at: string;
 }
 
 export interface ApplicationCreate {
