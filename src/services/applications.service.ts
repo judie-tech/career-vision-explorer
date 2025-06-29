@@ -30,8 +30,16 @@ class ApplicationsService {
     return await apiClient.get<Application>(`/applications/${applicationId}`);
   }
 
-  async createApplication(applicationData: ApplicationCreate): Promise<Application> {
-    return await apiClient.post<Application>('/applications', applicationData);
+  async createApplication(applicationData: ApplicationCreate, resumeFile: File | null): Promise<Application> {
+    const formData = new FormData();
+    formData.append('job_id', applicationData.job_id);
+    formData.append('cover_letter', applicationData.cover_letter);
+
+    if (resumeFile) {
+      formData.append('resume_file', resumeFile);
+    }
+
+    return await apiClient.post<Application>('/applications', formData);
   }
 
   async updateApplication(applicationId: string, applicationData: ApplicationUpdate): Promise<Application> {

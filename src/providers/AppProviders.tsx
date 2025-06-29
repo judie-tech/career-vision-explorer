@@ -8,7 +8,6 @@ import { FeatureProvider } from "@/hooks/use-features";
 import AuthProvider from "@/hooks/use-auth";
 import { UserProfileProvider } from "@/hooks/use-user-profile";
 import { CareerPathsProvider } from "@/hooks/use-career-paths";
-import { JobApplicationsProvider } from "@/hooks/use-job-applications";
 
 // Optimize query client for faster loading
 const queryClient = new QueryClient({
@@ -26,21 +25,19 @@ export const AppProviders = ({ children }: { children: React.ReactNode }) => {
   return (
     <AuthProvider>
       <UserProfileProvider>
-        <JobApplicationsProvider>
-          <QueryClientProvider client={queryClient}>
-            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-              <TooltipProvider>
-                <FeatureProvider>
-                  <CareerPathsProvider>
-                    {children}
-                    <Toaster />
-                    <Sonner />
-                  </CareerPathsProvider>
-                </FeatureProvider>
-              </TooltipProvider>
-            </ThemeProvider>
-          </QueryClientProvider>
-        </JobApplicationsProvider>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+            <TooltipProvider>
+              <FeatureProvider>
+                <CareerPathsProvider>
+                  {children}
+                  <Toaster />
+                  <Sonner />
+                </CareerPathsProvider>
+              </FeatureProvider>
+            </TooltipProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
       </UserProfileProvider>
     </AuthProvider>
   );

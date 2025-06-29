@@ -20,7 +20,7 @@ export const JobApplicationDialog = ({ job, open, onOpenChange }: JobApplication
   const [coverLetter, setCoverLetter] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { refetch } = useJobApplications();
+  const { refetch: refetchApplications } = useJobApplications();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +37,7 @@ export const JobApplicationDialog = ({ job, open, onOpenChange }: JobApplication
       await applicationsService.createApplication(applicationData, resumeFile);
 
       toast.success("Application submitted successfully!");
-      refetch(); // Refetch the applications list to update the UI
+      refetchApplications();
       onOpenChange(false);
       setCoverLetter("");
       setResumeFile(null);

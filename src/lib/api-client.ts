@@ -71,9 +71,10 @@ class ApiClient {
   }
 
   async post<T>(endpoint: string, data?: any): Promise<T> {
+    const isFormData = data instanceof FormData;
     return this.request<T>(endpoint, {
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
     });
   }
 
