@@ -8,20 +8,27 @@ import { Building, MapPin, Briefcase, DollarSign, Clock, Eye, ExternalLink, Tren
 import { jobsService } from "@/services/jobs.service";
 import { FastFallbackService } from "@/services/fast-fallback.service";
 import { useAuth } from "@/hooks/use-auth";
-import { useProfile } from "@/hooks/use-user-profile";
 
 // Cache for recommendations to avoid repeated API calls
 const recommendationsCache = new Map();
 
 export const JobRecommendationsTab = () => {
   const navigate = useNavigate();
-  const { profile, isLoading: profileLoading } = useProfile();
+  const { profile, isLoading: authLoading } = useAuth();
+  const profileLoading = authLoading;
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(false); // Start with false - no auto-loading
   const [error, setError] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [lastSearchTime, setLastSearchTime] = useState(null);
   const abortControllerRef = useRef(null);
+
+  // Debug: Log profile data
+  useEffect(() => {
+    console.log('[JobRecommendationsTab] Profile data:', profile);
+    console.log('[JobRecommendationsTab] Profile skills:', profile?.skills);
+    console.log('[JobRecommendationsTab] Profile loading:', profileLoading);
+  }, [profile, profileLoading]);
 
   // Create cache key for current user profile
   const getCacheKey = useCallback(() => {
