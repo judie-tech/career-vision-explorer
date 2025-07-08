@@ -13,9 +13,8 @@ const EnhancedSkillGapAnalysis: React.FC = () => {
   const [marketAnalysis, setMarketAnalysis] = useState<MarketAnalysis | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
 
-  useEffect(() => {
-    loadMarketAnalysis();
-  }, []);
+  // Removed auto-loading to prevent performance issues
+  // Users can now manually trigger analysis
 
   const loadMarketAnalysis = async () => {
     setIsLoading(true);
@@ -81,10 +80,41 @@ const EnhancedSkillGapAnalysis: React.FC = () => {
           Discover how your skills match the current job market. Get personalized insights on your 
           competitiveness and recommendations for career growth.
         </p>
-        <Button onClick={refreshAnalysis} disabled={isLoading} className="mt-4">
-          {isLoading ? 'Refreshing...' : 'Refresh Analysis'}
+        <Button onClick={loadMarketAnalysis} disabled={isLoading} className="mt-4">
+          {isLoading ? 'Analyzing...' : (marketAnalysis ? 'Refresh Analysis' : 'Start Market Analysis')}
         </Button>
       </div>
+
+      {!marketAnalysis && !isLoading && (
+        <Card className="text-center py-12">
+          <CardContent>
+            <Brain className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Ready to Analyze Your Market Position?</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              Click the button above to start analyzing how your skills match the current job market. 
+              We'll examine 100+ active job listings and provide personalized insights.
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-2">
+                <Briefcase className="h-4 w-4" />
+                <span>Job Matching</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                <span>Skill Analysis</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                <span>Market Insights</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4" />
+                <span>Career Tips</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {marketAnalysis && (
         <>

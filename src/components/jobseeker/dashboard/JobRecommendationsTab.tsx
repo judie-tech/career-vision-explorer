@@ -1,100 +1,201 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building, MapPin, Briefcase, DollarSign, Clock, Eye, ExternalLink, TrendingUp } from "lucide-react";
+import { Building, MapPin, Briefcase, DollarSign, Clock, Eye, ExternalLink, TrendingUp, Search, RefreshCw } from "lucide-react";
 import { jobsService } from "@/services/jobs.service";
+import { FastFallbackService } from "@/services/fast-fallback.service";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-user-profile";
+
+// Cache for recommendations to avoid repeated API calls
+const recommendationsCache = new Map();
 
 export const JobRecommendationsTab = () => {
   const navigate = useNavigate();
   const { profile, isLoading: profileLoading } = useProfile();
   const [recommendations, setRecommendations] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start with false - no auto-loading
   const [error, setError] = useState(null);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [lastSearchTime, setLastSearchTime] = useState(null);
+  const abortControllerRef = useRef(null);
 
-  // Fetch skill-based job recommendations
+  // Create cache key for current user profile
+  const getCacheKey = useCallback(() => {
+    if (!profile) return null;
+    const keyData = {
+      skills: profile.skills?.sort() || [],
+      location: profile.location || '',
+      salary: profile.salary_expectation || ''
+    };
+    return JSON.stringify(keyData);
+  }, [profile]);
+
+  // Cleanup abort controller on unmount
   useEffect(() => {
-    const fetchRecommendations = async () => {
-      try {
-        setLoading(true);
-        console.log('Profile data:', profile);
-        
-        if (profile && profile.skills && profile.skills.length > 0) {
-          console.log('Fetching AI job matches with skills:', profile.skills);
-          console.log('Profile data full:', profile);
-          try {
-            const response = await jobsService.aiMatchJobs({ 
-              skills: profile.skills,
-              location_preference: profile.location,
-              salary_expectation: profile.salary_expectation
-            });
-            console.log('AI job match response:', response);
-            setRecommendations(response);
-            setError(null);
-          } catch (aiError) {
-            console.error('AI job matching failed:', aiError);
-            console.log('Error details:', {
-              message: aiError.message,
-              stack: aiError.stack,
-              status: aiError.status || 'unknown'
-            });
-            
-            // Fallback to regular job search
-            try {
-              console.log('Attempting fallback to regular jobs...');
-              const fallbackResponse = await jobsService.getJobs({ limit: 10 });
-              console.log('Fallback job response:', fallbackResponse);
-              
-              // Check if fallbackResponse has the expected structure
-              if (fallbackResponse && fallbackResponse.jobs && Array.isArray(fallbackResponse.jobs)) {
-                // Transform regular jobs to match recommendation format
-                const transformedJobs = fallbackResponse.jobs.map(job => ({
-                  job_id: job.job_id,
-                  title: job.title,
-                  company: job.company,
-                  location: job.location,
-                  salary_range: job.salary_range,
-                  match_score: Math.floor(Math.random() * 30) + 70, // Random score between 70-100
-                  matched_skills: job.skills_required?.filter(skill => 
-                    profile.skills.some(userSkill => 
-                      userSkill.toLowerCase().includes(skill.toLowerCase()) ||
-                      skill.toLowerCase().includes(userSkill.toLowerCase())
-                    )
-                  ) || [],
-                  created_at: job.created_at
-                }));
-                
-                setRecommendations(transformedJobs);
-                setError(null);
-              } else {
-                console.error('Fallback response invalid structure:', fallbackResponse);
-                setError('Unable to fetch job recommendations. Invalid response format.');
-              }
-            } catch (fallbackError) {
-              console.error('Fallback also failed:', fallbackError);
-              setError(`Failed to fetch job recommendations: ${fallbackError.message}`);
-            }
-          }
-        } else {
-          console.log('No skills found in profile:', profile);
-          setError('No skills found in profile. Please update your profile with your skills.');
-        }
-      } catch (err) {
-        console.error('Error fetching job recommendations:', err);
-        setError(err.message || 'Failed to fetch job recommendations');
-      } finally {
-        setLoading(false);
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
     };
+  }, []);
 
+  // Check cache on profile load (display cached data if available, but don't auto-fetch)
+  useEffect(() => {
     if (!profileLoading && profile) {
-      fetchRecommendations();
+      const cacheKey = getCacheKey();
+      if (cacheKey && recommendationsCache.has(cacheKey)) {
+        const cachedData = recommendationsCache.get(cacheKey);
+        const cacheAge = Date.now() - cachedData.timestamp;
+        
+        // Only use cached data if less than 10 minutes old - no auto-fetching
+        if (cacheAge < 10 * 60 * 1000) {
+          console.log('Displaying cached job recommendations (no auto-fetch)');
+          setRecommendations(cachedData.data);
+          setHasSearched(true);
+          setLastSearchTime(cachedData.timestamp);
+          setError(null);
+        }
+      }
     }
-  }, [profile, profileLoading]);
+  }, [profile, profileLoading, getCacheKey]);
+
+  // Manual fetch function with caching and request cancellation
+  const fetchRecommendations = useCallback(async (force = false) => {
+    // Cancel any ongoing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    // Create new abort controller
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const cacheKey = getCacheKey();
+      
+      // Check cache first (unless forced refresh)
+      if (!force && cacheKey && recommendationsCache.has(cacheKey)) {
+        const cachedData = recommendationsCache.get(cacheKey);
+        const cacheAge = Date.now() - cachedData.timestamp;
+        
+        // Use cached data if less than 10 minutes old
+        if (cacheAge < 10 * 60 * 1000) {
+          console.log('Using cached job recommendations');
+          setRecommendations(cachedData.data);
+          setHasSearched(true);
+          setLastSearchTime(cachedData.timestamp);
+          setLoading(false);
+          return;
+        }
+      }
+      
+      console.log('Fetching fresh job recommendations...');
+      
+      if (!profile || !profile.skills || profile.skills.length === 0) {
+        setError('No skills found in profile. Please update your profile with your skills.');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Fetching AI job matches with skills:', profile.skills);
+      
+      try {
+        // Use FastFallbackService for immediate response
+        const response = await FastFallbackService.getAIJobMatchesFast(profile.skills);
+        
+        if (signal.aborted) return; // Don't process if cancelled
+        
+        console.log('Fast AI job match response:', response);
+        
+        // Use the matches from the fallback response
+        const jobMatches = response.matches;
+        
+        // Cache the successful response
+        if (cacheKey) {
+          recommendationsCache.set(cacheKey, {
+            data: jobMatches,
+            timestamp: Date.now()
+          });
+        }
+        
+        setRecommendations(jobMatches);
+        setHasSearched(true);
+        setLastSearchTime(Date.now());
+        setError(null);
+        
+      } catch (aiError) {
+        if (signal.aborted) return; // Don't process if cancelled
+        
+        console.error('AI job matching failed:', aiError);
+        
+        // Even AI fallback failed, use fast fallback service for regular jobs
+        try {
+          console.log('Using FastFallbackService for regular jobs...');
+          const fallbackResponse = await FastFallbackService.getJobsFast({ limit: 10 });
+          
+          if (signal.aborted) return; // Don't process if cancelled
+          
+          console.log('Fast fallback job response:', fallbackResponse);
+          
+          if (fallbackResponse && fallbackResponse.jobs && Array.isArray(fallbackResponse.jobs)) {
+            // Transform regular jobs to match recommendation format
+            const transformedJobs = fallbackResponse.jobs.map(job => ({
+              job_id: job.job_id,
+              title: job.title,
+              company: job.company,
+              location: job.location,
+              salary_range: job.salary_range,
+              match_score: Math.floor(Math.random() * 30) + 70, // Random score between 70-100
+              matched_skills: job.skills_required?.filter(skill => 
+                profile.skills.some(userSkill => 
+                  userSkill.toLowerCase().includes(skill.toLowerCase()) ||
+                  skill.toLowerCase().includes(userSkill.toLowerCase())
+                )
+              ) || [],
+              created_at: job.created_at
+            }));
+            
+            // Cache the fallback response too
+            if (cacheKey) {
+              recommendationsCache.set(cacheKey, {
+                data: transformedJobs,
+                timestamp: Date.now()
+              });
+            }
+            
+            setRecommendations(transformedJobs);
+            setHasSearched(true);
+            setLastSearchTime(Date.now());
+            setError(null);
+          } else {
+            console.error('Fast fallback response invalid structure:', fallbackResponse);
+            setError('Unable to fetch job recommendations. Invalid response format.');
+          }
+        } catch (fallbackError) {
+          if (signal.aborted) return; // Don't process if cancelled
+          
+          console.error('Fast fallback also failed:', fallbackError);
+          setError(`All fallbacks failed: ${fallbackError.message}`);
+        }
+      }
+    } catch (err) {
+      if (signal.aborted) return; // Don't process if cancelled
+      
+      console.error('Error fetching job recommendations:', err);
+      setError(err.message || 'Failed to fetch job recommendations');
+    } finally {
+      if (!signal.aborted) {
+        setLoading(false);
+      }
+    }
+  }, [profile, getCacheKey]);
 
   const handleViewDetails = (jobId: string) => {
     navigate(`/jobs/${jobId}`);
@@ -114,17 +215,89 @@ export const JobRecommendationsTab = () => {
         <CardDescription>Tailored matches based on your profile and skills</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Search Controls */}
+        {!hasSearched && (
+          <div className="text-center py-8">
+            <TrendingUp className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">Ready to find your perfect job match?</h3>
+            <p className="text-gray-500 mb-6">
+              Click below to get AI-powered job recommendations based on your skills and preferences.
+            </p>
+            <div className="flex justify-center gap-3">
+              <Button 
+                onClick={() => fetchRecommendations()} 
+                disabled={loading || profileLoading || !profile?.skills?.length}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                {loading ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Finding Matches...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4 mr-2" />
+                    Find Job Matches
+                  </>
+                )}
+              </Button>
+              {!profile?.skills?.length && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/profile')}
+                  className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
+                >
+                  Add Skills First
+                </Button>
+              )}
+            </div>
+            {!profile?.skills?.length && (
+              <p className="text-sm text-amber-600 mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <strong>Note:</strong> Please add skills to your profile to get personalized job recommendations.
+              </p>
+            )}
+          </div>
+        )}
+        
+        {/* Refresh Controls for existing results */}
+        {hasSearched && recommendations.length > 0 && (
+          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+            <div className="text-sm text-gray-600">
+              {lastSearchTime && (
+                <span>
+                  Last updated: {new Date(lastSearchTime).toLocaleTimeString()}
+                </span>
+              )}
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => fetchRecommendations(true)} 
+              disabled={loading}
+              className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
+            >
+              {loading ? (
+                <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3 w-3 mr-1" />
+              )}
+              Refresh
+            </Button>
+          </div>
+        )}
         {error && (
           <div className="text-red-600 bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
             <strong>Error:</strong> {typeof error === 'string' ? error : JSON.stringify(error)}
           </div>
         )}
-        {profileLoading || loading ? (
+        {loading && hasSearched && (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Loading job recommendations...</p>
+            <p className="mt-2 text-gray-600">Finding your best job matches...</p>
           </div>
-        ) : recommendations.length > 0 ? (
+        )}
+        
+        {!loading && hasSearched && recommendations.length > 0 && (
           recommendations.map((job) => (
             <div 
               key={job.job_id} 
@@ -204,16 +377,23 @@ export const JobRecommendationsTab = () => {
               </div>
             </div>
           ))
-        ) : (
+        )}
+        
+        {!loading && hasSearched && recommendations.length === 0 && !error && (
           <div className="text-center py-8">
             <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">No job recommendations yet</h3>
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">No matching jobs found</h3>
             <p className="text-gray-500 mb-4">
-              {typeof error === 'string' ? error : 'Please update your profile with skills to get personalized job recommendations.'}
+              We couldn't find jobs that match your current skills and preferences. Try broadening your search criteria or adding more skills.
             </p>
-            <Button onClick={() => navigate('/profile')} variant="outline">
-              Update Profile
-            </Button>
+            <div className="flex justify-center gap-3">
+              <Button onClick={() => navigate('/profile')} variant="outline">
+                Update Profile
+              </Button>
+              <Button onClick={() => fetchRecommendations(true)} className="bg-blue-600 hover:bg-blue-700">
+                Search Again
+              </Button>
+            </div>
           </div>
         )}
       </CardContent>

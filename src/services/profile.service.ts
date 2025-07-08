@@ -1,9 +1,21 @@
 import { apiClient } from '../lib/api-client';
 import { Profile, ProfileUpdate } from '../types/api';
+import { trackDbOperation } from '../utils/performance';
 
 class ProfileService {
   async getProfile(): Promise<Profile> {
-    return await apiClient.get<Profile>('/profile');
+    return trackDbOperation('Load Profile', async () => {
+      // Try fast timeout first
+      try {
+        return await apiClient.getFast<Profile>('/profile');
+      } catch (error) {
+        if (error.message?.includes('timed out')) {
+          console.log('Fast profile request timed out, trying with longer timeout...');
+          return await apiClient.get<Profile>('/profile', { timeout: 45000 }); // Fixed timeout syntax
+        }
+        throw error;
+      }
+    });
   }
 
   async updateProfile(profileData: ProfileUpdate): Promise<Profile> {

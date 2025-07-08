@@ -1,5 +1,7 @@
 import { jobsService } from './jobs.service';
 import { profileService } from './profile.service';
+import { aiJobMatchingService } from './ai-job-matching.service';
+import { geminiService } from './gemini.service';
 
 export interface JobMatch {
   id: string;
@@ -95,7 +97,7 @@ class JobMatchingService {
   }
 
   /**
-   * Analyze user's market competitiveness across all jobs
+   * Analyze user's market competitiveness across all jobs with AI enhancement
    */
   async analyzeJobMarket(): Promise<MarketAnalysis> {
     try {
@@ -119,28 +121,8 @@ class JobMatchingService {
         return this.getMockMarketAnalysis();
       }
       
-      // Calculate matches for each job
-      const jobMatches: JobMatch[] = jobs.map(job => {
-        const jobSkills = job.skills_required || job.skills || [];
-        const matchResult = this.calculateMatchScore(userSkills, jobSkills);
-        
-        return {
-          id: job.job_id || job.id,
-          title: job.title,
-          company: job.company,
-          location: job.location,
-          type: job.job_type || 'Full-time',
-          salary: job.salary_range || 'Competitive',
-          description: job.description || '',
-          requiredSkills: jobSkills,
-          matchScore: matchResult.score,
-          matchedSkills: matchResult.matchedSkills,
-          missingSkills: matchResult.missingSkills,
-          skillOverlap: matchResult.overlap,
-          experienceLevel: job.experience_level,
-          postedDate: job.created_at ? new Date(job.created_at).toLocaleDateString() : 'Recently'
-        };
-      });
+      // Calculate matches for each job with AI enhancement
+      const jobMatches: JobMatch[] = await this.calculateEnhancedJobMatches(userProfile, jobs);
       
       // Calculate market statistics
       const averageMatchScore = jobMatches.length > 0 
@@ -155,8 +137,8 @@ class JobMatchingService {
       // Analyze skill demand across all jobs
       const skillDemand = this.analyzeSkillDemand(jobs);
       
-      // Generate market insights
-      const marketInsights = this.generateMarketInsights(userSkills, jobMatches, skillDemand);
+      // Generate AI-powered market insights
+      const marketInsights = await this.generateAIMarketInsights(userProfile, jobMatches, skillDemand);
       
       // Count unique skills in market
       const allMarketSkills = new Set();
@@ -276,6 +258,135 @@ class JobMatchingService {
     }
 
     return insights;
+  }
+
+  /**
+   * Calculate enhanced job matches using AI assistance
+   */
+  private async calculateEnhancedJobMatches(userProfile: any, jobs: any[]): Promise<JobMatch[]> {
+    try {
+      // Use AI job matching service for enhanced scoring
+      const aiMatches = await aiJobMatchingService.matchJobsWithAI(userProfile, {
+        max_results: 50,
+        min_match_score: 30
+      });
+
+      // If AI matching succeeds, convert to JobMatch format
+      if (aiMatches.length > 0) {
+        return aiMatches.map(aiMatch => ({
+          id: aiMatch.id,
+          title: aiMatch.title,
+          company: aiMatch.company,
+          location: aiMatch.location,
+          type: aiMatch.type,
+          salary: aiMatch.salary,
+          description: aiMatch.description,
+          requiredSkills: aiMatch.requiredSkills,
+          matchScore: aiMatch.ai_score.overall_score,
+          matchedSkills: aiMatch.matchedSkills,
+          missingSkills: aiMatch.missingSkills,
+          skillOverlap: aiMatch.skillOverlap,
+          experienceLevel: aiMatch.experienceLevel,
+          postedDate: aiMatch.postedDate
+        }));
+      }
+    } catch (error) {
+      console.error('AI matching failed, falling back to basic matching:', error);
+    }
+
+    // Fallback to basic skill-based matching
+    return this.calculateBasicJobMatches(userProfile, jobs);
+  }
+
+  /**
+   * Basic job matching fallback
+   */
+  private calculateBasicJobMatches(userProfile: any, jobs: any[]): JobMatch[] {
+    const userSkills = userProfile.skills || [];
+    
+    return jobs.map(job => {
+      const jobSkills = job.skills_required || job.skills || [];
+      const matchData = this.calculateMatchScore(userSkills, jobSkills);
+      
+      return {
+        id: job.id,
+        title: job.title,
+        company: job.company,
+        location: job.location,
+        type: job.job_type || 'Full-time',
+        salary: job.salary_range || 'Competitive',
+        description: job.description || '',
+        requiredSkills: jobSkills,
+        matchScore: matchData.score,
+        matchedSkills: matchData.matchedSkills,
+        missingSkills: matchData.missingSkills,
+        skillOverlap: matchData.overlap,
+        experienceLevel: job.experience_level,
+        postedDate: job.created_at ? new Date(job.created_at).toLocaleDateString() : 'Recently'
+      };
+    });
+  }
+
+  /**
+   * Generate AI-powered market insights
+   */
+  private async generateAIMarketInsights(
+    userProfile: any,
+    jobMatches: JobMatch[],
+    skillDemand: SkillDemandData[]
+  ): Promise<MarketInsight[]> {
+    try {
+      const userSkills = userProfile.skills || [];
+      const averageScore = jobMatches.length > 0 
+        ? jobMatches.reduce((sum, job) => sum + job.matchScore, 0) / jobMatches.length 
+        : 0;
+
+      const prompt = `
+        Analyze this job seeker's market position and provide actionable insights:
+        
+        Profile Summary:
+        - Skills: ${userSkills.join(', ')}
+        - Experience: ${userProfile.experience_years || 0} years
+        - Location: ${userProfile.location || 'Not specified'}
+        - Average Match Score: ${Math.round(averageScore)}%
+        - Total Jobs Analyzed: ${jobMatches.length}
+        
+        Top 5 Skills in Demand:
+        ${skillDemand.slice(0, 5).map(skill => `${skill.skill}: ${skill.percentage}% of jobs`).join('\n')}
+        
+        Based on this data, provide 3-5 strategic insights in JSON format:
+        {
+          "insights": [
+            {
+              "type": "strength|opportunity|gap|trend",
+              "title": "Brief insight title",
+              "description": "Detailed analysis",
+              "action": "Specific actionable recommendation",
+              "priority": "high|medium|low"
+            }
+          ]
+        }
+        
+        Focus on practical, actionable advice for career advancement.
+      `;
+
+      const response = await geminiService.generateText(prompt);
+      
+      if (response.status === 'success') {
+        try {
+          const aiInsights = JSON.parse(response.response);
+          return aiInsights.insights || [];
+        } catch {
+          // Parse error, fallback to basic insights
+          return this.generateMarketInsights(userSkills, jobMatches, skillDemand);
+        }
+      }
+    } catch (error) {
+      console.error('AI insights generation failed:', error);
+    }
+
+    // Fallback to basic insights
+    return this.generateMarketInsights(userProfile.skills || [], jobMatches, skillDemand);
   }
 
   /**

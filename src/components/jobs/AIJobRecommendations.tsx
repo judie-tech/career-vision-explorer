@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { jobsService } from '@/services/jobs.service';
 import { enhancedAIService } from '@/services/enhanced-ai.service';
+import { aiJobMatchingService } from '@/services/ai-job-matching.service';
+import { jobMatchingService } from '@/services/job-matching.service';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -67,16 +69,14 @@ const AIJobRecommendations: React.FC = () => {
   const [activeTab, setActiveTab] = useState('skills');
 
   useEffect(() => {
-    if (isAuthenticated && user?.account_type === 'job_seeker') {
-      loadSkillBasedRecommendations();
-      if (profile) {
-        setSearchPreferences(prev => ({
-          ...prev,
-          location: profile.location || '',
-          salary_expectation: profile.salary_expectation || '',
-          skills: profile.skills || [],
-        }));
-      }
+    if (isAuthenticated && user?.account_type === 'job_seeker' && profile) {
+      // Set preferences from profile but don't auto-load
+      setSearchPreferences(prev => ({
+        ...prev,
+        location: profile.location || prev.location,
+        salary_expectation: profile.salary_expectation || prev.salary_expectation,
+        skills: profile.skills?.length ? profile.skills : prev.skills,
+      }));
     }
   }, [isAuthenticated, user, profile]);
 
@@ -96,11 +96,39 @@ const AIJobRecommendations: React.FC = () => {
   const getAIRecommendations = async () => {
     try {
       setIsLoading(true);
+      
+      // Use the enhanced AI job matching service for better results
+      const enhancedMatches = await aiJobMatchingService.matchJobsWithAI(profile, {
+        max_results: 20,
+        min_match_score: 60,
+        include_stretch_opportunities: true,
+        focus_on_skill_growth: true
+      });
+      
+      if (enhancedMatches.length > 0) {
+        // Convert enhanced matches to JobRecommendation format
+        const jobRecommendations: JobRecommendation[] = enhancedMatches.map(match => ({
+          ...match,
+          job_id: match.id,
+          skills_required: match.requiredSkills,
+          reasons: match.personalized_insights.why_good_fit || ['AI-generated match'],
+          created_at: match.postedDate || new Date().toISOString()
+        }));
+        
+        setAiRecommendations(jobRecommendations);
+        console.log('Enhanced AI Recommendations set:', jobRecommendations);
+        setActiveTab('ai-recommendations');
+        toast.success('AI recommendations generated with enhanced matching!');
+        return;
+      }
+      
+      // Fallback to original enhanced AI service
       const recommendations = await enhancedAIService.getJobRecommendations({
         location: searchPreferences.location || profile?.location,
         salary_range: searchPreferences.salary_expectation || profile?.salary_expectation,
         job_type: 'full-time'
       });
+      
       const recommendationPromises = recommendations.map(async (rec) => {
         try {
           const jobDetails = await jobsService.getJobById(rec.job_id);

@@ -75,19 +75,53 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const loadUserProfile = async () => {
     try {
-      const userProfile = await profileService.getProfile();
+      // Increase timeout to 30 seconds for slower connections
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Profile load timeout')), 30000)
+      );
+      
+      const profilePromise = profileService.getProfile();
+      const userProfile = await Promise.race([profilePromise, timeoutPromise]);
       setProfile(userProfile);
+      console.log('Profile loaded successfully:', userProfile);
     } catch (error) {
       console.error('Error loading profile:', error);
-      // If profile fails to load, try to refresh token
-      try {
-        await authService.refreshToken();
-        const userProfile = await profileService.getProfile();
-        setProfile(userProfile);
-      } catch (refreshError) {
-        console.error('Error refreshing token and loading profile:', refreshError);
-        // If refresh fails, the session is invalid, so log out
-        await logout();
+      
+      // Don't try refresh token on timeout or network errors
+      if (error.message?.includes('timeout') || error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
+        console.warn('Profile load failed due to network issue, continuing without profile');
+        setProfile(null);
+        // Don't show error toast for timeout/network issues since user can still use the app
+        return;
+      }
+      
+      // Check if it's a 404 (profile doesn't exist yet)
+      if (error.message?.includes('404') || error.message?.includes('Not Found')) {
+        console.warn('Profile not found - user may need to complete profile setup');
+        setProfile(null);
+        return;
+      }
+      
+      // Only try refresh for auth-related errors (401, 403)
+      if (error.message?.includes('401') || error.message?.includes('403') || error.message?.includes('Unauthorized')) {
+        try {
+          console.log('Attempting to refresh token due to auth error');
+          await authService.refreshToken();
+          const userProfile = await profileService.getProfile();
+          setProfile(userProfile);
+          console.log('Profile loaded after token refresh:', userProfile);
+        } catch (refreshError) {
+          console.error('Error refreshing token and loading profile:', refreshError);
+          // If refresh fails, the session is invalid, so log out
+          setProfile(null);
+          console.warn('Logging out due to failed token refresh');
+          // Don't auto-logout for profile issues
+          // await logout();
+        }
+      } else {
+        // For other errors, just continue without profile
+        console.warn('Profile load failed with non-auth error, continuing without profile:', error.message);
+        setProfile(null);
       }
     }
   };
@@ -95,8 +129,16 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const login = async (credentials: UserLogin) => {
     try {
       setIsLoading(true);
-      const { user: loginUser } = await authService.login(credentials);
-      const user = await authService.getCurrentUser();
+      const tokenResponse = await authService.login(credentials);
+      
+      // Construct user object from token response
+      const user: User = {
+        user_id: tokenResponse.user_id,
+        name: '', // Will be loaded from profile
+        email: tokenResponse.email,
+        account_type: tokenResponse.account_type as 'job_seeker' | 'employer' | 'admin'
+      };
+      
       authService.setStoredUser(user);
       setUser(user);
       await loadUserProfile();

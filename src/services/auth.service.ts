@@ -9,6 +9,7 @@ import {
   PasswordResetRequest,
   PasswordResetConfirm 
 } from '../types/auth';
+import { trackDbOperation } from '../utils/performance';
 
 class AuthService {
   async register(userData: UserRegister): Promise<TokenResponse> {
@@ -18,23 +19,41 @@ class AuthService {
     if (response.access_token) {
       apiClient.setToken(response.access_token);
       localStorage.setItem('refresh_token', response.refresh_token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      
+      // Construct user object from flat response
+      const user: User = {
+        user_id: response.user_id,
+        name: '', // Will be loaded from profile
+        email: response.email,
+        account_type: response.account_type as 'job_seeker' | 'employer' | 'admin'
+      };
+      localStorage.setItem('user', JSON.stringify(user));
     }
     
     return response;
   }
 
   async login(credentials: UserLogin): Promise<TokenResponse> {
-    const response = await apiClient.post<TokenResponse>('/auth/login', credentials);
-    
-    // Store tokens and user data
-    if (response.access_token) {
-      apiClient.setToken(response.access_token);
-      localStorage.setItem('refresh_token', response.refresh_token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-    }
-    
-    return { ...response, user: response.user };
+    return trackDbOperation('User Login', async () => {
+      const response = await apiClient.post<TokenResponse>('/auth/login', credentials);
+      
+      // Store tokens and user data
+      if (response.access_token) {
+        apiClient.setToken(response.access_token);
+        localStorage.setItem('refresh_token', response.refresh_token);
+        
+        // Construct user object from flat response
+        const user: User = {
+          user_id: response.user_id,
+          name: '', // Will be loaded from profile
+          email: response.email,
+          account_type: response.account_type as 'job_seeker' | 'employer' | 'admin'
+        };
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+      
+      return response;
+    });
   }
 
   async logout(): Promise<void> {

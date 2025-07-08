@@ -12,8 +12,24 @@ export interface GenerateResponse {
 class GeminiService {
   // Generate text using Gemini AI
   async generateText(prompt: string): Promise<GenerateResponse> {
-    const request: GenerateRequest = { prompt };
-    return await apiClient.post<GenerateResponse>('/gemini/generate', request);
+    try {
+      const request: GenerateRequest = { prompt };
+      // Use a longer timeout for AI generation (60 seconds)
+      const response = await apiClient.request<GenerateResponse>('/gemini/generate', 
+        {
+          method: 'POST',
+          body: JSON.stringify(request),
+        }, 
+        { timeoutMs: 60000 }
+      );
+      return response;
+    } catch (error: any) {
+      console.error('Gemini API Error:', error);
+      return { 
+        response: '', 
+        status: 'error'
+      };
+    }
   }
 
   // Check Gemini AI service status

@@ -26,9 +26,13 @@ export interface UserLogin {
 export interface TokenResponse {
   access_token: string;
   refresh_token: string;
-  token_type: 'bearer';
-  expires_in: number;
-  user: User;
+  token_type: string;
+  user_id: string;
+  email: string;
+  account_type: string;
+  // Legacy support - will be removed in future versions
+  expires_in?: number;
+  user?: User;
 }
 
 export interface RefreshTokenRequest {

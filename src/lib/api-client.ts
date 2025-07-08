@@ -1,10 +1,12 @@
+import { API_CONFIG } from '../config/api.config';
+
 // API Client configuration for FastAPI backend
 class ApiClient {
   private baseURL: string;
   private token: string | null = null;
 
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+    this.baseURL = API_CONFIG.BASE_URL;
     this.token = localStorage.getItem('access_token');
   }
 
@@ -23,10 +25,12 @@ class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    config?: { timeoutMs?: number; signal?: AbortSignal }
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     const token = this.getToken();
+    const timeoutMs = config?.timeoutMs || API_CONFIG.TIMEOUTS.DEFAULT;
 
     const defaultHeaders: HeadersInit = {};
 
@@ -38,16 +42,36 @@ class ApiClient {
       defaultHeaders.Authorization = `Bearer ${this.getToken()}`;
     }
 
-    const config: RequestInit = {
+    // Use provided signal or create new one for timeout
+    let controller: AbortController | null = null;
+    let timeoutId: NodeJS.Timeout | null = null;
+    let signal = config?.signal;
+    
+    if (!signal) {
+      controller = new AbortController();
+      signal = controller.signal;
+      timeoutId = setTimeout(() => controller!.abort(), timeoutMs);
+    }
+
+    const requestConfig: RequestInit = {
       headers: {
         ...defaultHeaders,
         ...options.headers,
       },
+      signal,
       ...options,
     };
 
     try {
-      const response = await fetch(url, config);
+      console.log(`🚀 API Request: ${options.method || 'GET'} ${url}`);
+      const startTime = performance.now();
+      
+      const response = await fetch(url, requestConfig);
+      
+      const endTime = performance.now();
+      console.log(`✅ API Response: ${url} (${Math.round(endTime - startTime)}ms)`);
+      
+      if (timeoutId) clearTimeout(timeoutId);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -61,21 +85,40 @@ class ApiClient {
       
       return response.text() as unknown as T;
     } catch (error) {
-      console.error(`API request failed: ${url}`, error);
+      if (timeoutId) clearTimeout(timeoutId);
+      
+      if (error.name === 'AbortError') {
+        if (config?.signal?.aborted) {
+          // Request was cancelled by user
+          console.log(`🚫 API Request cancelled: ${url}`);
+          throw new Error('Request cancelled');
+        } else {
+          // Request timed out
+          console.error(`⏰ API Timeout: ${url} (${timeoutMs}ms)`);
+          throw new Error(`Request timed out after ${timeoutMs/1000} seconds. The database might be slow.`);
+        }
+      }
+      
+      console.error(`❌ API request failed: ${url}`, error);
       throw error;
     }
   }
 
-  async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' });
+  async get<T>(endpoint: string, config?: { timeout?: number; signal?: AbortSignal }): Promise<T> {
+    return this.request<T>(endpoint, { method: 'GET' }, { timeoutMs: config?.timeout, signal: config?.signal });
   }
 
-  async post<T>(endpoint: string, data?: any): Promise<T> {
+  // Fast timeout version for quick operations
+  async getFast<T>(endpoint: string, config?: { signal?: AbortSignal }): Promise<T> {
+    return this.request<T>(endpoint, { method: 'GET' }, { timeoutMs: API_CONFIG.TIMEOUTS.FAST, signal: config?.signal });
+  }
+
+  async post<T>(endpoint: string, data?: any, config?: { signal?: AbortSignal }): Promise<T> {
     const isFormData = data instanceof FormData;
     return this.request<T>(endpoint, {
       method: 'POST',
       body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
-    });
+    }, { signal: config?.signal });
   }
 
   async put<T>(endpoint: string, data?: any): Promise<T> {

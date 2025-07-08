@@ -94,7 +94,6 @@ export interface Profile {
   user_id: string;
   name: string;
   email: string;
-  password_hash: string;
   skills: string[];
   resume_link?: string;
   account_type: 'job_seeker' | 'employer' | 'admin';

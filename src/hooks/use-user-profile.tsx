@@ -1,29 +1,112 @@
 
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback, useRef } from 'react';
 import { profileService } from '@/services';
 import { Profile } from '@/types/api';
 
-export const useUserProfile = () => {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// Global cache to share profile data across components
+const profileCache = {
+  data: null as Profile | null,
+  timestamp: 0,
+  loading: false,
+  error: null as string | null
+};
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await profileService.getProfile();
-        setProfile(data);
-      } catch (err) {
-        setError('Failed to fetch profile');
-      } finally {
+// 5 minutes cache duration
+const CACHE_DURATION = 5 * 60 * 1000;
+
+export const useUserProfile = () => {
+  const [profile, setProfile] = useState<Profile | null>(profileCache.data);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(profileCache.error);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const fetchProfile = useCallback(async (force = false) => {
+    // Cancel any ongoing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Check cache first (unless forced refresh)
+    const now = Date.now();
+    const cacheAge = now - profileCache.timestamp;
+    
+    if (!force && profileCache.data && cacheAge < CACHE_DURATION && !profileCache.loading) {
+      console.log('Using cached profile data');
+      setProfile(profileCache.data);
+      setError(profileCache.error);
+      setIsLoading(false);
+      return;
+    }
+
+    // Don't fetch if already loading (prevents duplicate requests)
+    if (profileCache.loading && !force) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      profileCache.loading = true;
+      setError(null);
+
+      // Create new abort controller
+      abortControllerRef.current = new AbortController();
+      
+      console.log('Fetching fresh profile data...');
+      const data = await profileService.getProfile();
+      
+      if (abortControllerRef.current.signal.aborted) {
+        return; // Don't update state if request was cancelled
+      }
+
+      // Update cache
+      profileCache.data = data;
+      profileCache.timestamp = now;
+      profileCache.error = null;
+      
+      setProfile(data);
+      setError(null);
+      
+    } catch (err) {
+      if (abortControllerRef.current?.signal.aborted) {
+        return; // Don't update state if request was cancelled
+      }
+      
+      const errorMessage = 'Failed to fetch profile';
+      console.error('Profile fetch error:', err);
+      
+      profileCache.error = errorMessage;
+      setError(errorMessage);
+    } finally {
+      if (!abortControllerRef.current?.signal.aborted) {
         setIsLoading(false);
       }
-    };
-
-    fetchProfile();
+      profileCache.loading = false;
+    }
   }, []);
 
-  return { profile, isLoading, error };
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  // Don't auto-fetch - let AuthContext handle profile loading
+  // Only use this hook for manual refresh operations
+
+  return { 
+    profile, 
+    isLoading, 
+    error, 
+    refreshProfile: () => fetchProfile(true), // Force refresh function
+    clearCache: () => {
+      profileCache.data = null;
+      profileCache.timestamp = 0;
+      profileCache.error = null;
+    }
+  };
 };
 
 const UserProfileContext = createContext<{
