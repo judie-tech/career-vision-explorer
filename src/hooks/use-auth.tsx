@@ -47,8 +47,23 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const initializeAuth = async () => {
     try {
       const storedUser = authService.getStoredUser();
+      console.log('Auth initialization - stored user:', storedUser);
+      
       if (storedUser && authService.isAuthenticated()) {
+        // First set the stored user
         setUser(storedUser);
+        
+        // Then try to get fresh user data from the server
+        try {
+          const freshUser = await authService.getCurrentUser();
+          console.log('Auth initialization - fresh user from server:', freshUser);
+          authService.setStoredUser(freshUser);
+          setUser(freshUser);
+        } catch (error) {
+          console.error('Failed to get fresh user data:', error);
+          // Continue with stored user if fetch fails
+        }
+        
         await loadUserProfile();
         
         // Check if there's an impersonation session
@@ -192,7 +207,19 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const refreshProfile = async () => {
     if (user && authService.isAuthenticated()) {
-      await loadUserProfile();
+      try {
+        // Refresh user data to get updated account_type
+        const updatedUser = await authService.getCurrentUser();
+        authService.setStoredUser(updatedUser);
+        setUser(updatedUser);
+        
+        // Load profile data
+        await loadUserProfile();
+      } catch (error) {
+        console.error('Error refreshing user data:', error);
+        // If getCurrentUser fails, just load profile
+        await loadUserProfile();
+      }
     }
   };
 

@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useAuth } from "@/hooks/use-auth";
-import { toast } from "sonner";
-import { freelancerService } from "@/services/freelancer.service";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -146,23 +144,6 @@ const Navbar = () => {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-{(user.account_type === 'job_seeker' || user.account_type === 'freelancer') && (
-                    <DropdownMenuItem onClick={async () => {
-                      const newRole = user.account_type === 'job_seeker' ? 'freelancer' : 'job_seeker';
-                      try {
-                        const response = await freelancerService.switchRole(newRole);
-                        toast.success(response.message);
-                        // Refresh user data and navigate to new dashboard
-                        await refreshProfile();
-                        window.location.reload(); // Force reload to update all components
-                      } catch (error: any) {
-                        console.error('Role switch error:', error);
-                        toast.error(error.message || 'Failed to switch roles. Please try again.');
-                      }
-                    }}>
-                      Switch to {user.account_type === 'job_seeker' ? 'Freelancer' : 'Job Seeker'}
-                    </DropdownMenuItem>
-                  )}
 <DropdownMenuItem onClick={() => navigate(getDashboardUrl())}>
   Dashboard
 </DropdownMenuItem>

@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, Settings, User, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
+import { RoleSwitcher } from "@/components/layout/RoleSwitcher";
 
 export const DashboardHeader = () => {
   const { user, logout } = useAuth();
@@ -32,6 +33,7 @@ export const DashboardHeader = () => {
       </div>
       
       <div className="flex items-center gap-4">
+        <RoleSwitcher />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 

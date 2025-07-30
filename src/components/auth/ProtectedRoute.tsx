@@ -31,6 +31,15 @@ export const ProtectedRoute = ({
         // Map frontend role names to backend role names
         const backendRole = requiredRole === 'jobseeker' ? 'job_seeker' : requiredRole;
         
+        // Debug logging
+        console.log('ProtectedRoute Debug:', {
+          requiredRole,
+          backendRole,
+          userAccountType: user?.account_type,
+          hasRole: hasRole(backendRole as 'admin' | 'job_seeker' | 'employer' | 'freelancer'),
+          user
+        });
+        
         if (!hasRole(backendRole as 'admin' | 'job_seeker' | 'employer' | 'freelancer')) {
           // Role-specific error message
           const roleMessage = `You need ${requiredRole} permissions to access this page`;

@@ -6,7 +6,7 @@ import { useJobApplications } from "@/hooks/use-job-applications";
 import { useProfile } from "@/hooks/use-user-profile";
 import { useAuth } from "@/hooks/use-auth";
 
-export const QuickStatsCards = () = {
+export const QuickStatsCards = () => {
   const { isJobSeeker, isFreelancer } = useAuth();
   
   const canApplyForJobs = isJobSeeker() || isFreelancer();

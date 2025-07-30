@@ -19,6 +19,7 @@ import { freelancerService } from '@/services/freelancer.service';
 import { Freelancer } from '@/types/freelancer';
 import { toast } from 'sonner';
 import { PricingDialog } from '@/components/freelancer/PricingDialog';
+import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
 
 export default function FreelancerDashboard() {
   const navigate = useNavigate();
@@ -123,6 +124,7 @@ export default function FreelancerDashboard() {
             </p>
           </div>
           <div className="flex gap-2">
+            <RoleSwitcher />
             <Button variant="outline" onClick={handleViewPublicProfile}>
               View Public Profile
             </Button>
