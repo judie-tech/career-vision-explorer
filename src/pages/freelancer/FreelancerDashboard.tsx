@@ -18,6 +18,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { freelancerService } from '@/services/freelancer.service';
 import { Freelancer } from '@/types/freelancer';
 import { toast } from 'sonner';
+import { PricingDialog } from '@/components/freelancer/PricingDialog';
 
 export default function FreelancerDashboard() {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ export default function FreelancerDashboard() {
   const [freelancerProfile, setFreelancerProfile] = useState<Freelancer | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasProfile, setHasProfile] = useState(false);
+  const [pricingDialogOpen, setPricingDialogOpen] = useState(false);
 
   useEffect(() => {
     checkFreelancerProfile();
@@ -59,6 +61,17 @@ export default function FreelancerDashboard() {
   const handleViewPublicProfile = () => {
     if (freelancerProfile) {
       navigate(`/freelancers/${freelancerProfile.freelancer_id}`);
+    }
+  };
+
+  const handleSavePricing = async (pricingData: any) => {
+    try {
+      await freelancerService.updateFreelancerPricing(freelancerProfile?.freelancer_id || '', pricingData);
+      toast.success('Pricing updated successfully!');
+      setFreelancerProfile({ ...freelancerProfile, ...pricingData });
+    } catch (error) {
+      toast.error('Failed to update pricing');
+      console.error('Error saving pricing:', error);
     }
   };
 
@@ -201,9 +214,15 @@ export default function FreelancerDashboard() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-600">Hourly Rate</span>
-                <span className="font-medium">
-                  {freelancerProfile.hourly_rate ? `$${freelancerProfile.hourly_rate}/hr` : "Not set"}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">
+                    {freelancerProfile.hourly_rate ? `$${freelancerProfile.hourly_rate}/hr` : "Not set"}
+                  </span>
+                  <Button size="sm" variant="outline" onClick={() => setPricingDialogOpen(true)}>
+                    <DollarSign className="w-3 h-3 mr-1" />
+                    Manage Pricing
+                  </Button>
+                </div>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-600">Experience</span>
@@ -253,6 +272,15 @@ export default function FreelancerDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Pricing Dialog */}
+      <PricingDialog
+        open={pricingDialogOpen}
+        onOpenChange={setPricingDialogOpen}
+        currentHourlyRate={freelancerProfile?.hourly_rate}
+        currentPricing={freelancerProfile?.pricing}
+        onSave={handleSavePricing}
+      />
     </div>
   );
 }

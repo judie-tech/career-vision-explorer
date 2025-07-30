@@ -4,9 +4,16 @@ import { Briefcase, Eye, Calendar, Star } from "lucide-react";
 import { StatCard } from "./StatCard";
 import { useJobApplications } from "@/hooks/use-job-applications";
 import { useProfile } from "@/hooks/use-user-profile";
+import { useAuth } from "@/hooks/use-auth";
 
-export const QuickStatsCards = () => {
-  const { applications, isLoading: applicationsLoading } = useJobApplications();
+export const QuickStatsCards = () = {
+  const { isJobSeeker, isFreelancer } = useAuth();
+  
+  const canApplyForJobs = isJobSeeker() || isFreelancer();
+  
+  const { applications, isLoading: applicationsLoading } = canApplyForJobs
+    ? useJobApplications()
+    : { applications: [], isLoading: false };
   const { profile, isLoading: profileLoading } = useProfile();
 
   const stats = [

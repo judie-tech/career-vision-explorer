@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { JobApplicationDialog } from "@/components/jobseeker/JobApplicationDialog";
 import { useJobApplications } from "@/hooks/use-job-applications";
 import { useWishlist } from "@/hooks/use-wishlist";
+import { useAuth } from "@/hooks/use-auth";
 import { JobsHeader } from "./JobsHeader";
 import { JobsSearchBar } from "./JobsSearchBar";
 import { JobsFilters } from "./JobsFilters";
@@ -32,7 +33,15 @@ export const JobsContainer = ({ jobs }: JobsContainerProps) => {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [applicationDialogOpen, setApplicationDialogOpen] = useState(false);
   
-  const { getApplicationForJob } = useJobApplications();
+  const { isJobSeeker, isFreelancer } = useAuth();
+  
+  // Allow both job seekers and freelancers to view and apply for jobs
+  const canApplyForJobs = isJobSeeker() || isFreelancer();
+  
+  const { getApplicationForJob } = canApplyForJobs 
+    ? useJobApplications() 
+    : { getApplicationForJob: () => null };
+    
   const { addToWishlist, removeFromWishlist, isJobInWishlist } = useWishlist();
   
   const {

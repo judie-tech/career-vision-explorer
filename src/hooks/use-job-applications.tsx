@@ -9,6 +9,19 @@ export const useJobApplications = () => {
   const { data: applications = [], isLoading, error, refetch } = useQuery<Application[], Error>({
     queryKey: [APPLICATIONS_QUERY_KEY],
     queryFn: () => applicationsService.getMyApplications(),
+    retry: (failureCount, error) => {
+      // Don't retry on 403 errors (forbidden)
+      if (error.message?.includes('403') || error.message?.includes('Only job seekers')) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+    onError: (error) => {
+      // Silently handle 403 errors for non-job seekers
+      if (error.message?.includes('403') || error.message?.includes('Only job seekers')) {
+        console.log('User is not a job seeker, applications not available');
+      }
+    }
   });
 
   const getApplicationForJob = useMemo(() => {

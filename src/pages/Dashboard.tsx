@@ -20,6 +20,8 @@ const Dashboard = () => {
       navigate('/employer/dashboard');
     } else if (hasRole('job_seeker')) {
       navigate('/jobseeker/dashboard');
+    } else if (hasRole('freelancer')) {
+      navigate('/freelancer/dashboard');
     } else {
       // Fallback for any other case
       navigate('/');

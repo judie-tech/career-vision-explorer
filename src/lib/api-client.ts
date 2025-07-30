@@ -39,7 +39,7 @@ class ApiClient {
     }
 
     if (token) {
-      defaultHeaders.Authorization = `Bearer ${this.getToken()}`;
+      defaultHeaders.Authorization = `Bearer ${token}`;
     }
 
     // Use provided signal or create new one for timeout

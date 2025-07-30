@@ -21,8 +21,14 @@ const JobDetails = () => {
   const [applicationDialogOpen, setApplicationDialogOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   
-  const { getApplicationForJob, isLoading: applicationsLoading } = useJobApplications();
-  const { isAdmin, isEmployer } = useAuth();
+  const { isAdmin, isEmployer, isJobSeeker, isFreelancer } = useAuth();
+
+  // Allow both job seekers and freelancers to view and apply for jobs
+  const canApplyForJobs = isJobSeeker() || isFreelancer();
+  
+  const { getApplicationForJob, isLoading: applicationsLoading } = canApplyForJobs 
+    ? useJobApplications() 
+    : { getApplicationForJob: () => null, isLoading: false };
  
   const [job, setJob] = useState<any>(null);
   const [loading, setLoading] = useState(true);

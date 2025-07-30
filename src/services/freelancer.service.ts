@@ -91,6 +91,20 @@ class FreelancerService {
       return false;
     }
   }
+
+  async autoEnhanceProfile(freelancerId: string): Promise<Freelancer> {
+    return apiClient.post<Freelancer>(`/freelancers/${freelancerId}/auto-enhance`);
+  }
+
+  async updateFreelancerPricing(
+    freelancerId: string,
+    pricingData: {
+      hourly_rate?: number;
+      pricing?: any;
+    }
+  ): Promise<Freelancer> {
+    return apiClient.put<Freelancer>(`/freelancers/${freelancerId}/pricing`, pricingData);
+  }
 }
 
 export const freelancerService = new FreelancerService();

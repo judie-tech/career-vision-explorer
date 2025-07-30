@@ -2,6 +2,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useJobApplications } from "@/hooks/use-job-applications";
+import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { JobSummaryCard } from "./application/JobSummaryCard";
 import { CoverLetterSection } from "./application/CoverLetterSection";
@@ -20,7 +21,15 @@ export const JobApplicationDialog = ({ job, open, onOpenChange }: JobApplication
   const [coverLetter, setCoverLetter] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { refetch: refetchApplications } = useJobApplications();
+  
+  const { isJobSeeker, isFreelancer } = useAuth();
+  
+  // Allow both job seekers and freelancers to view and apply for jobs
+  const canApplyForJobs = isJobSeeker() || isFreelancer();
+  
+  const { refetch: refetchApplications } = canApplyForJobs
+    ? useJobApplications()
+    : { refetch: () => {} };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
