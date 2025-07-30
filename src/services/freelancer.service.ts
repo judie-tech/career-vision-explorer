@@ -14,7 +14,11 @@ class FreelancerService {
   }
 
   async getFreelancer(freelancerId: string): Promise<Freelancer> {
-    return apiClient.get<Freelancer>(`/freelancers/${freelancerId}`);
+    return await apiClient.get<Freelancer>(`/freelancers/${freelancerId}`);
+  }
+
+  async getFreelancerEnriched(freelancerId: string): Promise<Freelancer> {
+    return await apiClient.get<Freelancer>(`/freelancers/${freelancerId}/enriched`);
   }
 
   async getFreelancerByUserId(userId: string): Promise<Freelancer> {

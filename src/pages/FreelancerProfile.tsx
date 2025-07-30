@@ -34,8 +34,16 @@ export default function FreelancerProfile() {
     if (!freelancerId) return;
     try {
       setLoading(true);
-      const data = await freelancerService.getFreelancer(freelancerId);
-      setFreelancer(data);
+      // Try to get enriched data first
+      try {
+        const enrichedData = await freelancerService.getFreelancerEnriched(freelancerId);
+        setFreelancer(enrichedData);
+      } catch (enrichedError) {
+        // Fall back to regular endpoint if enriched fails
+        console.log('Enriched endpoint failed, falling back to regular endpoint');
+        const data = await freelancerService.getFreelancer(freelancerId);
+        setFreelancer(data);
+      }
     } catch (error) {
       console.error('Error loading freelancer:', error);
       toast.error('Failed to load freelancer profile.');
