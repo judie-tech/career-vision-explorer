@@ -47,7 +47,7 @@ const signupSchema = z.object({
   password: z.string().min(8, {
     message: "Password must be at least 8 characters.",
   }),
-  role: z.enum(["jobseeker", "employer"], {
+  role: z.enum(["jobseeker", "employer", "freelancer"], {
     required_error: "Please select your role.",
   }),
   countryCode: z.string().optional(),
@@ -109,7 +109,7 @@ const Signup = () => {
       });
 
       // Map frontend role to backend role
-      const accountType = values.role === 'jobseeker' ? 'job_seeker' : 'employer';
+      const accountType = values.role === 'jobseeker' ? 'job_seeker' : values.role === 'employer' ? 'employer' : 'freelancer';
 
       // Register the new user using the real backend
       await register({
@@ -239,6 +239,8 @@ const Signup = () => {
     // Redirect based on user role
     if (newUserData?.role === 'employer') {
       navigate('/employer/dashboard');
+    } else if (newUserData?.role === 'freelancer') {
+      navigate('/freelancer/dashboard');
     } else {
       navigate('/jobseeker/dashboard');
     }
@@ -324,6 +326,7 @@ const Signup = () => {
                         <SelectContent>
                           <SelectItem value="jobseeker">Job Seeker</SelectItem>
                           <SelectItem value="employer">Employer</SelectItem>
+                          <SelectItem value="freelancer">Freelancer</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -398,8 +401,11 @@ const Signup = () => {
           </CardContent>
         </Card>
         
-        {showOnboarding && (
-          <OnboardingWizard onComplete={handleOnboardingComplete} />
+        {showOnboarding && newUserData && (
+          <OnboardingWizard 
+            onComplete={handleOnboardingComplete} 
+            userRole={newUserData.role}
+          />
         )}
         
         <LinkedInImportDialog

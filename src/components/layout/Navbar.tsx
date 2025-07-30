@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
+import { freelancerService } from "@/services/freelancer.service";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +22,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, refreshProfile } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -40,6 +42,8 @@ const Navbar = () => {
         return '/employer/dashboard';
       case 'job_seeker':
         return '/jobseeker/dashboard';
+      case 'freelancer':
+        return '/freelancer/dashboard';
       default:
         return '/';
     }
@@ -61,6 +65,7 @@ const Navbar = () => {
   const navigation = [
     { name: "Home", href: "/" },
     { name: "Jobs", href: "/jobs" },
+    { name: "Freelancers", href: "/freelancers" },
     { name: "AI Job Matching", href: "/ai-job-matching" },
     { name: "Career Paths", href: "/career-paths" },
     { name: "Skills", href: "/skills" },
@@ -141,10 +146,27 @@ const Navbar = () => {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate(getDashboardUrl())}>
-                    Dashboard
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+{(user.account_type === 'job_seeker' || user.account_type === 'freelancer') && (
+                    <DropdownMenuItem onClick={async () => {
+                      const newRole = user.account_type === 'job_seeker' ? 'freelancer' : 'job_seeker';
+                      try {
+                        const response = await freelancerService.switchRole(newRole);
+                        toast.success(response.message);
+                        // Refresh user data and navigate to new dashboard
+                        await refreshProfile();
+                        window.location.reload(); // Force reload to update all components
+                      } catch (error: any) {
+                        console.error('Role switch error:', error);
+                        toast.error(error.message || 'Failed to switch roles. Please try again.');
+                      }
+                    }}>
+                      Switch to {user.account_type === 'job_seeker' ? 'Freelancer' : 'Job Seeker'}
+                    </DropdownMenuItem>
+                  )}
+<DropdownMenuItem onClick={() => navigate(getDashboardUrl())}>
+  Dashboard
+</DropdownMenuItem>
+<DropdownMenuItem onClick={() => navigate("/profile")}>
                     Profile
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

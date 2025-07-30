@@ -6,7 +6,7 @@ import { toast } from "@/components/ui/sonner";
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  requiredRole?: "admin" | "jobseeker" | "employer";
+  requiredRole?: "admin" | "jobseeker" | "employer" | "freelancer";
 }
 
 export const ProtectedRoute = ({
@@ -31,7 +31,7 @@ export const ProtectedRoute = ({
         // Map frontend role names to backend role names
         const backendRole = requiredRole === 'jobseeker' ? 'job_seeker' : requiredRole;
         
-        if (!hasRole(backendRole as 'admin' | 'job_seeker' | 'employer')) {
+        if (!hasRole(backendRole as 'admin' | 'job_seeker' | 'employer' | 'freelancer')) {
           // Role-specific error message
           const roleMessage = `You need ${requiredRole} permissions to access this page`;
           
@@ -60,6 +60,8 @@ export const ProtectedRoute = ({
         return '/employer/dashboard';
       case 'job_seeker':
         return '/jobseeker/dashboard';
+      case 'freelancer':
+        return '/freelancer/dashboard';
       default:
         return '/';
     }
@@ -81,7 +83,7 @@ export const ProtectedRoute = ({
   
   if (requiredRole) {
     const backendRole = requiredRole === 'jobseeker' ? 'job_seeker' : requiredRole;
-    if (!hasRole(backendRole as 'admin' | 'job_seeker' | 'employer')) {
+    if (!hasRole(backendRole as 'admin' | 'job_seeker' | 'employer' | 'freelancer')) {
       return null;
     }
   }

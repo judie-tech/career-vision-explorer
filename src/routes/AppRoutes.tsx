@@ -60,6 +60,11 @@ const AllApplicants = lazy(() => import("@/pages/employer/AllApplicants"));
 const EmployerInterviews = lazy(() => import("@/pages/employer/EmployerInterviews"));
 const InterviewSchedule = lazy(() => import("@/pages/employer/InterviewSchedule"));
 
+// Freelancer pages
+const Freelancers = lazy(() => import("@/pages/Freelancers"));
+const FreelancerProfile = lazy(() => import("@/pages/FreelancerProfile"));
+const FreelancerDashboard = lazy(() => import("@/pages/freelancer/FreelancerDashboard"));
+
 // Lightweight loading component
 const PageLoader = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -115,6 +120,16 @@ export const AppRoutes = () => {
         <Route path="/jobs/:id" element={
           <Suspense fallback={<PageLoader />}>
             <JobDetails />
+          </Suspense>
+        } />
+        <Route path="/freelancers" element={
+          <Suspense fallback={<PageLoader />}>
+            <Freelancers />
+          </Suspense>
+        } />
+        <Route path="/freelancers/:freelancerId" element={
+          <Suspense fallback={<PageLoader />}>
+            <FreelancerProfile />
           </Suspense>
         } />
         <Route path="/about" element={
@@ -315,8 +330,18 @@ export const AppRoutes = () => {
             <Suspense fallback={<PageLoader />}>
               <JobSeekerSettings />
             </Suspense>
+        </ProtectedRoute>
+        } />
+        
+        {/* Freelancer Routes */}
+        <Route path="/freelancer/dashboard" element={
+          <ProtectedRoute requiredRole="freelancer">
+            <Suspense fallback={<PageLoader />}>
+              <FreelancerDashboard />
+            </Suspense>
           </ProtectedRoute>
         } />
+        
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <Suspense fallback={<PageLoader />}>

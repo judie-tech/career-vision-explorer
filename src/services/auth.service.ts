@@ -25,7 +25,7 @@ class AuthService {
         user_id: response.user_id,
         name: '', // Will be loaded from profile
         email: response.email,
-        account_type: response.account_type as 'job_seeker' | 'employer' | 'admin'
+        account_type: response.account_type as 'job_seeker' | 'employer' | 'admin' | 'freelancer'
       };
       localStorage.setItem('user', JSON.stringify(user));
     }
@@ -47,7 +47,7 @@ class AuthService {
           user_id: response.user_id,
           name: '', // Will be loaded from profile
           email: response.email,
-          account_type: response.account_type as 'job_seeker' | 'employer' | 'admin'
+          account_type: response.account_type as 'job_seeker' | 'employer' | 'admin' | 'freelancer'
         };
         localStorage.setItem('user', JSON.stringify(user));
       }
@@ -90,7 +90,7 @@ class AuthService {
       user_id: response.user_id,
       name: '', // Will be filled from profile
       email: response.email,
-      account_type: response.account_type as 'job_seeker' | 'employer' | 'admin'
+      account_type: response.account_type as 'job_seeker' | 'employer' | 'admin' | 'freelancer'
     };
   }
 
@@ -154,7 +154,7 @@ class AuthService {
     localStorage.setItem('user', JSON.stringify(user));
   }
 
-  hasRole(role: 'job_seeker' | 'employer' | 'admin'): boolean {
+  hasRole(role: 'job_seeker' | 'employer' | 'admin' | 'freelancer'): boolean {
     const user = this.getStoredUser();
     return user?.account_type === role;
   }
@@ -169,6 +169,10 @@ class AuthService {
 
   isJobSeeker(): boolean {
     return this.hasRole('job_seeker');
+  }
+
+  isFreelancer(): boolean {
+    return this.hasRole('freelancer');
   }
 }
 

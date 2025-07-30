@@ -15,13 +15,15 @@ import { AIAssistant } from "./AIAssistant";
 import { ProgressIndicator } from "./ProgressIndicator";
 import { StepNavigation } from "./StepNavigation";
 import { StepRenderer } from "./StepRenderer";
+import { FreelancerStepRenderer } from "./FreelancerStepRenderer";
 import { OnboardingData } from "./types";
 
 interface OnboardingWizardProps {
   onComplete: () => void;
+  userRole?: 'jobseeker' | 'employer' | 'freelancer';
 }
 
-const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
+const OnboardingWizard = ({ onComplete, userRole = 'jobseeker' }: OnboardingWizardProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
@@ -37,7 +39,9 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   const [videoAnalyzing, setVideoAnalyzing] = useState(false);
   const [videoAnalysisResult, setVideoAnalysisResult] = useState<string | null>(null);
   const [aiResponses, setAiResponses] = useState<string[]>([
-    "Welcome to Visiondrill! I'm here to help you set up your profile and find the perfect career opportunities. Let's get started by understanding your career goals and preferences."
+    userRole === 'freelancer' 
+      ? "Welcome to Visiondrill! I'm here to help you set up your freelancer profile. Let's showcase your skills and services to connect with potential clients."
+      : "Welcome to Visiondrill! I'm here to help you set up your profile and find the perfect career opportunities. Let's get started by understanding your career goals and preferences."
   ]);
   
   const totalSteps = 6;
@@ -48,7 +52,17 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   };
   
   const simulateAiResponse = () => {
-    const responses = [
+    const freelancerResponses = [
+      "Tell me about your services and expertise. This will help potential clients understand what you offer.",
+      "Great! Your experience and skills are valuable. Let's make sure clients can find you based on your expertise.",
+      "Setting the right rate is important. We'll help you find clients who value your skills and budget.",
+      "Your work preferences will help us match you with the right projects and clients.",
+      "Excellent! A strong portfolio helps showcase your capabilities to potential clients.",
+      "Perfect! Your location and language skills can open up both local and international opportunities.",
+      "Thank you for completing your profile! Your freelancer profile is now ready to attract potential clients."
+    ];
+    
+    const jobSeekerResponses = [
       "You can import your LinkedIn profile or start fresh. This will help us customize your experience to match your needs.",
       "Thank you for sharing your career goals! This information helps us understand what you're looking for in your career journey.",
       "Great choice! We'll find opportunities that match your preferred work style and environment.",
@@ -56,6 +70,8 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
       "Perfect! We'll focus on finding opportunities in your preferred location and nearby areas.",
       "Thank you for completing your profile! Based on your information, I've identified some initial career paths that might interest you and align with your goals."
     ];
+    
+    const responses = userRole === 'freelancer' ? freelancerResponses : jobSeekerResponses;
     
     if (currentStep < responses.length) {
       setAiResponses(prev => [...prev, responses[currentStep]]);
@@ -135,17 +151,30 @@ const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
           <AIAssistant message={aiResponses[aiResponses.length - 1]} />
           
           <div className="mb-4">
-            <StepRenderer
-              currentStep={currentStep}
-              data={data}
-              updateField={updateField}
-              handleLinkedInImport={handleLinkedInImport}
-              handleNext={handleNext}
-              handleVideoUpload={handleVideoUpload}
-              openVideoRecording={() => setVideoRecordingOpen(true)}
-              videoAnalyzing={videoAnalyzing}
-              videoAnalysisResult={videoAnalysisResult}
-            />
+            {userRole === 'freelancer' ? (
+              <FreelancerStepRenderer
+                currentStep={currentStep}
+                data={data}
+                updateField={updateField}
+                handleNext={handleNext}
+                handleVideoUpload={handleVideoUpload}
+                openVideoRecording={() => setVideoRecordingOpen(true)}
+                videoAnalyzing={videoAnalyzing}
+                videoAnalysisResult={videoAnalysisResult}
+              />
+            ) : (
+              <StepRenderer
+                currentStep={currentStep}
+                data={data}
+                updateField={updateField}
+                handleLinkedInImport={handleLinkedInImport}
+                handleNext={handleNext}
+                handleVideoUpload={handleVideoUpload}
+                openVideoRecording={() => setVideoRecordingOpen(true)}
+                videoAnalyzing={videoAnalyzing}
+                videoAnalysisResult={videoAnalysisResult}
+              />
+            )}
           </div>
           
           <DialogFooter>

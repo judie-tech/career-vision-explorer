@@ -4,7 +4,7 @@ export interface User {
   user_id: string;
   name: string;
   email: string;
-  account_type: 'job_seeker' | 'employer' | 'admin';
+  account_type: 'job_seeker' | 'employer' | 'admin' | 'freelancer';
   skills?: string[];
   resume_link?: string;
   created_at?: string;
@@ -15,7 +15,7 @@ export interface UserRegister {
   name: string;
   email: string;
   password: string;
-  account_type: 'job_seeker' | 'employer' | 'admin';
+  account_type: 'job_seeker' | 'employer' | 'admin' | 'freelancer';
 }
 
 export interface UserLogin {

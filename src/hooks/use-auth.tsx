@@ -14,10 +14,11 @@ interface AuthContextType {
   register: (userData: UserRegister) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
-  hasRole: (role: 'job_seeker' | 'employer' | 'admin') => boolean;
+  hasRole: (role: 'job_seeker' | 'employer' | 'admin' | 'freelancer') => boolean;
   isAdmin: () => boolean;
   isEmployer: () => boolean;
   isJobSeeker: () => boolean;
+  isFreelancer: () => boolean;
   // Impersonation functionality for admin users
   impersonateUser: (targetUser: User) => void;
   stopImpersonation: () => void;
@@ -125,7 +126,6 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     }
   };
-
   const login = async (credentials: UserLogin) => {
     try {
       setIsLoading(true);
@@ -136,7 +136,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         user_id: tokenResponse.user_id,
         name: '', // Will be loaded from profile
         email: tokenResponse.email,
-        account_type: tokenResponse.account_type as 'job_seeker' | 'employer' | 'admin'
+        account_type: tokenResponse.account_type as 'job_seeker' | 'employer' | 'admin' | 'freelancer'
       };
       
       authService.setStoredUser(user);
@@ -196,7 +196,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const hasRole = (role: 'job_seeker' | 'employer' | 'admin'): boolean => {
+  const hasRole = (role: 'job_seeker' | 'employer' | 'admin' | 'freelancer'): boolean => {
     return user?.account_type === role;
   };
 
@@ -255,6 +255,10 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     });
   };
 
+  const isFreelancer = (): boolean => {
+    return hasRole('freelancer');
+  };
+
   const value: AuthContextType = {
     user,
     profile,
@@ -268,6 +272,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     isAdmin,
     isEmployer,
     isJobSeeker,
+    isFreelancer,
     impersonateUser,
     stopImpersonation,
     isImpersonating,
