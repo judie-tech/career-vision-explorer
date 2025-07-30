@@ -94,6 +94,11 @@ class ProfileService {
     cv_file_url: string;
   }> {
     const response = await apiClient.uploadFile<any>('/ai/upload-and-parse-cv', file);
+    // The backend wraps the actual data in a 'data' field
+    if (response && response.data) {
+      return response.data;
+    }
+    // Fallback if response structure is different
     return response;
   }
 }

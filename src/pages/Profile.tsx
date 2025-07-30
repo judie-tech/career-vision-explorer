@@ -110,22 +110,42 @@ const Profile: React.FC = () => {
     setIsParsing(true);
     try {
       const response = await profileService.parseResume(resumeFile);
+      console.log('Resume parse response:', response);
+      
+      // Check if response has the expected structure
+      if (!response || !response.parsed_data) {
+        throw new Error('Invalid response structure from CV parser');
+      }
+      
       const updatedProfile = response.updated_profile;
       const parsedData = response.parsed_data;
+      
+      // Log the parsed data for debugging
+      console.log('Parsed data:', parsedData);
 
-      // Create a comprehensive update object
+      // Create a comprehensive update object with safe access
       const updatePayload = {
         ...profile,
-        ...parsedData.personal_info,
-        ...parsedData.professional_summary,
-        skills: parsedData.skills,
-        work_experience: parsedData.work_experience,
-        education: parsedData.education,
-        projects: parsedData.projects,
-        certifications: parsedData.certifications,
-        languages: parsedData.languages,
-        ...parsedData.additional_info,
-        resume_link: response.cv_file_url,
+        // Safely spread personal_info if it exists
+        ...(parsedData.personal_info && typeof parsedData.personal_info === 'object' 
+          ? parsedData.personal_info 
+          : {}),
+        // Safely spread professional_summary if it exists
+        ...(parsedData.professional_summary && typeof parsedData.professional_summary === 'object' 
+          ? parsedData.professional_summary 
+          : {}),
+        // Update arrays with fallbacks
+        skills: parsedData.skills || profile?.skills || [],
+        work_experience: parsedData.work_experience || profile?.work_experience || [],
+        education: parsedData.education || profile?.education || '',
+        projects: parsedData.projects || profile?.projects || [],
+        certifications: parsedData.certifications || profile?.certifications || [],
+        languages: parsedData.languages || profile?.languages || [],
+        // Safely spread additional_info if it exists
+        ...(parsedData.additional_info && typeof parsedData.additional_info === 'object' 
+          ? parsedData.additional_info 
+          : {}),
+        resume_link: response.cv_file_url || profile?.resume_link,
       };
 
       setProfile(updatePayload as ProfileType);
@@ -134,7 +154,11 @@ const Profile: React.FC = () => {
       toast.success("Resume parsed successfully! Profile has been updated.");
     } catch (error) {
       console.error("Error parsing resume:", error);
-      toast.error("Failed to parse resume.");
+      if (error instanceof Error) {
+        toast.error(`Failed to parse resume: ${error.message}`);
+      } else {
+        toast.error("Failed to parse resume. Please try again.");
+      }
     } finally {
       setIsParsing(false);
     }
