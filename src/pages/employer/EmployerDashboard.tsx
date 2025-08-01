@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, Users, Briefcase } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/components/ui/sonner";
+import { ApiErrorBoundary } from "@/components/error/ApiErrorBoundary";
 
 const EmployerDashboard = () => {
   const navigate = useNavigate();
@@ -48,8 +49,9 @@ const EmployerDashboard = () => {
     return null;
   }
   return (
-    <DashboardLayout title="Employer Dashboard" role="employer">
-      <div className="space-y-8 p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+    <ApiErrorBoundary>
+      <DashboardLayout title="Employer Dashboard" role="employer">
+        <div className="space-y-8 p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
         {/* Welcome Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
           <div className="flex items-center justify-between">
@@ -126,6 +128,7 @@ const EmployerDashboard = () => {
         <div className="h-8"></div>
       </div>
     </DashboardLayout>
+    </ApiErrorBoundary>
   );
 };
 

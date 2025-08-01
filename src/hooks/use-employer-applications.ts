@@ -2,7 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { applicationsService } from '@/services/applications.service';
 import { Application, ApplicationUpdate } from '@/types/api';
 import { toast } from 'sonner';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { employerMockService } from '@/services/employer-mock.service';
+import { useApiErrorHandler } from './use-api-error-handler';
 
 export interface EmployerApplication extends Application {
   id: string;
@@ -45,6 +47,7 @@ export const useEmployerApplications = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [jobFilter, setJobFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const { handleApiError } = useApiErrorHandler();
 
   // Fetch all applications for employer's jobs
   const {
@@ -55,21 +58,38 @@ export const useEmployerApplications = () => {
   } = useQuery<Application[], Error>({
     queryKey: [EMPLOYER_APPLICATIONS_QUERY_KEY],
     queryFn: async () => {
-      // This endpoint should return all applications for jobs posted by the employer
-      // For now, we'll fetch paginated applications with a high limit
-      const response = await applicationsService.getApplications({ limit: 1000 });
-      return response.jobs || []; // Note: the response uses 'jobs' key for applications
+      try {
+        // Fetch all applications for employer's jobs
+        const response = await applicationsService.getEmployerApplications();
+        return response; // Return the applications directly
+      } catch (error: any) {
+        // Use mock data as fallback for network errors or 404s
+        if (error.response?.status === 404 || error.response?.status === 500 || 
+            error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK') {
+          console.warn('API failed, using mock data for employer applications');
+          toast.info('Using demo data. Some features may be limited.');
+          return await employerMockService.getEmployerApplications();
+        }
+        throw error;
+      }
     },
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     gcTime: 10 * 60 * 1000, // Keep cache for 10 minutes
     retry: (failureCount, error) => {
-      // Don't retry on 403 errors (forbidden)
-      if (error.message?.includes('403')) {
+      // Don't retry on 401/403 errors
+      if (error?.message?.includes('401') || error?.message?.includes('403')) {
         return false;
       }
       return failureCount < 3;
     },
   });
+
+  // Handle API errors with proper redirects for 401/403
+  useEffect(() => {
+    if (error) {
+      handleApiError(error, 'Failed to load employer applications');
+    }
+  }, [error, handleApiError]);
 
   // Transform applications to employer format
   const employerApplications = useMemo(() => toEmployerApplications(applications), [applications]);

@@ -83,8 +83,15 @@ const Navbar = () => {
         { name: "Freelancers", href: "/freelancers" },
         { name: "Insights", href: "/insights" },
       ];
+    } else if (user.account_type === 'job_seeker' || user.account_type === 'freelancer') {
+      // For job seekers and freelancers, filter out Freelancers and Insights pages
+      navigation = baseNavigation.filter(item => 
+        item.name !== "Freelancers" && item.name !== "Insights"
+      );
+      // Add Profile to navigation
+      navigation = [...navigation, { name: "Profile", href: "/profile" }];
     } else {
-      // For other users, add Profile to navigation
+      // For other users (admin), add Profile to navigation
       navigation = [...baseNavigation, { name: "Profile", href: "/profile" }];
     }
   }
@@ -159,15 +166,6 @@ const Navbar = () => {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {user.account_type === 'employer' && (
-                    <>
-                      <DropdownMenuItem onClick={() => navigate(getDashboardUrl())}>
-                        <User className="h-4 w-4 mr-2" />
-                        Go to Dashboard
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                    </>
-                  )}
                   <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                     <LogOut className="h-4 w-4 mr-2" />
                     Log out

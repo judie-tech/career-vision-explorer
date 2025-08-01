@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { jobsService } from '@/services/jobs.service';
 import { useMemo, useEffect } from 'react';
 import { useApiErrorHandler } from './use-api-error-handler';
+import { employerMockService } from '@/services/employer-mock.service';
+import { toast } from 'sonner';
 
 export interface EmployerStats {
   totalJobs: number;
@@ -27,7 +29,20 @@ export const useEmployerStats = () => {
     refetch
   } = useQuery({
     queryKey: [EMPLOYER_STATS_QUERY_KEY],
-    queryFn: () => jobsService.getMyJobStats(),
+    queryFn: async () => {
+      try {
+        return await jobsService.getMyJobStats();
+      } catch (error: any) {
+        // Use mock data as fallback for network errors or 404s
+        if (error.response?.status === 404 || error.response?.status === 500 || 
+            error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK') {
+          console.warn('API failed, using mock data for employer stats');
+          toast.info('Using demo data. Some features may be limited.');
+          return await employerMockService.getEmployerStats();
+        }
+        throw error;
+      }
+    },
     staleTime: 10 * 60 * 1000, // Consider data fresh for 10 minutes
     gcTime: 30 * 60 * 1000, // Keep cache for 30 minutes
     retry: (failureCount, error: any) => {

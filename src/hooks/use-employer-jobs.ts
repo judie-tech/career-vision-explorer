@@ -4,6 +4,7 @@ import { Job, JobCreate, JobUpdate } from '@/types/api';
 import { toast } from 'sonner';
 import { useState, useMemo, useEffect } from 'react';
 import { useApiErrorHandler } from './use-api-error-handler';
+import { employerMockService } from '@/services/employer-mock.service';
 
 // Define EmployerJob UI type separately from API Job
 export interface EmployerJob extends Job {
@@ -54,7 +55,20 @@ export const useEmployerJobs = () => {
     refetch
   } = useQuery<Job[], Error>({
     queryKey: [EMPLOYER_JOBS_QUERY_KEY],
-    queryFn: () => jobsService.getMyJobs(true),
+    queryFn: async () => {
+      try {
+        return await jobsService.getMyJobs(true);
+      } catch (error: any) {
+        // Use mock data as fallback for network errors or 404s
+        if (error.response?.status === 404 || error.response?.status === 500 || 
+            error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK') {
+          console.warn('API failed, using mock data for employer jobs');
+          toast.info('Using demo data. Some features may be limited.');
+          return await employerMockService.getEmployerJobs();
+        }
+        throw error;
+      }
+    },
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     gcTime: 10 * 60 * 1000, // Keep cache for 10 minutes
     retry: (failureCount, error) => {

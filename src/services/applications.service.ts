@@ -84,6 +84,15 @@ class ApplicationsService {
     return await apiClient.get('/applications/stats');
   }
 
+  // For employers - get all applications for their posted jobs
+  // Uses the standard applications endpoint which returns applications based on user role
+  async getEmployerApplications(): Promise<Application[]> {
+    // The backend returns applications based on the authenticated user's role
+    // For employers, it returns applications for their job postings
+    const response = await apiClient.get<PaginatedResponse<Application>>('/applications/');
+    return response.applications || [];
+  }
+
 }
 
 export const applicationsService = new ApplicationsService();
