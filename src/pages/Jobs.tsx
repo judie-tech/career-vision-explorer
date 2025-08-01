@@ -101,6 +101,7 @@ const Jobs = () => {
       const transformedJobs = apiJobs.map((apiJob: any) => {
         return {
           id: apiJob.job_id || apiJob.id,
+          job_id: apiJob.job_id || apiJob.id, // Keep job_id for API compatibility
           title: apiJob.title,
           company: apiJob.company,
           location: apiJob.location,

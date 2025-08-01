@@ -21,7 +21,7 @@ class ApplicationsService {
     }
     
     const queryString = queryParams.toString();
-    const endpoint = queryString ? `/applications?${queryString}` : '/applications';
+    const endpoint = queryString ? `/applications/?${queryString}` : '/applications/';
     
     return await apiClient.get<PaginatedResponse<Application>>(endpoint);
   }
@@ -33,7 +33,7 @@ class ApplicationsService {
   async createApplication(applicationData: ApplicationCreate, resumeFile: File | null): Promise<Application> {
     // If no resume file, send as JSON
     if (!resumeFile) {
-      return await apiClient.post<Application>('/applications', applicationData);
+      return await apiClient.post<Application>('/applications/', applicationData);
     }
     
     // If resume file exists, use FormData
@@ -42,7 +42,7 @@ class ApplicationsService {
     formData.append('cover_letter', applicationData.cover_letter);
     formData.append('resume_file', resumeFile);
 
-    return await apiClient.post<Application>('/applications', formData);
+    return await apiClient.post<Application>('/applications/', formData);
   }
 
   async updateApplication(applicationId: string, applicationData: ApplicationUpdate): Promise<Application> {
@@ -65,7 +65,12 @@ class ApplicationsService {
   }
 
   async reviewApplication(applicationId: string, status: 'Reviewed' | 'Accepted' | 'Rejected', notes?: string): Promise<Application> {
-    return await apiClient.post<Application>(`/applications/${applicationId}/review`, { status, notes });
+    // Use query parameters as the backend expects
+    const params = new URLSearchParams({
+      status: status,
+      ...(notes && { notes })
+    });
+    return await apiClient.post<Application>(`/applications/${applicationId}/review?${params.toString()}`);
   }
 
   // Application analytics

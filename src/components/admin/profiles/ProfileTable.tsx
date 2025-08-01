@@ -72,7 +72,7 @@ export const ProfileTable = ({
         </TableHeader>
         <TableBody>
           {profiles.map((profile) => (
-            <TableRow key={profile.id}>
+            <TableRow key={profile.user_id}>
               <TableCell>
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-10 w-10">
@@ -112,7 +112,7 @@ export const ProfileTable = ({
                     {profile.isPublic ? "Public" : "Private"}
                   </Badge>
                   {profile.isPublic && (
-                    <Link to={`/profile/${profile.id}`} target="_blank">
+                    <Link to={`/profile/${profile.user_id}`} target="_blank">
                       <Button variant="ghost" size="sm">
                         <ExternalLink className="h-3 w-3" />
                       </Button>

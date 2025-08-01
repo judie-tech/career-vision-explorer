@@ -78,7 +78,15 @@ class AuthService {
     if (response.access_token) {
       apiClient.setToken(response.access_token);
       localStorage.setItem('refresh_token', response.refresh_token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      
+      // Construct user object from token response
+      const user: User = {
+        user_id: response.user_id,
+        name: '', // Will be loaded from profile
+        email: response.email,
+        account_type: response.account_type as 'job_seeker' | 'employer' | 'admin' | 'freelancer'
+      };
+      localStorage.setItem('user', JSON.stringify(user));
     }
     
     return response;

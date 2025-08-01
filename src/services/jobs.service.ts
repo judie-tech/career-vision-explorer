@@ -98,7 +98,7 @@ class JobsService {
       }
       
       const queryString = queryParams.toString();
-      const endpoint = queryString ? `/jobs?${queryString}` : '/jobs';
+      const endpoint = queryString ? `/jobs/?${queryString}` : '/jobs/';
       const cacheKey = this.getCacheKey(endpoint, params);
 
       // Check cache first (unless explicitly skipped)
@@ -141,7 +141,7 @@ class JobsService {
   }
 
   async createJob(jobData: JobCreate): Promise<Job> {
-    return await apiClient.post<Job>('/jobs', jobData);
+    return await apiClient.post<Job>('/jobs/', jobData);
   }
 
   async updateJob(jobId: string, jobData: JobUpdate): Promise<Job> {
@@ -153,12 +153,12 @@ class JobsService {
   }
 
   async getMyJobs(includeInactive = false): Promise<Job[]> {
-    const endpoint = includeInactive ? `/jobs/my-jobs?include_inactive=true` : '/jobs/my-jobs';
+    const endpoint = includeInactive ? `/jobs/my-jobs/?include_inactive=true` : '/jobs/my-jobs/';
     return await apiClient.get<Job[]>(endpoint);
   }
 
   async getAllJobs(includeInactive = false): Promise<Job[]> {
-    const endpoint = includeInactive ? `/jobs/admin/jobs?include_inactive=true` : '/jobs/admin/jobs';
+    const endpoint = includeInactive ? `/jobs/admin/jobs/?include_inactive=true` : '/jobs/admin/jobs/';
     return await apiClient.get<Job[]>(endpoint);
   }
 
@@ -172,7 +172,7 @@ class JobsService {
 
   // Search jobs by user's skills
   async searchJobsBySkills(): Promise<Job[]> {
-    return await apiClient.get<Job[]>('/jobs/search');
+    return await apiClient.get<Job[]>('/jobs/search/');
   }
 
   // Get global job statistics
@@ -184,7 +184,7 @@ class JobsService {
     locations_count: number;
     avg_applications_per_job: number;
   }> {
-    return await apiClient.get('/jobs/stats');
+    return await apiClient.get('/jobs/stats/');
   }
 
   // Get my job statistics (employer only)
@@ -196,7 +196,7 @@ class JobsService {
     locations_count: number;
     avg_applications_per_job: number;
   }> {
-    return await apiClient.get('/jobs/my-stats');
+    return await apiClient.get('/jobs/my-stats/');
   }
 
   // AI-powered job matching with request cancellation support
@@ -234,7 +234,7 @@ class JobsService {
       }
       
       const queryString = queryParams.toString();
-      const endpoint = `/jobs/ai-match?${queryString}`;
+      const endpoint = `/jobs/ai-match/?${queryString}`;
       
       // Backend expects POST request with query parameters and signal for cancellation
       return await apiClient.post(endpoint, {}, { signal: options?.signal });
@@ -243,7 +243,7 @@ class JobsService {
 
   // Get employer dashboard data
   async getEmployerDashboard(): Promise<string> {
-    return await apiClient.get('/jobs/employer/dashboard');
+    return await apiClient.get('/jobs/employer/dashboard/');
   }
 
   // Cache AI results with longer TTL

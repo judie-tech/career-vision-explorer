@@ -4,11 +4,15 @@
  */
 
 export const API_CONFIG = {
-  // Base API URL - defaults to local development
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1',
+  // Base API URL - use relative URL for dev proxy, absolute for production
+  BASE_URL: import.meta.env.DEV 
+    ? '/api/v1' 
+    : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1'),
   
   // Backend URL (without /api/v1)
-  BACKEND_URL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000',
+  BACKEND_URL: import.meta.env.DEV
+    ? ''
+    : (import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'),
   
   // Supabase Configuration (for direct frontend access if needed)
   SUPABASE: {
@@ -18,10 +22,11 @@ export const API_CONFIG = {
   
   // Request timeouts (in milliseconds)
   TIMEOUTS: {
-    DEFAULT: 30000,    // 30 seconds
-    FAST: 10000,       // 10 seconds for quick operations
-    SLOW: 60000,       // 60 seconds for heavy operations
-    UPLOAD: 120000,    // 2 minutes for file uploads
+    DEFAULT: 45000,    // 45 seconds (increased for slow Supabase connections)
+    FAST: 15000,       // 15 seconds for quick operations
+    SLOW: 90000,       // 90 seconds for heavy operations
+    UPLOAD: 180000,    // 3 minutes for file uploads
+    DATABASE: 60000,   // 60 seconds for database operations
   },
   
   // Cache TTL (in milliseconds)

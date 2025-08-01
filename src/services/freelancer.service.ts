@@ -65,7 +65,7 @@ class FreelancerService {
       params.append('search', filters.search);
     }
 
-    return apiClient.get<FreelancerListResponse>(`/freelancers?${params.toString()}`);
+    return apiClient.get<FreelancerListResponse>(`/freelancers/?${params.toString()}`);
   }
 
   async deleteFreelancer(freelancerId: string): Promise<{ message: string }> {

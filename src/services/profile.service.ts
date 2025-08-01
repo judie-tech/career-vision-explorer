@@ -7,11 +7,11 @@ class ProfileService {
     return trackDbOperation('Load Profile', async () => {
       // Try fast timeout first
       try {
-        return await apiClient.getFast<Profile>('/profile');
+        return await apiClient.getFast<Profile>('/profile/');
       } catch (error) {
         if (error.message?.includes('timed out')) {
           console.log('Fast profile request timed out, trying with longer timeout...');
-          return await apiClient.get<Profile>('/profile', { timeout: 45000 }); // Fixed timeout syntax
+          return await apiClient.get<Profile>('/profile/', { timeout: 45000 }); // Fixed timeout syntax
         }
         throw error;
       }
@@ -19,7 +19,7 @@ class ProfileService {
   }
 
   async updateProfile(profileData: ProfileUpdate): Promise<Profile> {
-    return await apiClient.put<Profile>('/profile', profileData);
+    return await apiClient.put<Profile>('/profile/', profileData);
   }
 
   async getPublicProfile(userId: string): Promise<{

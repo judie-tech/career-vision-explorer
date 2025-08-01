@@ -13,6 +13,7 @@ import { useJobsFilter } from "@/hooks/use-jobs-filter";
 
 interface Job {
   id: string;
+  job_id?: string; // Optional job_id for API compatibility
   title: string;
   company: string;
   location: string;
@@ -81,6 +82,11 @@ export const JobsContainer = ({ jobs }: JobsContainerProps) => {
   };
 
   const isJobApplied = (jobId: string) => {
+    // Check if job is applied by checking the job_id
+    const job = jobs.find(j => j.id === jobId);
+    if (job && job.job_id) {
+      return !!getApplicationForJob(job.job_id);
+    }
     return !!getApplicationForJob(jobId);
   };
 

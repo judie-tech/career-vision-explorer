@@ -6,7 +6,7 @@ import { MapPin, Building, Briefcase, Clock, BarChart3, Heart } from "lucide-rea
 import { Link } from "react-router-dom";
 
 interface Job {
-  id: string;
+  job_id: string;
   title: string;
   company: string;
   location: string;
@@ -98,7 +98,7 @@ export const JobCard = ({ job, isApplied, isSaved, onApply, onSave }: JobCardPro
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => onSave(job.id)}
+              onClick={() => onSave(job.job_id)}
               className={`transition-all duration-200 ${
                 isSaved ? "text-red-500 bg-red-50 border border-red-200" : "text-gray-400 hover:text-red-500"
               }`}
@@ -144,7 +144,7 @@ export const JobCard = ({ job, isApplied, isSaved, onApply, onSave }: JobCardPro
         </div>
         
         <div className="flex justify-between items-center pt-4 border-t">
-          <Link to={`/jobs/${job.id}`}>
+          <Link to={`/jobs/${job.job_id}`}>
             <Button variant="outline" className="modern-btn-secondary hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300">
               View Details
             </Button>

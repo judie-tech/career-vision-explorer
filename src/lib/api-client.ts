@@ -74,8 +74,29 @@ class ApiClient {
       if (timeoutId) clearTimeout(timeoutId);
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || errorData.message || `HTTP ${response.status}`);
+        let errorData;
+        let errorMessage = `HTTP ${response.status}`;
+        try {
+          const text = await response.text();
+          console.log('Error response text:', text);
+          console.log('Error status:', response.status);
+          console.log('Error headers:', response.headers);
+          if (text) {
+            try {
+              errorData = JSON.parse(text);
+              errorMessage = errorData.detail || errorData.message || errorMessage;
+            } catch (parseError) {
+              // If JSON parsing fails, use the text directly
+              errorMessage = text || errorMessage;
+            }
+          }
+        } catch (e) {
+          console.error('Failed to read error response:', e);
+        }
+        const error = new Error(errorMessage);
+        (error as any).status = response.status;
+        (error as any).response = errorData;
+        throw error;
       }
 
       const contentType = response.headers.get('content-type');

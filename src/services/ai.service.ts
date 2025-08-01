@@ -141,6 +141,39 @@ class AIService {
       context
     });
   }
+
+  // CV upload and parsing
+  async uploadAndParseCV(file: File): Promise<{
+    status: string;
+    parsed_data: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      skills?: string[];
+      experience?: any[];
+      education?: any[];
+      summary?: string;
+      [key: string]: any;
+    };
+    profile_updated?: boolean;
+    message?: string;
+  }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    return await apiClient.post('/ai/upload-and-parse-cv', formData);
+  }
+
+  // Check if user has uploaded CV
+  async checkIfCVParsed(): Promise<boolean> {
+    try {
+      const profile = await apiClient.get<any>('/profile/');
+      return !!profile.resume_link || !!profile.resume_analysis;
+    } catch (error) {
+      console.error('Error checking CV status:', error);
+      return false;
+    }
+  }
 }
 
 export const aiService = new AIService();

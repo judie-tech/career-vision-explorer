@@ -1,15 +1,19 @@
 
-import { Upload, FileText } from "lucide-react";
+import { Upload, FileText, Loader2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useState } from "react";
+import { aiService } from "@/services";
 
 interface ResumeUploadSectionProps {
   resumeFile: File | null;
   setResumeFile: (file: File | null) => void;
+  cvAlreadyUploaded?: boolean;
 }
 
-export const ResumeUploadSection = ({ resumeFile, setResumeFile }: ResumeUploadSectionProps) => {
+export const ResumeUploadSection = ({ resumeFile, setResumeFile, cvAlreadyUploaded }: ResumeUploadSectionProps) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -36,6 +40,9 @@ export const ResumeUploadSection = ({ resumeFile, setResumeFile }: ResumeUploadS
       <div className="flex items-center gap-2">
         <Upload className="h-5 w-5 text-blue-600" />
         <Label htmlFor="resume" className="text-lg font-semibold">Resume/CV</Label>
+        {cvAlreadyUploaded && (
+          <span className="text-sm text-green-600 font-medium">(Already in profile)</span>
+        )}
       </div>
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
         <Input
@@ -44,7 +51,7 @@ export const ResumeUploadSection = ({ resumeFile, setResumeFile }: ResumeUploadS
           accept=".pdf,.doc,.docx"
           onChange={handleFileChange}
           className="hidden"
-          required
+          required={!cvAlreadyUploaded}
         />
         <label htmlFor="resume" className="cursor-pointer">
           <div className="space-y-2">

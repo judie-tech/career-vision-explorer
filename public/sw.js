@@ -17,9 +17,9 @@ self.addEventListener('install', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
-  // Skip caching for API requests
-  if (event.request.url.includes('/api/')) {
-    event.respondWith(fetch(event.request));
+  // Skip caching for API requests and handle CORS properly
+  if (event.request.url.includes('/api/') || event.request.url.includes('localhost:8000')) {
+    // Don't intercept API requests, let them go through normally
     return;
   }
   
