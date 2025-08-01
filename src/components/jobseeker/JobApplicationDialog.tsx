@@ -12,8 +12,22 @@ import { applicationsService, aiService } from "@/services";
 import { ApplicationCreate } from "@/types/api";
 import { useEffect } from "react";
 
+interface Job {
+  job_id: string;
+  title: string;
+  company: string;
+  location: string;
+  type: string;
+  salary: string;
+  posted: string;
+  matchScore: number;
+  skills: string[];
+  description: string;
+  experienceLevel?: string;
+}
+
 interface JobApplicationDialogProps {
-  job: any;
+  job: Job;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }

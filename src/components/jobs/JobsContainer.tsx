@@ -12,8 +12,7 @@ import { JobsList } from "./JobsList";
 import { useJobsFilter } from "@/hooks/use-jobs-filter";
 
 interface Job {
-  id: string;
-  job_id?: string; // Optional job_id for API compatibility
+  job_id: string; // Changed to always require job_id
   title: string;
   company: string;
   location: string;
@@ -71,28 +70,25 @@ export const JobsContainer = ({ jobs }: JobsContainerProps) => {
   };
 
   const handleSaveJob = (jobId: string) => {
-    const job = jobs.find(j => j.id === jobId);
+const job = jobs.find(j => j.job_id === jobId);
     if (!job) return;
 
-    if (isJobInWishlist(jobId)) {
-      removeFromWishlist(jobId);
+    if (isJobInWishlist(job.job_id)) {
+      removeFromWishlist(job.job_id);
     } else {
       addToWishlist(job);
     }
   };
 
-  const isJobApplied = (jobId: string) => {
-    // Check if job is applied by checking the job_id
-    const job = jobs.find(j => j.id === jobId);
-    if (job && job.job_id) {
-      return !!getApplicationForJob(job.job_id);
-    }
-    return !!getApplicationForJob(jobId);
-  };
+const isJobApplied = (jobId: string) => {
+   const job = jobs.find(j => j.job_id === jobId);
+   return job ? !!getApplicationForJob(job.job_id) : false;
+ };
 
-  const isJobSaved = (jobId: string) => {
-    return isJobInWishlist(jobId);
-  };
+const isJobSaved = (jobId: string) => {
+   const job = jobs.find(j => j.job_id === jobId);
+   return job ? isJobInWishlist(job.job_id) : false;
+ };
 
   return (
     <>

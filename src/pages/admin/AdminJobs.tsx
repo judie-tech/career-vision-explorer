@@ -131,7 +131,7 @@ const AdminJobs = () => {
 
   const confirmDelete = () => {
     if (selectedJob) {
-      deleteJob(selectedJob.id);
+      deleteJob(selectedJob.job_id);
       setIsDeleteDialogOpen(false);
       setSelectedJob(null);
     }
@@ -357,7 +357,7 @@ const AdminJobs = () => {
                 </TableHeader>
                 <TableBody>
                   {fullyFilteredJobs.map((job) => (
-                    <TableRow key={job.id} className="hover:bg-gray-50">
+                  <TableRow key={job.job_id} className="hover:bg-gray-50">
                       <TableCell>
                         <div className="space-y-1">
                           <div className="font-medium">{job.title}</div>

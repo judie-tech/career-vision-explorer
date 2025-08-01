@@ -3,7 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/lib/api-client';
 
 export interface AdminJob {
-  id: string;
+  job_id: string;
   title: string;
   company: string;
   location: string;
@@ -42,7 +42,7 @@ const AdminJobsContext = createContext<AdminJobsContextType | undefined>(undefin
 // Mock data for development until backend integration is complete
 const mockJobs: AdminJob[] = [
   {
-    id: '1',
+    job_id: '1',
     title: 'Senior Frontend Developer',
     company: 'Tech Corp',
     location: 'San Francisco, CA',
@@ -58,7 +58,7 @@ const mockJobs: AdminJob[] = [
     remote_allowed: true
   },
   {
-    id: '2',
+    job_id: '2',
     title: 'Backend Developer',
     company: 'StartupXYZ',
     location: 'New York, NY',
@@ -73,7 +73,7 @@ const mockJobs: AdminJob[] = [
     skills: ['Python', 'FastAPI', 'PostgreSQL', 'Docker']
   },
   {
-    id: '3',
+    job_id: '3',
     title: 'Product Manager',
     company: 'InnovateLabs',
     location: 'Austin, TX',
@@ -140,7 +140,7 @@ export function AdminJobsProvider({ children }: { children: React.ReactNode }) {
       console.warn('Backend not available, creating mock job:', err);
       // Create mock job
       const newJob: AdminJob = {
-        id: Date.now().toString(),
+        job_id: Date.now().toString(),
         title: jobData.title || 'New Job',
         company: jobData.company || 'Company',
         location: jobData.location || 'Location',
@@ -167,7 +167,7 @@ export function AdminJobsProvider({ children }: { children: React.ReactNode }) {
     try {
       // Try backend first
       const updatedJob = await apiClient.put<AdminJob>(`/jobs/${id}`, jobData);
-      setJobs(prev => prev.map(job => job.id === id ? updatedJob : job));
+      setJobs(prev => prev.map(job => job.job_id === id ? updatedJob : job));
       toast({
         title: "Success",
         description: "Job updated successfully",
@@ -177,9 +177,9 @@ export function AdminJobsProvider({ children }: { children: React.ReactNode }) {
       console.warn('Backend not available, updating mock job:', err);
       // Update mock job
       setJobs(prev => prev.map(job => 
-        job.id === id ? { ...job, ...jobData } : job
+        job.job_id === id ? { ...job, ...jobData } : job
       ));
-      const updatedJob = jobs.find(job => job.id === id);
+      const updatedJob = jobs.find(job => job.job_id === id);
       if (updatedJob) {
         toast({
           title: "Success",
@@ -198,7 +198,7 @@ export function AdminJobsProvider({ children }: { children: React.ReactNode }) {
     try {
       // Try backend first
       await apiClient.delete(`/jobs/${id}`);
-      setJobs(prev => prev.filter(job => job.id !== id));
+      setJobs(prev => prev.filter(job => job.job_id !== id));
       toast({
         title: "Success",
         description: "Job deleted successfully",
@@ -206,7 +206,7 @@ export function AdminJobsProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.warn('Backend not available, deleting mock job:', err);
       // Delete mock job
-      setJobs(prev => prev.filter(job => job.id !== id));
+      setJobs(prev => prev.filter(job => job.job_id !== id));
       toast({
         title: "Success",
         description: "Job deleted successfully (mock)",
