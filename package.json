@@ -8,7 +8,16 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:headed": "playwright test --headed",
+    "test:report": "playwright show-report",
+    "test:integration": "node run-tests.js",
+    "test:auth": "playwright test tests/e2e/auth.spec.ts",
+    "test:jobs": "playwright test tests/e2e/jobs.spec.ts",
+    "test:responsive": "playwright test tests/e2e/responsive.spec.ts"
   },
   "dependencies": {
     "@capacitor/android": "^7.3.0",

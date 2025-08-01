@@ -2,15 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Progress } from '@/components/ui/progress';
-import { interviewService, InterviewQuestion } from '../../services/interview.service';
-import { Brain, Clock, Target, BookOpen, PlayCircle, CheckCircle } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { interviewService } from '../../services/interview.service';
+import { 
+  Brain, Briefcase, Code, Users, RefreshCw, Star, 
+  Lightbulb, AlertCircle, CheckCircle2, Target,
+  BookOpen, MessageSquare, TrendingUp
+} from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/use-auth';
 import {
   Accordion,
   AccordionContent,
@@ -18,408 +21,474 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 
-interface InterviewPreparationProps {
-  jobTitle?: string;
-  jobDescription?: string;
+interface DetailedInterviewQuestion {
+  question: string;
+  employer_guidance?: string;
+  candidate_advice?: string;
 }
 
-export const InterviewPreparation: React.FC<InterviewPreparationProps> = ({
-  jobTitle = '',
-  jobDescription = ''
-}) => {
-  const [questions, setQuestions] = useState<InterviewQuestion[]>([]);
+interface CategorizedQuestions {
+  [category: string]: DetailedInterviewQuestion[];
+}
+
+interface ProfileSummary {
+  skills: string[];
+  work_experience: any[];
+  education: string;
+  projects: any[];
+  years_of_experience: number;
+  current_role: string;
+}
+
+const focusAreaOptions = [
+  { 
+    value: 'Technical', 
+    label: 'Technical Skills', 
+    icon: Code, 
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50 dark:bg-blue-950/20',
+    borderColor: 'border-blue-200 dark:border-blue-800',
+    selectedBg: 'bg-blue-100 dark:bg-blue-900/40'
+  },
+  { 
+    value: 'Behavioral', 
+    label: 'Behavioral', 
+    icon: Users, 
+    color: 'text-green-600',
+    bgColor: 'bg-green-50 dark:bg-green-950/20',
+    borderColor: 'border-green-200 dark:border-green-800',
+    selectedBg: 'bg-green-100 dark:bg-green-900/40'
+  },
+  { 
+    value: 'Situational', 
+    label: 'Situational', 
+    icon: Briefcase, 
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-50 dark:bg-purple-950/20',
+    borderColor: 'border-purple-200 dark:border-purple-800',
+    selectedBg: 'bg-purple-100 dark:bg-purple-900/40'
+  },
+  { 
+    value: 'Job_Specific', 
+    label: 'Job Specific', 
+    icon: Target, 
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-50 dark:bg-orange-950/20',
+    borderColor: 'border-orange-200 dark:border-orange-800',
+    selectedBg: 'bg-orange-100 dark:bg-orange-900/40'
+  },
+  { 
+    value: 'Skill_Based', 
+    label: 'Skill Based', 
+    icon: BookOpen, 
+    color: 'text-red-600',
+    bgColor: 'bg-red-50 dark:bg-red-950/20',
+    borderColor: 'border-red-200 dark:border-red-800',
+    selectedBg: 'bg-red-100 dark:bg-red-900/40'
+  },
+  { 
+    value: 'Culture_Fit', 
+    label: 'Culture Fit', 
+    icon: Star, 
+    color: 'text-yellow-600',
+    bgColor: 'bg-yellow-50 dark:bg-yellow-950/20',
+    borderColor: 'border-yellow-200 dark:border-yellow-800',
+    selectedBg: 'bg-yellow-100 dark:bg-yellow-900/40'
+  }
+];
+
+const getCategoryIcon = (category: string) => {
+  const option = focusAreaOptions.find(opt => opt.value === category);
+  return option ? <option.icon className="w-4 h-4" /> : <Brain className="w-4 h-4" />;
+};
+
+const getCategoryColor = (category: string) => {
+  const option = focusAreaOptions.find(opt => opt.value === category);
+  return option ? option.color : 'text-gray-600';
+};
+
+export const InterviewPreparation: React.FC = () => {
+  const { profile, isLoading: profileLoading } = useAuth();
+  const [questions, setQuestions] = useState<CategorizedQuestions>({});
   const [loading, setLoading] = useState(false);
-  const [practiceSession, setPracticeSession] = useState<any>(null);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<{ [key: number]: string }>({});
-  const [practiceResults, setPracticeResults] = useState<any>(null);
-  const [formData, setFormData] = useState({
-    role: jobTitle,
-    experience_level: 'mid' as 'entry' | 'mid' | 'senior',
-    skills: '',
-    question_count: 5,
-    difficulty: 'medium' as 'easy' | 'medium' | 'hard'
-  });
+  const [hasGeneratedQuestions, setHasGeneratedQuestions] = useState(false);
+  const [questionCount, setQuestionCount] = useState<number[]>([10]);
+  const [selectedFocusAreas, setSelectedFocusAreas] = useState<string[]>(['Technical', 'Behavioral']);
+  const [profileSummary, setProfileSummary] = useState<ProfileSummary | null>(null);
+  const [totalQuestions, setTotalQuestions] = useState(0);
+
+  // Check profile completeness
+  const checkProfileCompleteness = () => {
+    if (!profile) return { isComplete: false, missing: ['profile'] };
+    
+    const missing = [];
+    if (!profile.skills || profile.skills.length === 0) missing.push('skills');
+    if (!profile.work_experience || profile.work_experience.length === 0) {
+      // Work experience is optional, so we'll just check if they have skills
+      if (!profile.education && !profile.bio) {
+        missing.push('work experience or education');
+      }
+    }
+    
+    return {
+      isComplete: missing.length === 0,
+      missing
+    };
+  };
 
   const generateQuestions = async () => {
+    if (!profile) {
+      toast.error('Please log in to generate personalized interview questions');
+      return;
+    }
+
+    const profileCheck = checkProfileCompleteness();
+    if (!profileCheck.isComplete) {
+      toast.error(`Please complete your profile: ${profileCheck.missing.join(', ')} required`);
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await interviewService.getInterviewQuestions({
-        role: formData.role,
-        experience_level: formData.experience_level,
-        skills: formData.skills.split(',').map(s => s.trim()).filter(Boolean)
+      const response = await interviewService.getProfileBasedQuestions({
+        question_count: questionCount[0],
+        focus_areas: selectedFocusAreas
       });
-      setQuestions(response.questions);
-      toast.success(`Generated ${response.questions.length} interview questions!`);
+
+      if (response.categorized_questions) {
+        setQuestions(response.categorized_questions);
+        setTotalQuestions(response.total_questions || 0);
+        setProfileSummary(response.profile_summary);
+        setHasGeneratedQuestions(true);
+        toast.success(`Generated ${response.total_questions} personalized interview questions!`);
+      }
     } catch (error: any) {
-      toast.error('Failed to generate questions: ' + error.message);
+      console.error('Error generating questions:', error);
+      toast.error(error.message || 'Failed to generate interview questions');
     } finally {
       setLoading(false);
     }
   };
 
-  const startPracticeSession = async () => {
-    setLoading(true);
-    try {
-      const session = await interviewService.startPracticeSession({
-        role: formData.role,
-        difficulty: formData.difficulty,
-        question_count: formData.question_count
-      });
-      setPracticeSession(session);
-      setCurrentQuestionIndex(0);
-      setAnswers({});
-      setPracticeResults(null);
-      toast.success('Practice session started!');
-    } catch (error: any) {
-      toast.error('Failed to start practice session: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const submitPracticeSession = async () => {
-    if (!practiceSession) return;
-    
-    setLoading(true);
-    try {
-      const practiceAnswers = practiceSession.questions.map((q: any, index: number) => ({
-        question_id: `q_${index}`,
-        answer: answers[index] || '',
-        time_taken: 300 // Default 5 minutes per question
-      }));
-
-      const results = await interviewService.submitPracticeAnswers(
-        practiceSession.session_id,
-        practiceAnswers
-      );
-      setPracticeResults(results);
-      toast.success('Practice session completed!');
-    } catch (error: any) {
-      toast.error('Failed to submit practice session: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy': return 'bg-green-100 text-green-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'hard': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'technical': return <Brain className="w-4 h-4" />;
-      case 'behavioral': return <Target className="w-4 h-4" />;
-      case 'situational': return <BookOpen className="w-4 h-4" />;
-      default: return <Brain className="w-4 h-4" />;
-    }
+  const toggleFocusArea = (area: string) => {
+    setSelectedFocusAreas(prev => 
+      prev.includes(area) 
+        ? prev.filter(a => a !== area)
+        : [...prev, area]
+    );
   };
 
   return (
     <div className="space-y-6">
+      {/* Main Control Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Brain className="w-5 h-5" />
-            Interview Preparation
+            AI-Powered Interview Preparation
           </CardTitle>
           <CardDescription>
-            Prepare for your interviews with AI-generated questions tailored to your role
+            Generate personalized interview questions based on your professional profile
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="generate" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="generate">Generate Questions</TabsTrigger>
-              <TabsTrigger value="practice">Practice Session</TabsTrigger>
-              <TabsTrigger value="results">Results</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="generate" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="role">Job Role</Label>
-                  <Input
-                    id="role"
-                    value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    placeholder="e.g., Frontend Developer"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="experience">Experience Level</Label>
-                  <Select 
-                    value={formData.experience_level} 
-                    onValueChange={(value: 'entry' | 'mid' | 'senior') => 
-                      setFormData({ ...formData, experience_level: value })
+        <CardContent className="space-y-6">
+          {/* Question Count Selector */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-semibold">Number of Questions</Label>
+              <Badge variant="secondary" className="text-sm">
+                {questionCount[0]} questions selected
+              </Badge>
+            </div>
+            
+            <div className="grid grid-cols-4 gap-2">
+              {[5, 10, 15, 20].map((count) => (
+                <button
+                  key={count}
+                  onClick={() => setQuestionCount([count])}
+                  className={`
+                    relative p-4 rounded-lg border-2 transition-all duration-200
+                    ${questionCount[0] === count
+                      ? 'bg-blue-100 dark:bg-blue-900/40 border-blue-400 dark:border-blue-600 shadow-sm'
+                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                     }
+                  `}
+                >
+                  <div className="text-center space-y-1">
+                    <div className={`text-2xl font-bold ${
+                      questionCount[0] === count ? 'text-blue-600' : 'text-gray-700 dark:text-gray-300'
+                    }`}>
+                      {count}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {count <= 5 ? 'Quick' : count <= 10 ? 'Standard' : count <= 15 ? 'Thorough' : 'Complete'}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      ~{count * 4} mins
+                    </div>
+                  </div>
+                  {questionCount[0] === count && (
+                    <div className="absolute top-2 right-2">
+                      <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+            
+            <p className="text-xs text-center text-gray-500">
+              Choose based on your available preparation time
+            </p>
+          </div>
+
+          {/* Focus Areas Selection */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-semibold">Focus Areas</Label>
+              <span className="text-xs text-gray-500">
+                {selectedFocusAreas.length} selected
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {focusAreaOptions.map(area => {
+                const isSelected = selectedFocusAreas.includes(area.value);
+                return (
+                  <button
+                    key={area.value}
+                    onClick={() => toggleFocusArea(area.value)}
+                    className={`
+                      relative p-4 rounded-lg border-2 transition-all duration-200
+                      ${isSelected 
+                        ? `${area.selectedBg} ${area.borderColor} shadow-sm` 
+                        : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                      }
+                    `}
                   >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="entry">Entry Level</SelectItem>
-                      <SelectItem value="mid">Mid Level</SelectItem>
-                      <SelectItem value="senior">Senior Level</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${isSelected ? area.bgColor : 'bg-gray-100 dark:bg-gray-700'}`}>
+                          <area.icon className={`w-5 h-5 ${isSelected ? area.color : 'text-gray-500'}`} />
+                        </div>
+                        <span className={`font-medium text-sm ${isSelected ? area.color : 'text-gray-700 dark:text-gray-300'}`}>
+                          {area.label}
+                        </span>
+                      </div>
+                      {isSelected && (
+                        <CheckCircle2 className={`w-4 h-4 ${area.color}`} />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            {selectedFocusAreas.length === 0 && (
+              <p className="text-sm text-amber-600 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" />
+                Please select at least one focus area
+              </p>
+            )}
+          </div>
+
+          {/* Profile Completeness Check */}
+          {profile && !checkProfileCompleteness().isComplete && (
+            <Alert className="border-yellow-200 bg-yellow-50">
+              <AlertCircle className="h-4 w-4 text-yellow-600" />
+              <AlertDescription className="text-yellow-800">
+                Your profile is incomplete. Please add {checkProfileCompleteness().missing.join(', ')} 
+                for better personalized questions.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Generate Button */}
+          <div className="space-y-4">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 p-6 rounded-lg">
+              <div className="text-center space-y-4">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Ready to generate your personalized interview questions?
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Estimated prep time: {questionCount[0] * 3}-{questionCount[0] * 5} minutes
+                  </p>
                 </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="skills">Skills (comma-separated)</Label>
-                  <Input
-                    id="skills"
-                    value={formData.skills}
-                    onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
-                    placeholder="React, JavaScript, Node.js, Python"
-                  />
-                </div>
+                
+                <Button 
+                  onClick={generateQuestions} 
+                  disabled={loading || !profile || selectedFocusAreas.length === 0}
+                  size="lg"
+                  className="gap-3 px-8 py-6 text-base font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                >
+                  {loading ? (
+                    <>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      Generating Your Questions...
+                    </>
+                  ) : hasGeneratedQuestions ? (
+                    <>
+                      <RefreshCw className="w-5 h-5" />
+                      Generate New Questions
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="w-5 h-5" />
+                      Generate Interview Questions
+                    </>
+                  )}
+                </Button>
               </div>
+            </div>
+          </div>
 
-              <Button 
-                onClick={generateQuestions} 
-                disabled={loading || !formData.role}
-                className="w-full"
-              >
-                {loading ? 'Generating...' : 'Generate Interview Questions'}
-              </Button>
-
-              {questions.length > 0 && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold">Generated Questions ({questions.length})</h3>
-                  <div className="space-y-3">
-                    {questions.map((question, index) => (
-                      <Card key={index} className="p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex items-center gap-2">
-                            {getTypeIcon(question.type)}
-                            <Badge variant="secondary" className={getDifficultyColor(question.difficulty)}>
-                              {question.difficulty}
-                            </Badge>
-                            <Badge variant="outline">{question.type}</Badge>
-                          </div>
-                        </div>
-                        <p className="text-sm font-medium mb-2">{question.question}</p>
-                        {(question.job_seeker_guidance || question.employer_guidance) && (
-                          <Accordion type="single" collapsible className="w-full">
-                            <AccordionItem value="item-1">
-                              <AccordionTrigger>View Guidance</AccordionTrigger>
-                              <AccordionContent>
-                                {question.job_seeker_guidance && (
-                                  <div className="text-xs text-gray-600 mt-2">
-                                    <strong>Guidance for Job Seeker:</strong> {question.job_seeker_guidance}
-                                  </div>
-                                )}
-                                {question.employer_guidance && (
-                                  <div className="text-xs text-gray-600 mt-2">
-                                    <strong>Guidance for Employer:</strong> {question.employer_guidance}
-                                  </div>
-                                )}
-                              </AccordionContent>
-                            </AccordionItem>
-                          </Accordion>
-                        )}
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="practice" className="space-y-4">
-              {!practiceSession ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="difficulty">Difficulty Level</Label>
-                      <Select 
-                        value={formData.difficulty} 
-                        onValueChange={(value: 'easy' | 'medium' | 'hard') => 
-                          setFormData({ ...formData, difficulty: value })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="easy">Easy</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="hard">Hard</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="count">Number of Questions</Label>
-                      <Select 
-                        value={formData.question_count.toString()} 
-                        onValueChange={(value) => 
-                          setFormData({ ...formData, question_count: parseInt(value) })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="3">3 Questions</SelectItem>
-                          <SelectItem value="5">5 Questions</SelectItem>
-                          <SelectItem value="10">10 Questions</SelectItem>
-                          <SelectItem value="15">15 Questions</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <Button 
-                    onClick={startPracticeSession} 
-                    disabled={loading || !formData.role}
-                    className="w-full"
-                  >
-                    <PlayCircle className="w-4 h-4 mr-2" />
-                    {loading ? 'Starting...' : 'Start Practice Session'}
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-semibold">Practice Session</h3>
-                    <Badge variant="secondary">
-                      Question {currentQuestionIndex + 1} of {practiceSession.questions.length}
-                    </Badge>
-                  </div>
-                  
-                  <Progress 
-                    value={((currentQuestionIndex + 1) / practiceSession.questions.length) * 100} 
-                    className="w-full"
-                  />
-
-                  {practiceSession.questions[currentQuestionIndex] && (
-                    <Card className="p-4">
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          {getTypeIcon(practiceSession.questions[currentQuestionIndex].type)}
-                          <Badge variant="outline">
-                            {practiceSession.questions[currentQuestionIndex].type}
-                          </Badge>
-                          <Badge className={getDifficultyColor(practiceSession.questions[currentQuestionIndex].difficulty)}>
-                            {practiceSession.questions[currentQuestionIndex].difficulty}
-                          </Badge>
-                        </div>
-                        <p className="font-medium">
-                          {practiceSession.questions[currentQuestionIndex].question}
-                        </p>
-                        <Textarea
-                          placeholder="Type your answer here..."
-                          value={answers[currentQuestionIndex] || ''}
-                          onChange={(e) => setAnswers({ 
-                            ...answers, 
-                            [currentQuestionIndex]: e.target.value 
-                          })}
-                          className="min-h-[120px]"
-                        />
-                      </div>
-                    </Card>
-                  )}
-
-                  <div className="flex justify-between">
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
-                      disabled={currentQuestionIndex === 0}
-                    >
-                      Previous
-                    </Button>
-                    
-                    {currentQuestionIndex < practiceSession.questions.length - 1 ? (
-                      <Button
-                        onClick={() => setCurrentQuestionIndex(currentQuestionIndex + 1)}
-                      >
-                        Next
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={submitPracticeSession}
-                        disabled={loading}
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        {loading ? 'Submitting...' : 'Submit Practice'}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="results" className="space-y-4">
-              {practiceResults ? (
-                <div className="space-y-4">
-                  <Card className="p-4">
-                    <h3 className="font-semibold mb-2">Overall Score</h3>
-                    <div className="flex items-center gap-4">
-                      <div className="text-3xl font-bold text-green-600">
-                        {practiceResults.score}%
-                      </div>
-                      <Progress value={practiceResults.score} className="flex-1" />
-                    </div>
-                  </Card>
-
-                  <Card className="p-4">
-                    <h3 className="font-semibold mb-2">Overall Feedback</h3>
-                    <p className="text-sm text-gray-600">{practiceResults.overall_feedback}</p>
-                  </Card>
-
-                  {practiceResults.areas_for_improvement && practiceResults.areas_for_improvement.length > 0 && (
-                    <Card className="p-4">
-                      <h3 className="font-semibold mb-2">Areas for Improvement</h3>
-                      <ul className="list-disc list-inside space-y-1">
-                        {practiceResults.areas_for_improvement.map((area: string, index: number) => (
-                          <li key={index} className="text-sm text-gray-600">{area}</li>
-                        ))}
-                      </ul>
-                    </Card>
-                  )}
-
-                  {practiceResults.feedback && practiceResults.feedback.length > 0 && (
-                    <div className="space-y-3">
-                      <h3 className="font-semibold">Question-by-Question Feedback</h3>
-                      {practiceResults.feedback.map((feedback: any, index: number) => (
-                        <Card key={index} className="p-4">
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-start">
-                              <p className="font-medium text-sm">{feedback.question}</p>
-                              <Badge variant={feedback.score >= 80 ? 'default' : 'secondary'}>
-                                {feedback.score}%
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-gray-600"><strong>Your Answer:</strong> {feedback.your_answer}</p>
-                            <p className="text-xs text-gray-700"><strong>Feedback:</strong> {feedback.feedback}</p>
-                            {feedback.suggestions && feedback.suggestions.length > 0 && (
-                              <div className="text-xs">
-                                <strong>Suggestions:</strong>
-                                <ul className="list-disc list-inside ml-2">
-                                  {feedback.suggestions.map((suggestion: string, i: number) => (
-                                    <li key={i}>{suggestion}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">Complete a practice session to see your results here.</p>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
+          {!profile && !profileLoading && (
+            <div className="text-center text-sm text-gray-500">
+              Please log in and complete your profile to generate personalized interview questions
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Generated Questions Display */}
+      {Object.keys(questions).length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold">Your Interview Questions</h2>
+            <Badge variant="secondary" className="text-sm">
+              {totalQuestions} Questions Generated
+            </Badge>
+          </div>
+
+          {/* Profile Summary Used */}
+          {profileSummary && (
+            <Card className="bg-gray-50 dark:bg-gray-900/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  Generated based on your profile
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                  <div>
+                    <span className="font-medium">Experience:</span> {profileSummary.years_of_experience} years
+                  </div>
+                  <div>
+                    <span className="font-medium">Role:</span> {profileSummary.current_role || 'Not specified'}
+                  </div>
+                  <div>
+                    <span className="font-medium">Skills:</span> {profileSummary.skills.length} identified
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Questions by Category */}
+          {Object.entries(questions).map(([category, categoryQuestions]) => (
+            <Card key={category} className="overflow-hidden">
+              <CardHeader className="bg-gray-50 dark:bg-gray-900/50">
+                <CardTitle className={`flex items-center gap-2 text-lg ${getCategoryColor(category)}`}>
+                  {getCategoryIcon(category)}
+                  {category.replace('_', ' ')} Questions
+                  <Badge variant="secondary" className="ml-auto">
+                    {categoryQuestions.length} questions
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                {categoryQuestions.map((question, index) => (
+                  <Card key={index} className="border-l-4 border-l-blue-500">
+                    <CardContent className="pt-6">
+                      <div className="space-y-4">
+                        {/* Question */}
+                        <div>
+                          <div className="flex items-start gap-2">
+                            <Badge variant="outline" className="mt-1">
+                              Q{index + 1}
+                            </Badge>
+                            <p className="font-medium text-base flex-1">
+                              {question.question}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Guidance Accordion */}
+                        <Accordion type="single" collapsible className="w-full">
+                          {question.candidate_advice && (
+                            <AccordionItem value="advice" className="border-none">
+                              <AccordionTrigger className="text-sm hover:no-underline py-2">
+                                <div className="flex items-center gap-2 text-blue-600">
+                                  <Lightbulb className="w-4 h-4" />
+                                  How to Answer This Question
+                                </div>
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
+                                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                                    {question.candidate_advice}
+                                  </p>
+                                </div>
+                              </AccordionContent>
+                            </AccordionItem>
+                          )}
+
+                          {question.employer_guidance && (
+                            <AccordionItem value="employer" className="border-none">
+                              <AccordionTrigger className="text-sm hover:no-underline py-2">
+                                <div className="flex items-center gap-2 text-green-600">
+                                  <Target className="w-4 h-4" />
+                                  What Interviewers Look For
+                                </div>
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg">
+                                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                                    {question.employer_guidance}
+                                  </p>
+                                </div>
+                              </AccordionContent>
+                            </AccordionItem>
+                          )}
+                        </Accordion>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </CardContent>
+            </Card>
+          ))}
+
+          {/* Tips Section */}
+          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <TrendingUp className="w-5 h-5" />
+                Interview Success Tips
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5" />
+                  <span>Practice your answers out loud to improve fluency and confidence</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5" />
+                  <span>Use the STAR method (Situation, Task, Action, Result) for behavioral questions</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5" />
+                  <span>Prepare specific examples from your experience for each question type</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5" />
+                  <span>Research the company culture and values to align your answers</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

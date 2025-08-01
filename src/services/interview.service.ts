@@ -23,6 +23,30 @@ export interface InterviewStats {
   average_preparation_time: number;
 }
 
+export interface ProfileInterviewRequest {
+  question_count: number;
+  focus_areas: string[];
+}
+
+export interface ProfileInterviewResponse {
+  questions: Array<{
+    id: string;
+    question: string;
+    type: 'technical' | 'behavioral' | 'situational';
+    difficulty: 'easy' | 'medium' | 'hard';
+    category: string;
+    focus_area: string;
+    expected_approach: string;
+    evaluation_criteria: string[];
+    follow_up_questions: string[];
+    red_flags: string[];
+    time_estimate: number;
+  }>;
+  total_questions: number;
+  estimated_duration: number;
+  focus_areas_covered: string[];
+}
+
 class InterviewService {
   // Get role-based interview questions
   async getInterviewQuestions(request: InterviewQuestionRequest): Promise<{
@@ -85,6 +109,17 @@ class InterviewService {
     job_title: string;
   }> {
     return apiClient.post('/ai/interview-questions', request);
+  }
+
+  // Get profile-based interview questions
+  async getProfileBasedQuestions(request: ProfileInterviewRequest): Promise<any> {
+    try {
+      const response = await apiClient.post('/interview/questions/profile-based', request);
+      return response;
+    } catch (error) {
+      console.error('Error fetching profile-based interview questions:', error);
+      throw error;
+    }
   }
 
 }
