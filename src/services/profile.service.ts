@@ -32,9 +32,13 @@ class ProfileService {
     return await apiClient.get(`/profile/${userId}`);
   }
 
+  async updateCompanyProfile(companyData: any): Promise<void> {
+    await apiClient.put('/company/', companyData);
+  }
+
   // Get profile statistics
   async getProfileStats(): Promise<{
-    total_applications: number;
+    
     total_jobs_posted: number;
     profile_completeness: number;
     recommendations_count: number;

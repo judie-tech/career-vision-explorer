@@ -1,5 +1,6 @@
 
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/admin/DashboardLayout";
 import { JobPostHeader } from "@/components/employer/JobPostHeader";
 import { StatisticsCards } from "@/components/employer/StatisticsCards";
@@ -7,8 +8,45 @@ import { RecentApplicantsTable } from "@/components/employer/RecentApplicantsTab
 import { JobListingsTable } from "@/components/employer/JobListingsTable";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, Users, Briefcase } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "@/components/ui/sonner";
 
 const EmployerDashboard = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, hasRole, isLoading } = useAuth();
+
+  useEffect(() => {
+    // Check authentication and employer role
+    if (!isLoading && !isAuthenticated) {
+      toast.error("Authentication Required", {
+        description: "Please log in to access the employer dashboard",
+      });
+      navigate("/admin/login?returnUrl=/employer/dashboard");
+      return;
+    }
+
+    if (!isLoading && isAuthenticated && !hasRole('employer')) {
+      toast.error("Access Denied", {
+        description: "You need employer permissions to access this page",
+      });
+      navigate("/");
+      return;
+    }
+  }, [isAuthenticated, hasRole, isLoading, navigate]);
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated or not an employer
+  if (!isAuthenticated || !hasRole('employer')) {
+    return null;
+  }
   return (
     <DashboardLayout title="Employer Dashboard" role="employer">
       <div className="space-y-8 p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">

@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, Shield, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
+// ThemeToggle removed
 import { useAuth } from "@/hooks/use-auth";
 import {
   DropdownMenu,
@@ -60,7 +60,8 @@ const Navbar = () => {
     };
   };
 
-  const navigation = [
+  // Build navigation dynamically based on user authentication and role
+  const baseNavigation = [
     { name: "Home", href: "/" },
     { name: "Jobs", href: "/jobs" },
     { name: "Freelancers", href: "/freelancers" },
@@ -70,8 +71,23 @@ const Navbar = () => {
     { name: "Enhanced Skill Analysis", href: "/enhanced-skill-analysis" },
     { name: "Interview Prep", href: "/interview-prep" },
     { name: "Insights", href: "/insights" },
-    { name: "Profile", href: "/profile" },
   ];
+
+  // Filter navigation based on user role
+  let navigation = baseNavigation;
+  
+  if (isAuthenticated && user) {
+    if (user.account_type === 'employer') {
+      // For employers, only show Freelancers, Insights, and Dashboard
+      navigation = [
+        { name: "Freelancers", href: "/freelancers" },
+        { name: "Insights", href: "/insights" },
+      ];
+    } else {
+      // For other users, add Profile to navigation
+      navigation = [...baseNavigation, { name: "Profile", href: "/profile" }];
+    }
+  }
 
 
   const isActive = (path: string) => location.pathname === path;
@@ -106,7 +122,6 @@ const Navbar = () => {
           </div>
 
           <div className="hidden md:flex md:items-center md:space-x-2">
-            <ThemeToggle />
             {/* Dashboard Link - Show for authenticated users */}
             {isAuthenticated && user && (() => {
               const dashboardInfo = getDashboardLink();
@@ -144,13 +159,15 @@ const Navbar = () => {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-<DropdownMenuItem onClick={() => navigate(getDashboardUrl())}>
-  Dashboard
-</DropdownMenuItem>
-<DropdownMenuItem onClick={() => navigate("/profile")}>
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                  {user.account_type === 'employer' && (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate(getDashboardUrl())}>
+                        <User className="h-4 w-4 mr-2" />
+                        Go to Dashboard
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                   <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                     <LogOut className="h-4 w-4 mr-2" />
                     Log out
@@ -175,7 +192,6 @@ const Navbar = () => {
 
           {/* Mobile menu button */}
           <div className="flex md:hidden items-center space-x-2">
-            <ThemeToggle />
             <button
               type="button"
               onClick={toggleMenu}
@@ -240,20 +256,15 @@ const Navbar = () => {
                     <div className="px-3 py-2 text-base font-medium text-muted-foreground">
                       Signed in as {user.name}
                     </div>
-                    <Link
-                      to={getDashboardUrl()}
-                      className="block px-3 py-2 rounded-lg text-base font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Dashboard
-                    </Link>
-                    <Link
-                      to="/profile"
-                      className="block px-3 py-2 rounded-lg text-base font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Profile
-                    </Link>
+                    {user.account_type !== 'employer' && (
+                      <Link
+                        to="/profile"
+                        className="block px-3 py-2 rounded-lg text-base font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Profile
+                      </Link>
+                    )}
                     <button
                       onClick={() => {
                         handleLogout();

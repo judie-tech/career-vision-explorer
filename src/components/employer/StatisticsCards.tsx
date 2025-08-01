@@ -1,11 +1,11 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, Users, Calendar, Clock, TrendingUp, ArrowUpRight } from "lucide-react";
+import { Briefcase, Users, Calendar, Clock, TrendingUp, ArrowUpRight, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useJobPosts } from "@/hooks/use-job-posts";
-import { useApplicants } from "@/hooks/use-applicants";
-import { useInterviews } from "@/hooks/use-interviews";
+import { useEmployerStats } from "@/hooks/use-employer-stats";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface StatCardProps {
   title: string;
@@ -47,70 +47,108 @@ const StatCard = ({ title, value, subtitle, icon, iconColor, bgColor, trend, onC
   </Card>
 );
 
+// Skeleton component for loading state
+const StatCardSkeleton = () => (
+  <Card className="border-0 shadow-md bg-gradient-to-br from-white to-gray-50">
+    <CardContent className="p-6">
+      <div className="flex items-start justify-between">
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-8 w-16" />
+          <Skeleton className="h-3 w-32" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+        <Skeleton className="h-12 w-12 rounded-xl" />
+      </div>
+      <div className="flex items-center justify-end mt-4">
+        <Skeleton className="h-4 w-4" />
+      </div>
+    </CardContent>
+  </Card>
+);
+
 export const StatisticsCards = () => {
   const navigate = useNavigate();
-  const { jobs } = useJobPosts();
-  const { applicants } = useApplicants();
-  const { interviews } = useInterviews();
-  
-  // Calculate boosted listings
-  const boostedListings = jobs.filter(job => job.isBoosted).length;
-  
-  // Calculate weekly new applicants
-  const weeklyNewApplicants = applicants.filter(app => 
-    app.appliedTime.includes("day") && parseInt(app.appliedTime) <= 7
-  ).length;
-  
-  // Calculate weekly interviews
-  const weeklyInterviews = interviews.filter(int => 
-    new Date(int.scheduledDate) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-  ).length;
-  
-  // Calculate total views
-  const totalViews = jobs.reduce((total, job) => total + job.views, 0);
-  const viewsIncrease = "+18%"; // This would typically be calculated from historical data
+  const { stats, isLoading, error, percentageChanges } = useEmployerStats();
+
+  // Show loading skeletons
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((index) => (
+          <StatCardSkeleton key={index} />
+        ))}
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <Alert variant="destructive" className="max-w-2xl">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error loading statistics</AlertTitle>
+        <AlertDescription>
+          {error || "Failed to load employer statistics. Please try again later."}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  // Show empty state if no stats
+  if (!stats) {
+    return (
+      <Alert className="max-w-2xl">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>No statistics available</AlertTitle>
+        <AlertDescription>
+          Start posting jobs to see your employer statistics.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
       <StatCard
-        title="Active Job Listings"
-        value={jobs.length}
-        subtitle={`${boostedListings} boosted listings`}
+        title="Total Jobs Posted"
+        value={stats.totalJobs}
+        subtitle={stats.inactiveJobs > 0 ? `${stats.inactiveJobs} inactive` : "All active"}
         icon={<Briefcase className="h-6 w-6" />}
         iconColor="text-blue-600"
         bgColor="bg-blue-50"
-        trend="+12% this month"
+        trend={percentageChanges.totalJobsChange > 0 ? `+${percentageChanges.totalJobsChange}% this month` : undefined}
         onClick={() => navigate("/employer/jobs")}
       />
       <StatCard
-        title="Total Applicants"
-        value={applicants.length}
-        subtitle={`+${weeklyNewApplicants} this week`}
+        title="Active Listings"
+        value={stats.activeJobs}
+        subtitle={`${Math.round(stats.applicationRate)}% application rate`}
+        icon={<TrendingUp className="h-6 w-6" />}
+        iconColor="text-green-600"
+        bgColor="bg-green-50"
+        trend={percentageChanges.activeJobsChange > 0 ? `+${percentageChanges.activeJobsChange}% this month` : undefined}
+        onClick={() => navigate("/employer/jobs?filter=active")}
+      />
+      <StatCard
+        title="Total Applications"
+        value={stats.totalApplications}
+        subtitle={`~${Math.round(stats.avgApplicationsPerJob)} per job`}
         icon={<Users className="h-6 w-6" />}
         iconColor="text-purple-600"
         bgColor="bg-purple-50"
-        trend="+23% this month"
+        trend={percentageChanges.applicationsChange > 0 ? `+${percentageChanges.applicationsChange}% this month` : undefined}
         onClick={() => navigate("/employer/applicants")}
       />
       <StatCard
-        title="Interviews Scheduled"
-        value={interviews.filter(i => i.status === "Scheduled").length}
-        subtitle={`${weeklyInterviews} this week`}
+        title="Interview Scheduled"
+        value="0"
+        subtitle="Coming soon"
         icon={<Calendar className="h-6 w-6" />}
-        iconColor="text-green-600"
-        bgColor="bg-green-50"
-        trend="+8% this month"
-        onClick={() => navigate("/employer/interviews")}
-      />
-      <StatCard
-        title="Total Views"
-        value={totalViews.toLocaleString()}
-        subtitle={`${viewsIncrease} from last month`}
-        icon={<Clock className="h-6 w-6" />}
         iconColor="text-amber-600"
         bgColor="bg-amber-50"
-        trend="+18% this month"
-        onClick={() => navigate("/employer/jobs")}
+        trend={undefined}
+        onClick={() => navigate("/employer/interviews")}
       />
     </div>
   );

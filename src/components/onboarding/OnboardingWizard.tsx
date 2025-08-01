@@ -130,7 +130,7 @@ const employerResponses = [
     const message = completionMessages[userRole] || completionMessages.jobseeker;
     
     // Add API call here to submit onboarding data
-    submitOnboardingData(data, signupData).then(() => {
+    submitOnboardingData(data, signupData, userRole).then(() => {
       toast({
         title: message.title,
         description: message.description,
@@ -138,9 +138,24 @@ const employerResponses = [
       onComplete();
       navigate(message.redirect);
     }).catch(error => {
+      console.error('Onboarding error:', error);
+      
+      // Provide more specific error messages based on the error type
+      let errorMessage = "Could not complete onboarding, please try again.";
+      
+      if (error.response?.status === 401) {
+        errorMessage = "Your session has expired. Please log in again.";
+      } else if (error.response?.status === 400) {
+        errorMessage = "Some of the information provided is invalid. Please check your inputs.";
+      } else if (error.response?.status === 500) {
+        errorMessage = "Server error occurred. Please try again later.";
+      } else if (error.message?.includes('network')) {
+        errorMessage = "Network error. Please check your internet connection.";
+      }
+      
       toast({
         title: "Error",
-        description: "Could not complete onboarding, please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     });

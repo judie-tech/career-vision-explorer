@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
@@ -22,15 +22,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "@/components/ui/sonner";
-import { User, Mail, Briefcase, GraduationCap, MapPin, Phone, Upload } from "lucide-react";
+import { User, Mail, Briefcase, GraduationCap, MapPin, Phone, Upload, RefreshCcw } from "lucide-react";
 
+// Define the profile schema directly here since it's not dependent on dynamic data
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email"),
+  email: z.string().email("Invalid email address"),
   role: z.string().min(2, "Role must be at least 2 characters"),
-  education: z.string().min(2, "Education must be at least 2 characters"),
-  experience: z.string().min(2, "Experience must be at least 2 characters"),
-  location: z.string().min(2, "Location must be at least 2 characters"),
+  education: z.string().optional(),
+  experience: z.string().optional(),
+  location: z.string().optional(),
   phone: z.string().optional(),
   bio: z.string().optional(),
   profileImage: z.string().optional(),
@@ -99,15 +100,26 @@ const EditProfileDialog = ({ open, onOpenChange, userData, onSave }: EditProfile
 
   const onSubmit = async (data: ProfileFormValues) => {
     setIsLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      onSave({ ...data, profileImage });
-      toast.success("Profile updated successfully!");
-      onOpenChange(false);
-    } catch (error) {
-      toast.error("Failed to update profile");
-    } finally {
-      setIsLoading(false);
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await onSave({ ...data, profileImage });
+        toast.success("Profile updated successfully!");
+        onOpenChange(false);
+        break;
+      } catch (error) {
+        console.error("Profile update error: ", error);
+        retries -= 1;
+        if (retries === 0) {
+          const isNetworkError = error.message?.includes('network');
+          toast.error(isNetworkError ? "Network error, please try again later" : error?.response?.data?.detail || "Failed to update profile");
+        }
+      } finally {
+        if (retries === 0) {
+          setIsLoading(false);
+        }
+      }
     }
   };
 

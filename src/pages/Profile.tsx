@@ -33,15 +33,25 @@ import { useAuth } from "@/hooks/use-auth";
 import { profileService } from "@/services/profile.service";
 import { toast } from "sonner";
 import { Profile as ProfileType, ProfileUpdate } from "@/types/api";
+import { useNavigate } from "react-router-dom";
+import { useEffect as useEffectNavigate } from "react";
 
 const Profile: React.FC = () => {
   const { user, isAuthenticated, profile: authProfile } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileType | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<ProfileUpdate>>({});
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [isParsing, setIsParsing] = useState(false);
+
+  // Redirect employers to their dashboard
+  useEffectNavigate(() => {
+    if (isAuthenticated && user?.account_type === 'employer') {
+      navigate('/employer/dashboard');
+    }
+  }, [isAuthenticated, user, navigate]);
 
   useEffect(() => {
     if (isAuthenticated && authProfile) {
