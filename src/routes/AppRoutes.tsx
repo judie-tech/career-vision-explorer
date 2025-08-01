@@ -43,6 +43,7 @@ const InterviewPrep = lazy(() => import("@/pages/InterviewPrep"));
 const SkillGapAnalysis = lazy(() => import("@/pages/SkillGapAnalysis"));
 const EnhancedSkillAnalysis = lazy(() => import("@/pages/EnhancedSkillAnalysis"));
 const AIJobMatching = lazy(() => import("@/pages/AIJobMatching"));
+const JobMatching = lazy(() => import("@/pages/JobMatching"));
 const AdminUsers = lazy(() => import("@/pages/admin/AdminUsers"));
 const AdminJobseekers = lazy(() => import("@/pages/admin/AdminJobseekers"));
 const AdminJobs = lazy(() => import("@/pages/admin/AdminJobs"));
@@ -403,6 +404,11 @@ export const AppRoutes = () => {
         <Route path="/ai-job-matching" element={
           <Suspense fallback={<PageLoader />}>
             <AIJobMatching />
+          </Suspense>
+        } />
+        <Route path="/job-matching" element={
+          <Suspense fallback={<PageLoader />}>
+            <JobMatching />
           </Suspense>
         } />
         

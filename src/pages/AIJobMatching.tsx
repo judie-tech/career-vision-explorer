@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,11 @@ import {
   Users,
   AlertCircle,
   CheckCircle,
-  Clock
+  Clock,
+  X,
+  Eye,
+  FileText,
+  Loader2
 } from 'lucide-react';
 import { aiJobMatchingService, EnhancedJobMatch } from '@/services/ai-job-matching.service';
 import { jobMatchingService, MarketAnalysis } from '@/services/job-matching.service';
