@@ -184,6 +184,15 @@ export const EmployerStepRenderer = ({
 
   const currentStepData = steps[currentStep];
 
+  // Safety check to prevent out of bounds access
+  if (!currentStepData) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-center mb-4">

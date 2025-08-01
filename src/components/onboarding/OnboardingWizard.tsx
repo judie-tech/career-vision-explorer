@@ -49,7 +49,8 @@ const [aiResponses, setAiResponses] = useState<string[]>([
       : "Welcome to Visiondrill! I'm here to help you set up your profile and find the perfect career opportunities. Let's get started by understanding your career goals and preferences."
   ]);
   
-  const totalSteps = 6;
+  // Different user types have different number of steps
+  const totalSteps = userRole === 'employer' ? 6 : userRole === 'freelancer' ? 6 : 5;
   const progress = ((currentStep + 1) / (totalSteps + 1)) * 100;
   
   const updateField = <K extends keyof OnboardingData>(field: K, value: OnboardingData[K]) => {

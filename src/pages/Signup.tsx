@@ -140,13 +140,39 @@ const Signup = () => {
       // Map frontend role to backend role
       const accountType = values.role === 'jobseeker' ? 'job_seeker' : values.role === 'employer' ? 'employer' : 'freelancer';
 
-      // Register the new user using the real backend
-      await register({
+      // Prepare registration data based on user role
+      const registrationData: any = {
         name: values.name,
         email: values.email,
         password: values.password,
         account_type: accountType
-      });
+      };
+
+      // Add role-specific data
+      if (values.role === 'employer') {
+        // Store employer-specific data in preferences
+        registrationData.preferences = {
+          companyName: values.companyName,
+          companyWebsite: values.companyWebsite,
+          industry: values.industry
+        };
+      } else if (values.role === 'freelancer') {
+        // Add freelancer-specific fields
+        registrationData.bio = values.professionalTitle;
+        registrationData.preferences = {
+          hourlyRate: values.hourlyRate,
+          portfolioUrl: values.portfolioUrl
+        };
+      } else if (values.role === 'jobseeker') {
+        // Add job seeker phone number to preferences
+        registrationData.preferences = {
+          countryCode: values.countryCode,
+          phoneNumber: values.phoneNumber
+        };
+      }
+
+      // Register the new user using the real backend
+      await register(registrationData);
 
       console.log('✅ User registered successfully');
 

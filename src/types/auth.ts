@@ -16,6 +16,14 @@ export interface UserRegister {
   email: string;
   password: string;
   account_type: 'job_seeker' | 'employer' | 'admin' | 'freelancer';
+  // Optional fields for job seekers and freelancers
+  career_goals?: string;
+  skills?: string[];
+  location?: string;
+  experience_years?: number;
+  bio?: string;
+  // Generic preferences object that can hold role-specific data
+  preferences?: Record<string, any>;
 }
 
 export interface UserLogin {
