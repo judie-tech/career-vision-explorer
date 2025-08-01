@@ -20,6 +20,8 @@ import { Freelancer } from '@/types/freelancer';
 import { toast } from 'sonner';
 import { PricingDialog } from '@/components/freelancer/PricingDialog';
 import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import InsightsEmbedded from '@/components/insights/InsightsEmbedded';
 
 export default function FreelancerDashboard() {
   const navigate = useNavigate();
@@ -142,9 +144,17 @@ export default function FreelancerDashboard() {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
+        {/* Tabs */}
+        <Tabs defaultValue="overview" className="space-y-8">
+          <TabsList className="grid w-full grid-cols-2 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-200 p-1">
+            <TabsTrigger value="overview" className="rounded-lg font-medium">Overview</TabsTrigger>
+            <TabsTrigger value="insights" className="rounded-lg font-medium">Insights</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-8">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg font-medium text-gray-600">
                 Total Earnings
@@ -153,12 +163,12 @@ export default function FreelancerDashboard() {
             <CardContent>
               <div className="flex items-center justify-between">
                 <span className="text-2xl font-bold">$0</span>
-                <DollarSign className="w-8 h-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
+                  <DollarSign className="w-8 h-8 text-green-500" />
+                </div>
+              </CardContent>
+              </Card>
 
-          <Card>
+              <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg font-medium text-gray-600">
                 Rating
@@ -177,9 +187,9 @@ export default function FreelancerDashboard() {
                 </span>
               </div>
             </CardContent>
-          </Card>
+              </Card>
 
-          <Card>
+              <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg font-medium text-gray-600">
                 Active Projects
@@ -191,9 +201,9 @@ export default function FreelancerDashboard() {
                 <Briefcase className="w-8 h-8 text-blue-500" />
               </div>
             </CardContent>
-          </Card>
+              </Card>
 
-          <Card>
+              <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg font-medium text-gray-600">
                 Profile Views
@@ -205,11 +215,11 @@ export default function FreelancerDashboard() {
                 <Users className="w-8 h-8 text-purple-500" />
               </div>
             </CardContent>
-          </Card>
-        </div>
+              </Card>
+            </div>
 
-        {/* Profile Status */}
-        <Card className="mb-8">
+            {/* Profile Status */}
+            <Card className="mb-8">
           <CardHeader>
             <CardTitle>Profile Status</CardTitle>
           </CardHeader>
@@ -247,10 +257,10 @@ export default function FreelancerDashboard() {
               </div>
             </div>
           </CardContent>
-        </Card>
+            </Card>
 
-        {/* Skills */}
-        <Card className="mb-8">
+            {/* Skills */}
+            <Card className="mb-8">
           <CardHeader>
             <CardTitle>Skills</CardTitle>
           </CardHeader>
@@ -265,8 +275,8 @@ export default function FreelancerDashboard() {
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
-        <Card>
+            {/* Recent Activity */}
+            <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
@@ -279,7 +289,13 @@ export default function FreelancerDashboard() {
               </p>
             </div>
           </CardContent>
-        </Card>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="insights" className="space-y-8">
+            <InsightsEmbedded />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Pricing Dialog */}

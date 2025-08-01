@@ -24,7 +24,7 @@ const JobSeekerDashboard = () => {
         <div className="relative container py-12">
           <DashboardHeader />
           <QuickStatsCards />
-          <DashboardTabs onViewApplication={handleViewApplication} />
+          <DashboardTabs onViewApplication={handleViewApplication} showInsights />
         </div>
 
         <ApplicationDetailsDialog
