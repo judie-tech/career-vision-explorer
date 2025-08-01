@@ -53,14 +53,35 @@ const signupSchema = z.object({
   countryCode: z.string().optional(),
   phoneNumber: z.string().optional(),
   profileImage: z.string().optional(),
-}).refine((data) => {
+  // Freelancer fields
+  professionalTitle: z.string().optional(),
+  hourlyRate: z.string().optional(),
+  portfolioUrl: z.string().url().optional().or(z.literal('')),
+  // Employer fields
+  companyName: z.string().optional(),
+  companyWebsite: z.string().url().optional().or(z.literal('')),
+  industry: z.string().optional(),
+}).superRefine((data, ctx) => {
+  // Job seeker validation
   if (data.role === 'jobseeker') {
-    return !!data.phoneNumber && data.phoneNumber.length > 0;
+    if (!data.phoneNumber || data.phoneNumber.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Phone number is required for job seekers.',
+        path: ['phoneNumber'],
+      });
+    }
   }
-  return true;
-}, {
-  message: 'Phone number is required for job seekers.',
-  path: ['phoneNumber'],
+  // Employer validation
+  if (data.role === 'employer') {
+    if (!data.companyName || data.companyName.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Company name is required for employers.',
+        path: ['companyName'],
+      });
+    }
+  }
 });
 
 const Signup = () => {
@@ -83,6 +104,14 @@ const Signup = () => {
       countryCode: "+254",
       phoneNumber: "",
       profileImage: "",
+      // Freelancer fields
+      professionalTitle: "",
+      hourlyRate: "",
+      portfolioUrl: "",
+      // Employer fields
+      companyName: "",
+      companyWebsite: "",
+      industry: "",
     },
   });
 
@@ -180,14 +209,6 @@ const Signup = () => {
         role: selectedRole
       };
       
-      // Note: Backend will handle email validation
-      
-      toast.success("LinkedIn Data Imported", {
-        description: selectedRole === "jobseeker"
-          ? "Please add your phone number to complete registration."
-          : "Registration complete! Setting up your profile...",
-      });
-      
       // Pre-fill form with LinkedIn data
       form.setValue('name', linkedInData.name);
       form.setValue('email', linkedInData.email);
@@ -195,34 +216,34 @@ const Signup = () => {
       form.setValue('profileImage', linkedInData.profileImage);
       setProfileImage(linkedInData.profileImage);
       
+      // Pre-fill role-specific fields based on LinkedIn data
+      if (selectedRole === 'freelancer') {
+        // Simulate extracting professional info from LinkedIn
+        form.setValue('professionalTitle', 'Senior Software Developer'); // Would be extracted from LinkedIn
+        form.setValue('hourlyRate', '$75'); // Could be suggested based on title
+        form.setValue('portfolioUrl', 'https://linkedin.com/in/johndoe'); // LinkedIn profile as portfolio
+      } else if (selectedRole === 'employer') {
+        // Simulate extracting company info from LinkedIn
+        form.setValue('companyName', 'Tech Solutions Inc'); // Would be extracted from LinkedIn
+        form.setValue('companyWebsite', 'https://techsolutions.com');
+        form.setValue('industry', 'Technology');
+      }
+      
       setLinkedInImportOpen(false);
       setLinkedInDataImported(true);
       
-      if (selectedRole === "employer") {
-        // For employers, complete registration immediately since no phone needed
-        try {
-          await register({
-            name: linkedInData.name,
-            email: linkedInData.email,
-            password: linkedInData.password,
-            account_type: 'employer'
-          });
-
-          toast.success("Account created successfully!", {
-            description: "Let's set up your profile to find the perfect opportunities.",
-          });
-          setNewUserData(linkedInData);
-          setShowOnboarding(true);
-        } catch (error: any) {
-          toast.error("Registration Failed", {
-            description: error.message || "Failed to create account. Please try again.",
-          });
-        }
-      } else {
-        toast.info("LinkedIn Import Complete", {
-          description: "Profile information and photo imported. Please add your phone number to continue.",
-        });
+      // Show appropriate message based on role
+      let description = "LinkedIn data imported successfully!";
+      if (selectedRole === "jobseeker") {
+        description += " Please add your phone number to complete registration.";
+      } else if (selectedRole === "freelancer") {
+        description += " Review your professional details and complete registration.";
+      } else if (selectedRole === "employer") {
+        description += " Please verify your company information.";
       }
+      
+      toast.success("LinkedIn Data Imported", { description });
+      
     } catch (error) {
       console.error('LinkedIn signup error:', error);
       toast.error("LinkedIn Import Failed", {
@@ -341,6 +362,122 @@ const Signup = () => {
                     phoneNumberName="phoneNumber"
                   />
                 )}
+
+                {selectedRole === "freelancer" && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="professionalTitle"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Professional Title (Optional)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="e.g., Full Stack Developer" 
+                              {...field}
+                              className="transition-all focus:ring-2 focus:ring-career-blue"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="hourlyRate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Hourly Rate (Optional)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="e.g., $50" 
+                              {...field}
+                              className="transition-all focus:ring-2 focus:ring-career-blue"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="portfolioUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Portfolio URL (Optional)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="https://yourportfolio.com" 
+                              {...field}
+                              className="transition-all focus:ring-2 focus:ring-career-blue"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+
+                {selectedRole === "employer" && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="companyName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company Name <span className="text-red-500">*</span></FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Your Company Name" 
+                              {...field}
+                              className="transition-all focus:ring-2 focus:ring-career-blue"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="companyWebsite"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company Website (Optional)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="https://yourcompany.com" 
+                              {...field}
+                              className="transition-all focus:ring-2 focus:ring-career-blue"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="industry"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Industry (Optional)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="e.g., Technology, Healthcare" 
+                              {...field}
+                              className="transition-all focus:ring-2 focus:ring-career-blue"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
                 
                 <FormField
                   control={form.control}
@@ -405,6 +542,7 @@ const Signup = () => {
           <OnboardingWizard 
             onComplete={handleOnboardingComplete} 
             userRole={newUserData.role}
+            signupData={newUserData}
           />
         )}
         

@@ -12,18 +12,21 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { VideoRecordingModal } from "./VideoRecordingModal";
 import { AIAssistant } from "./AIAssistant";
+import { submitOnboardingData } from "@/services/onboarding.service";
 import { ProgressIndicator } from "./ProgressIndicator";
 import { StepNavigation } from "./StepNavigation";
 import { StepRenderer } from "./StepRenderer";
 import { FreelancerStepRenderer } from "./FreelancerStepRenderer";
+import { EmployerStepRenderer } from "./EmployerStepRenderer";
 import { OnboardingData } from "./types";
 
 interface OnboardingWizardProps {
   onComplete: () => void;
   userRole?: 'jobseeker' | 'employer' | 'freelancer';
+  signupData?: any; // Data from signup form including role-specific fields
 }
 
-const OnboardingWizard = ({ onComplete, userRole = 'jobseeker' }: OnboardingWizardProps) => {
+const OnboardingWizard = ({ onComplete, userRole = 'jobseeker', signupData }: OnboardingWizardProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
@@ -38,9 +41,11 @@ const OnboardingWizard = ({ onComplete, userRole = 'jobseeker' }: OnboardingWiza
   const [videoRecordingOpen, setVideoRecordingOpen] = useState(false);
   const [videoAnalyzing, setVideoAnalyzing] = useState(false);
   const [videoAnalysisResult, setVideoAnalysisResult] = useState<string | null>(null);
-  const [aiResponses, setAiResponses] = useState<string[]>([
+const [aiResponses, setAiResponses] = useState<string[]>([
     userRole === 'freelancer' 
       ? "Welcome to Visiondrill! I'm here to help you set up your freelancer profile. Let's showcase your skills and services to connect with potential clients."
+      : userRole === 'employer'
+      ? "Welcome to Visiondrill! I'm here to help you set up your company profile and find the best talent for your team. Let's start by gathering information about your company."
       : "Welcome to Visiondrill! I'm here to help you set up your profile and find the perfect career opportunities. Let's get started by understanding your career goals and preferences."
   ]);
   
@@ -71,7 +76,16 @@ const OnboardingWizard = ({ onComplete, userRole = 'jobseeker' }: OnboardingWiza
       "Thank you for completing your profile! Based on your information, I've identified some initial career paths that might interest you and align with your goals."
     ];
     
-    const responses = userRole === 'freelancer' ? freelancerResponses : jobSeekerResponses;
+const employerResponses = [
+      "Welcome! Let's begin by setting up your company's presence on our platform to attract the best talent.",
+      "Great! Let's define the roles you're looking to fill and target potential candidates effectively.",
+      "Understanding your company's culture and values will help us find matching talent with similar ethos.",
+      "Work arrangements are crucial. Let's specify how your future employees will collaborate.",
+      "Highlighting the benefits and perks offered will make your company stand out to top candidates.",
+      "Upload your company logo to give your postings a professional look."
+    ];
+    
+    const responses = userRole === 'freelancer' ? freelancerResponses : userRole === 'employer' ? employerResponses : jobSeekerResponses;
     
     if (currentStep < responses.length) {
       setAiResponses(prev => [...prev, responses[currentStep]]);
@@ -94,12 +108,41 @@ const OnboardingWizard = ({ onComplete, userRole = 'jobseeker' }: OnboardingWiza
   };
   
   const handleComplete = () => {
-    toast({
-      title: "Profile Created Successfully!",
-      description: "Your profile is ready. Let's explore career opportunities!",
+    const completionMessages = {
+      employer: {
+        title: "Company Profile Created Successfully!",
+        description: "Your company profile is ready. Start posting jobs to find the best talent!",
+        redirect: "/employer/dashboard"
+      },
+      freelancer: {
+        title: "Freelancer Profile Created Successfully!",
+        description: "Your profile is ready. Start browsing projects and connecting with clients!",
+        redirect: "/freelancer/dashboard"
+      },
+      jobseeker: {
+        title: "Profile Created Successfully!",
+        description: "Your profile is ready. Let's explore career opportunities!",
+        redirect: "/jobs"
+      }
+    };
+    
+    const message = completionMessages[userRole] || completionMessages.jobseeker;
+    
+    // Add API call here to submit onboarding data
+    submitOnboardingData(data, signupData).then(() => {
+      toast({
+        title: message.title,
+        description: message.description,
+      });
+      onComplete();
+      navigate(message.redirect);
+    }).catch(error => {
+      toast({
+        title: "Error",
+        description: "Could not complete onboarding, please try again.",
+        variant: "destructive",
+      });
     });
-    onComplete();
-    navigate("/jobs");
   };
   
   const handleVideoUpload = (file: File) => {
@@ -142,7 +185,11 @@ const OnboardingWizard = ({ onComplete, userRole = 'jobseeker' }: OnboardingWiza
           <DialogHeader>
             <DialogTitle>Complete Your Profile</DialogTitle>
             <DialogDescription>
-              Let's set up your profile so we can find the perfect opportunities for you.
+              {userRole === 'employer' 
+                ? "Let's set up your company profile to attract the best talent."
+                : userRole === 'freelancer'
+                ? "Let's create your freelancer profile to connect with potential clients."
+                : "Let's set up your profile so we can find the perfect opportunities for you."}
             </DialogDescription>
           </DialogHeader>
           
@@ -151,7 +198,7 @@ const OnboardingWizard = ({ onComplete, userRole = 'jobseeker' }: OnboardingWiza
           <AIAssistant message={aiResponses[aiResponses.length - 1]} />
           
           <div className="mb-4">
-            {userRole === 'freelancer' ? (
+{userRole === 'freelancer' ? (
               <FreelancerStepRenderer
                 currentStep={currentStep}
                 data={data}
@@ -161,6 +208,14 @@ const OnboardingWizard = ({ onComplete, userRole = 'jobseeker' }: OnboardingWiza
                 openVideoRecording={() => setVideoRecordingOpen(true)}
                 videoAnalyzing={videoAnalyzing}
                 videoAnalysisResult={videoAnalysisResult}
+              />
+            ) : userRole === 'employer' ? (
+              <EmployerStepRenderer
+                currentStep={currentStep}
+                data={data}
+                updateField={updateField}
+                handleNext={handleNext}
+                handleLogoUpload={(file) => updateField("companyLogo", file)}
               />
             ) : (
               <StepRenderer
