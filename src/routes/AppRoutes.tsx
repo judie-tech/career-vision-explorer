@@ -64,6 +64,7 @@ const InterviewSchedule = lazy(() => import("@/pages/employer/InterviewSchedule"
 const Freelancers = lazy(() => import("@/pages/Freelancers"));
 const FreelancerProfile = lazy(() => import("@/pages/FreelancerProfile"));
 const FreelancerDashboard = lazy(() => import("@/pages/freelancer/FreelancerDashboard"));
+const CreateFreelancerProfile = lazy(() => import("@/pages/freelancer/CreateFreelancerProfile"));
 
 // Lightweight loading component
 const PageLoader = () => (
@@ -338,6 +339,13 @@ export const AppRoutes = () => {
           <ProtectedRoute requiredRole="freelancer">
             <Suspense fallback={<PageLoader />}>
               <FreelancerDashboard />
+            </Suspense>
+          </ProtectedRoute>
+        } />
+        <Route path="/freelancer/create-profile" element={
+          <ProtectedRoute requiredRole="freelancer">
+            <Suspense fallback={<PageLoader />}>
+              <CreateFreelancerProfile />
             </Suspense>
           </ProtectedRoute>
         } />

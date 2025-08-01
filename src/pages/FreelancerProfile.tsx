@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import Layout from '@/components/layout/Layout';
 import { cn } from '@/lib/utils';
 import { ContactDialog } from '@/components/freelancer/ContactDialog';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function FreelancerProfile() {
   const { freelancerId } = useParams<{ freelancerId: string }>();

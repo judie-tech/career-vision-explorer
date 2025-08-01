@@ -105,6 +105,25 @@ class FreelancerService {
   ): Promise<Freelancer> {
     return apiClient.put<Freelancer>(`/freelancers/${freelancerId}/pricing`, pricingData);
   }
+
+  async syncPortfolio(freelancerId: string): Promise<{
+    status: string;
+    portfolio_sync: any;
+    image_updates: any;
+    skill_cleanup: any;
+    portfolio_cleanup: any;
+    message: string;
+  }> {
+    return apiClient.post(`/freelancers/${freelancerId}/sync-portfolio`);
+  }
+
+  async enhancePortfolioImages(freelancerId: string): Promise<{
+    status: string;
+    message: string;
+    updated_count: number;
+  }> {
+    return apiClient.post(`/freelancers/${freelancerId}/enhance-portfolio-images`);
+  }
 }
 
 export const freelancerService = new FreelancerService();

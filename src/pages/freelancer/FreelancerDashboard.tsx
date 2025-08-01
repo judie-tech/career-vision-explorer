@@ -43,9 +43,16 @@ export default function FreelancerDashboard() {
         setFreelancerProfile(profile);
         setHasProfile(true);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading freelancer profile:', error);
-      setHasProfile(false);
+      // Check if error is 404 (freelancer not found)
+      if (error.message === 'Freelancer not found') {
+        setHasProfile(false);
+      } else {
+        // For other errors, still try to show the dashboard
+        toast.error('Error loading freelancer profile. Some features may be limited.');
+        setHasProfile(false);
+      }
     } finally {
       setLoading(false);
     }
