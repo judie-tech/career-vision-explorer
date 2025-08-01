@@ -7,12 +7,12 @@ export const API_CONFIG = {
   // Base API URL - use relative URL for dev proxy, absolute for production
   BASE_URL: import.meta.env.DEV 
     ? '/api/v1' 
-    : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1'),
+    : (import.meta.env.VITE_API_BASE_URL || 'https://a27eb7a2eafc.ngrok-free.app/api/v1'),
   
   // Backend URL (without /api/v1)
   BACKEND_URL: import.meta.env.DEV
     ? ''
-    : (import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'),
+    : (import.meta.env.VITE_BACKEND_URL || 'https://a27eb7a2eafc.ngrok-free.app'),
   
   // Supabase Configuration (for direct frontend access if needed)
   SUPABASE: {
