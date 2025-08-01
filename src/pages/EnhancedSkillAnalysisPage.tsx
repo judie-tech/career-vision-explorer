@@ -8,7 +8,7 @@ import { jobMatchingService, MarketAnalysis, JobMatch } from '@/services/job-mat
 import { TrendingUp, Brain, Target } from 'lucide-react';
 import { toast } from 'sonner';
 
-const EnhancedSkillAnalysisPage: React.FC = () => {
+const SkillAnalysisPage: React.FC = () => {
   const [marketAnalysis, setMarketAnalysis] = useState<MarketAnalysis | null>(null);
   const [loading, setLoading] = useState(false); // Changed to false to prevent auto-loading
 
@@ -45,13 +45,13 @@ const EnhancedSkillAnalysisPage: React.FC = () => {
       <Layout>
         <div className="container mx-auto py-8 space-y-6">
           <h1 className="text-3xl font-bold text-gray-900 text-center mb-8">
-            Enhanced Skill Analysis
+            Skill Analysis
           </h1>
           
           <Card className="text-center py-12">
             <CardContent>
               <Brain className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Ready for Enhanced Skill Analysis?</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Ready for Skill Analysis?</h3>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
                 Get comprehensive insights into how your skills match the current job market. 
                 We'll analyze 100+ job listings and provide detailed recommendations.
@@ -89,7 +89,7 @@ const EnhancedSkillAnalysisPage: React.FC = () => {
       <div className="container mx-auto py-8 space-y-6">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Enhanced Skill Analysis
+            Skill Analysis
           </h1>
           <Button onClick={fetchMarketAnalysis} disabled={loading} variant="outline">
             {loading ? 'Refreshing...' : 'Refresh Analysis'}
@@ -161,4 +161,4 @@ const EnhancedSkillAnalysisPage: React.FC = () => {
   );
 };
 
-export default EnhancedSkillAnalysisPage;
+export default SkillAnalysisPage;

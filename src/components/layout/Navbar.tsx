@@ -68,7 +68,7 @@ const Navbar = () => {
     { name: "Job Matching", href: "/job-matching" },
     { name: "Career Paths", href: "/career-paths" },
     { name: "Skills", href: "/skills" },
-    { name: "Enhanced Skill Analysis", href: "/enhanced-skill-analysis" },
+    { name: "Skill Analysis", href: "/enhanced-skill-analysis" },
     { name: "Interview Prep", href: "/interview-prep" },
     { name: "Insights", href: "/insights" },
   ];
