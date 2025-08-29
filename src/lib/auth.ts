@@ -2,7 +2,7 @@
 // Mock authentication system
 // In a production app, this would be replaced with a real authentication system
 
-type UserRole = 'admin' | 'jobseeker' | 'employer' | 'subadmin';
+type UserRole = 'admin' | 'jobseeker' | 'employer' | 'freelancer';
 
 interface User {
   id: string;

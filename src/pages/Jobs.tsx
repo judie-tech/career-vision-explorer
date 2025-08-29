@@ -11,6 +11,7 @@ import { SalaryExpectationsStep } from "@/components/onboarding/steps/SalaryExpe
 
 // Frontend Job type for the UI components
 interface Job {
+  job_id: string;
   id: string;
   title: string;
   company: string;
@@ -107,14 +108,8 @@ const Jobs = () => {
 
         console.log('Loading AI job recommendations...');
         // 1) Get AI recommendations based on profile skills and optional preferences
-        const recommendations = await apiClient.post<Array<{ job_id: string; match_score: number; reasons: string[]}>>(
-          '/ai/job-recommendations',
-          {
-            skills: [],
-            location_preference: "",
-            salary_expectation: "",
-            experience_years: 0,
-          }
+        const recommendations = await apiClient.get<Array<{ job_id: string; match_score: number; reasons: string[]}>>(
+          '/vector/jobs/recommendations'
         );
 
         console.log('AI recommendations:', recommendations);
