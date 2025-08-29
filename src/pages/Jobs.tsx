@@ -5,6 +5,9 @@ import { JobsContainer } from "@/components/jobs/JobsContainer";
 import { jobsService } from "../services/jobs.service";
 import { Job as ApiJob } from "../types/api";
 import { toast } from "sonner";
+import { AIJobMatchRequest,  } from "@/services/ai-job-matching.service";
+import { apiClient } from "@/lib/api-client";
+import { SalaryExpectationsStep } from "@/components/onboarding/steps/SalaryExpectationsStep";
 
 // Frontend Job type for the UI components
 interface Job {
@@ -64,6 +67,7 @@ const Jobs = () => {
     setError(null);
     
     try {
+      {/*
       console.log('Loading jobs from backend API...');
       
       // Use the general jobs endpoint that doesn't require authentication
@@ -75,6 +79,8 @@ const Jobs = () => {
         sort_order: 'desc'
       });
       
+
+
       console.log('Jobs response from API:', jobsResponse);
       
       // Check if component is still mounted before updating state
@@ -96,9 +102,80 @@ const Jobs = () => {
         }
         return;
       }
-      
-      // Transform API data to match frontend format
-      const transformedJobs = apiJobs.map((apiJob: any) => {
+        */}
+
+
+        console.log('Loading AI job recommendations...');
+        // 1) Get AI recommendations based on profile skills and optional preferences
+        const recommendations = await apiClient.post<Array<{ job_id: string; match_score: number; reasons: string[]}>>(
+          '/ai/job-recommendations',
+          {
+            skills: [],
+            location_preference: "",
+            salary_expectation: "",
+            experience_years: 0,
+          }
+        );
+
+        console.log('AI recommendations:', recommendations);
+
+        if (!mountedRef.current) {
+          console.log('Component unmounted, skipping state update');
+          return;
+        }
+
+        if (!recommendations || recommendations.length === 0) {
+          console.warn('No AI recommendations returned, falling back to jobs list');
+
+          // Fallback to regular jobs list if AI returned nothing
+          const jobsResponse = await jobsService.getJobs({
+            is_active: true,
+            page: 1,
+            limit: 50,
+            sort_by: 'created_at',
+            sort_order: 'desc'
+          });
+          const apiJobs = jobsResponse.jobs || [];
+          if (apiJobs.length === 0) {
+            const { mockJobs } = await import("@/data/mockJobs");
+            if (mountedRef.current) {
+              setJobs(mockJobs);
+              toast.info('Showing sample jobs. No AI recommendations and no jobs in database');
+            }
+            return;
+          }
+          const transformedFallback = apiJobs.map((apiJob: any) => ({
+            id: apiJob.job_id || apiJob.id,
+            job_id: apiJob.job_id || apiJob.id,
+            title: apiJob.title,
+            company: apiJob.company,
+            location: apiJob.location,
+            type: apiJob.job_type || "Full-time",
+            salary: apiJob.salary_range || "Competitive",
+            posted: apiJob.created_at ? new Date(apiJob.created_at).toLocaleDateString(): 'Recently',
+            matchScore: apiJob.match_score ?? Math.floor(Math.random() * 30) + 70,
+            skills: apiJob.skiils_required || apiJob.skills || [],
+            description: apiJob.description || apiJob.requirements || "No description svailable",
+            experienceLevel: apiJob.experience_level || "Mid Level",
+            companyInfo: {
+              logoUrl: undefined
+            }
+            
+          }));
+          if (mountedRef.current) {
+            setJobs(transformedFallback);
+            toast.success(`Loaded ${transformedFallback.length} jobs (fallback)`);
+          }
+          return;
+        }
+        // Fetch full job details for each recommended job_id in parallel
+        const jobsDetails = await Promise.all(
+          recommendations.map((rec) => jobsService.getJobById(rec.job_id))
+        );
+
+        // match details with match_score and match frontend format
+      const transformedJobs = jobsDetails.map((apiJob: any, index: number) => {
+        const rec = recommendations[index];
         return {
           id: apiJob.job_id || apiJob.id,
           job_id: apiJob.job_id || apiJob.id, // Keep job_id for API compatibility
@@ -108,21 +185,21 @@ const Jobs = () => {
           type: apiJob.job_type || "Full-time",
           salary: apiJob.salary_range || "Competitive",
           posted: apiJob.created_at ? new Date(apiJob.created_at).toLocaleDateString() : 'Recently',
-          matchScore: Math.floor(Math.random() * 30) + 70,
+          matchScore: Math.round(rec?.match_score ?? apiJob.match_score ?? 0),
           skills: apiJob.skills_required || apiJob.skills || [],
           description: apiJob.description || apiJob.requirements || 'No description available',
           experienceLevel: apiJob.experience_level || "Mid Level",
           companyInfo: {
             logoUrl: undefined
           }
-        };
+        } as Job;
       });
       
-      console.log('Transformed jobs:', transformedJobs);
+      console.log('Transformed AI-recommended jobs:', transformedJobs);
       
       if (mountedRef.current) {
         setJobs(transformedJobs);
-        toast.success(`Loaded ${transformedJobs.length} jobs from database`);
+        toast.success(`Loaded ${transformedJobs.length} AI-recommended jobs`);
       }
       
     } catch (error: any) {
@@ -157,7 +234,7 @@ const Jobs = () => {
           <div className="relative container py-6 sm:py-12 px-3 sm:px-4">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading jobs from database...</p>
+              <p className="mt-4 text-gray-600">Loading jobs ...</p>
             </div>
           </div>
         </div>
