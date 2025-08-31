@@ -15,7 +15,21 @@ const fallbackText = (value: any) => {
   return value;
 };
 
+// function for match score
+const getMatchScore = (job: any) => {
+  // check for matchScore then match it
+  const score = job.matchScore ?? job.match_score;
+  console.log('MatchScore:', score)
+
+  // if score is a number return it
+  if (typeof score === 'number') {
+    return Math.round(score)
+  }
+  return 0;
+}
+
 export const JobDetailsView = ({ job }: JobDetailsViewProps) => {
+  const matchScore = getMatchScore(job)
   if (!job) return null;
 
   return (
@@ -69,7 +83,12 @@ export const JobDetailsView = ({ job }: JobDetailsViewProps) => {
           </div>
           <div>
             <label className="block font-semibold mb-1">Match Score</label>
-            <Badge>{fallbackText(job.match_score || job.matchScore || 0)}%</Badge>
+            <Badge className={`${
+              matchScore > 90 ? 'bg-green-500' : 
+              matchScore > 80 ? 'bg-blue-500' :
+              matchScore > 70 ? 'bg-yellow-500' :
+              'bg-orange-500'
+            }`}>{matchScore}%</Badge>
           </div>
           <div>
             <label className="block font-semibold mb-1">Created At</label>

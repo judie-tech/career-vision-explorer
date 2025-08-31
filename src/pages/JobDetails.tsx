@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ const JobDetails = () => {
   const navigate = useNavigate();
   const [applicationDialogOpen, setApplicationDialogOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-  
+  const location = useLocation();
   const { isAdmin, isEmployer, isJobSeeker, isFreelancer } = useAuth();
 
   // Allow both job seekers and freelancers to view and apply for jobs
@@ -47,7 +47,9 @@ const JobDetails = () => {
       setError(null);
       try {
         const fetchedJob = await jobsService.getJobById(id);
-        setJob(fetchedJob);
+        //merge fetched jobs with matchscore from location state
+        const matchScore = location.state?.matchScore ?? fetchedJob.match_score ?? 0;
+        setJob({...fetchedJob, matchScore});
       } catch (err) {
         setError("Job not found");
       } finally {
@@ -57,7 +59,7 @@ const JobDetails = () => {
     };
 
     fetchJobDetails();
-  }, [id]);
+  }, [id, location.state]);
 
   // The gatekeeper: Show a loading state until BOTH the job details and the application status are ready.
   if (loading || applicationsLoading) {
