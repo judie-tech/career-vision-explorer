@@ -20,8 +20,7 @@ interface JobHeaderProps {
 
 export const JobHeader = ({ job }: JobHeaderProps) => {
 
-  const score = Math.round((job.matchScore ?? job.match_score ?? 0));
-  return (
+const score = Math.round((job.matchScore ?? job.similarity_score ?? 0) * (job.matchScore <= 1 || job.similarity_score <= 1 ? 100 : 1));  return (
     <Card className="career-card">
       {/* Match Score Bar */}
       <div className="h-2 bg-muted rounded-t-xl">

@@ -118,11 +118,11 @@ const Jobs = () => {
         try {
           // Try to get AI recommendations first
         // 1) Get AI recommendations based on profile skills and optional preferences
-        const recommendations = await apiClient.get<Array<{ job_id: string; match_score: number; reasons: string[]}>>(
+        const recommendations = await apiClient.get<Array<{ job_id: string; similarity_score: number; reasons: string[]}>>(
           '/vector/jobs/recommendations'
         );
 
-        console.log('AI recommendations:', recommendations);
+        console.log('Vector jobs recommendations:', recommendations);
 
         if (!mountedRef.current) {
           console.log('Component unmounted, skipping state update');
@@ -147,7 +147,7 @@ const Jobs = () => {
               type: apiJob.job_type || "Full-time",
               salary: apiJob.salary_range || "Competitive",
               posted: apiJob.created_at ? new Date(apiJob.created_at).toLocaleDateString() : 'Recently',
-              matchScore: Math.round(rec?.match_score ?? apiJob.match_score ?? 0),
+              matchScore: Math.round((rec?.similarity_score ?? 0) * 100 ),
               skills: apiJob.skills_required || apiJob.skills || [],
               description: apiJob.description || apiJob.requirements || "No description available",
               experienceLevel: apiJob.experience_level || "Mid Level",
@@ -156,16 +156,20 @@ const Jobs = () => {
               }
             } as Job;
           });
-          console.log('Transformed AI-recommended jobs:', transformedJobs);
+          
+          console.log('Transformed Vector-recommended jobs:', transformedJobs);
+            transformedJobs.forEach(job =>
+            console.log(`Job: ${job.title} - Match Score: ${job.matchScore}%`)
+          );
 
           if (mountedRef.current) {
             setJobs(transformedJobs);
-            toast.success(`Loaded ${transformedJobs.length} AI-recommended jobs`);
+            toast.success(`Loaded ${transformedJobs.length} Vector-recommended jobs`);
           }
           return;
         }
       } catch (aiError: any) {
-   console.warn('No AI recommendations returned, falling back to jobs list');      }
+   console.warn('Vector jobs recommendations error, falling back to jobs list');      }
       // Fallback: Try to load regular jobs list
       console.log('Loading jobs from regular backend API...');
 
@@ -210,9 +214,9 @@ const Jobs = () => {
           } as Job
         )
       );
-        {/*  transformedJobs.forEach(job =>
+        transformedJobs.forEach(job =>
             console.log(`Job: ${job.title} - Match Score: ${job.matchScore}%`)
-          );*/}
+          );
           if (mountedRef.current) {
             setJobs(transformedJobs);
             toast.success(`Loaded ${transformedJobs.length} jobs (fallback)`);
@@ -232,7 +236,8 @@ const Jobs = () => {
       const transformedMockJobs = mockJobs.map((mockJob: any) => ({
         ...mockJob,
         job_id: generateMockUUID(mockJob.id || mockJob.job_id),
-        id: generateMockUUID(mockJob.id || mockJob.job_id)
+        id: generateMockUUID(mockJob.id || mockJob.job_id),
+        matchScore: Math.round((mockJob.similarity_score ?? 0) * 100) || Math.floor(Math.random() * 30) + 70, // Use similarity_score if available
       }));
        
 
@@ -255,7 +260,8 @@ const Jobs = () => {
           const transformedMockJobs = mockJobs.map((mockJob: any) => ({
             ...mockJob,
             job_id: generateMockUUID(mockJob.id || mockJob.job_id),
-            id: generateMockUUID(mockJob.id || mockJob.job_id)
+            id: generateMockUUID(mockJob.id || mockJob.job_id),
+            matchScore: Math.round((mockJob.similarity_score ?? 0) * 100) || Math.floor(Math.random() * 30) + 70,
           }));
           setJobs(transformedMockJobs);
           setError('Failed to load jobs from database. Showing sample data.');

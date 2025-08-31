@@ -17,16 +17,10 @@ const fallbackText = (value: any) => {
 
 // function for match score
 const getMatchScore = (job: any) => {
-  // check for matchScore then match it
-  const score = job.matchScore ?? job.match_score;
-  console.log('MatchScore:', score)
-
-  // if score is a number return it
-  if (typeof score === 'number') {
-    return Math.round(score)
-  }
-  return 0;
-}
+  const score = job.matchScore ?? job.similarity_score ?? 0;
+  console.log('MatchScore: ', score);
+  return typeof score === 'number' ? Math.round(score * (score <= 1 ? 100 : 1)) : 0; // Convert to percentage if <= 1
+};
 
 export const JobDetailsView = ({ job }: JobDetailsViewProps) => {
   const matchScore = getMatchScore(job)
