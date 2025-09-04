@@ -10,6 +10,11 @@ export interface OnboardingData {
   location: string;
   skills: string;
   videoIntroduction: File | null;
+  desiredSalary?: number;
+
+  // Freelancer
+  hourlyRate?: number;
+  dailyRate?: number;
   
   // Employer fields
   companyName?: string;

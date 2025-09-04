@@ -100,6 +100,13 @@ export const FreelancerStepRenderer = ({
             onChange={(e) => updateField("hourlyRate", e.target.value)}
           />
           
+             <Label>Daily Rate (USD) (Optional)</Label>
+          <Input
+            type="number"
+            placeholder="e.g., 400"
+            value={data.dailyRate || ""}
+            onChange={(e) => updateField("dailyRate", e.target.value)}
+          />
           <Label className="mt-4">Availability</Label>
           <RadioGroup value={data.availability || "full-time"} onValueChange={(value) => updateField("availability", value)}>
             <div className="flex items-center space-x-2">

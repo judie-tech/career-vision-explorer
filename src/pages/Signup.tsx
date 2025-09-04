@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Layout from "@/components/layout/Layout";
@@ -53,6 +53,7 @@ const signupSchema = z.object({
   countryCode: z.string().optional(),
   phoneNumber: z.string().optional(),
   profileImage: z.string().optional(),
+  videoUrl: z.string().optional(),
   // Freelancer fields
   professionalTitle: z.string().optional(),
   hourlyRate: z.string().optional(),
@@ -93,6 +94,7 @@ const Signup = () => {
   const [profileImage, setProfileImage] = useState<string>("");
   const [linkedInDataImported, setLinkedInDataImported] = useState(false);
   const [newUserData, setNewUserData] = useState<any>(null);
+  const location = useLocation()
   
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
@@ -563,7 +565,7 @@ const Signup = () => {
             </Form>
           </CardContent>
         </Card>
-        
+       
         {showOnboarding && newUserData && (
           <OnboardingWizard 
             onComplete={handleOnboardingComplete} 

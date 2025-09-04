@@ -34,7 +34,7 @@ export const EmployerStepRenderer = ({
             value={data.companyName || ""}
             onChange={(e) => updateField("companyName", e.target.value)}
           />
-          <Label>Website</Label>
+          <Label>Website (Optional)</Label>
           <Input
             type="url"
             placeholder="https://yourcompany.com"

@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Dialog, 
@@ -11,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { VideoRecordingModal } from "./VideoRecordingModal";
-import { AIAssistant } from "./AIAssistant";
+const AIAssistant = lazy(() => import("./AIAssistant").then(module => ({ default: module.AIAssistant })));
 import { submitOnboardingData } from "@/services/onboarding.service";
 import { ProgressIndicator } from "./ProgressIndicator";
 import { StepNavigation } from "./StepNavigation";
@@ -87,14 +86,14 @@ const employerResponses = [
     ];
     
     const responses = userRole === 'freelancer' ? freelancerResponses : userRole === 'employer' ? employerResponses : jobSeekerResponses;
-    
+   
     if (currentStep < responses.length) {
       setAiResponses(prev => [...prev, responses[currentStep]]);
     }
   };
   
   const handleNext = () => {
-    simulateAiResponse();
+    //simulateAiResponse();
     if (currentStep < totalSteps) {
       setCurrentStep(prev => prev + 1);
     } else {
@@ -197,8 +196,8 @@ const employerResponses = [
   return (
     <>
       <Dialog open={true}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
+        <DialogContent className="max-w-xl space-y-6">
+          <DialogHeader className="space-y-2">
             <DialogTitle>Complete Your Profile</DialogTitle>
             <DialogDescription>
               {userRole === 'employer' 
@@ -211,9 +210,12 @@ const employerResponses = [
           
           <ProgressIndicator progress={progress} />
           
+          {/*
           <AIAssistant message={aiResponses[aiResponses.length - 1]} />
+
+ */}
           
-          <div className="mb-4">
+          <div className="mb-6">
 {userRole === 'freelancer' ? (
               <FreelancerStepRenderer
                 currentStep={currentStep}
