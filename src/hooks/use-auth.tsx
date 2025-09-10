@@ -19,6 +19,10 @@ interface AuthContextType {
   isEmployer: () => boolean;
   isJobSeeker: () => boolean;
   isFreelancer: () => boolean;
+  setTokens: (accessToken: string, refreshToken: string) => void;
+  // LinkedIn OAuth authentication
+  signInWithLinkedIn: () => Promise<void>;
+  handleOAuthCallback: () => Promise<void>;
   // Impersonation functionality for admin users
   impersonateUser: (targetUser: User) => void;
   stopImpersonation: () => void;
@@ -97,7 +101,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       );
       
       const profilePromise = profileService.getProfile();
-      const userProfile = await Promise.race([profilePromise, timeoutPromise]);
+      const userProfile = await Promise.race([profilePromise, timeoutPromise]) as Profile;
       setProfile(userProfile);
       console.log('Profile loaded successfully:', userProfile);
     } catch (error) {
@@ -286,6 +290,81 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     return hasRole('freelancer');
   };
 
+  const setTokens = (accessToken: string, refreshToken: string) => {
+    // Store tokens
+    authService.setStoredTokens(accessToken, refreshToken);
+    
+    // Decode token to get user info
+    try {
+      const payload = JSON.parse(atob(accessToken.split('.')[1]));
+      const user: User = {
+        user_id: payload.sub,
+        name: '',  // Will be loaded from profile
+        email: payload.email,
+        account_type: payload.account_type as 'job_seeker' | 'employer' | 'admin' | 'freelancer'
+      };
+      
+      authService.setStoredUser(user);
+      setUser(user);
+      
+      // Load profile data
+      loadUserProfile();
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      toast.error('Failed to process authentication tokens');
+    }
+  };
+
+  const signInWithLinkedIn = async () => {
+    try {
+      setIsLoading(true);
+      await authService.signInWithLinkedIn();
+      // The OAuth flow will redirect the user, so we don't need to do anything else here
+    } catch (error: any) {
+      console.error('LinkedIn sign-in error:', error);
+      toast.error('LinkedIn Authentication Failed', {
+        description: error.message || 'Failed to initiate LinkedIn authentication. Please try again.',
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOAuthCallback = async () => {
+    try {
+      setIsLoading(true);
+      const tokenResponse = await authService.handleOAuthCallback();
+      
+      // Construct user object from token response
+      const user: User = {
+        user_id: tokenResponse.user_id,
+        name: '', // Will be loaded from profile
+        email: tokenResponse.email,
+        account_type: tokenResponse.account_type as 'job_seeker' | 'employer' | 'admin' | 'freelancer'
+      };
+      
+      authService.setStoredUser(user);
+      setUser(user);
+      await loadUserProfile();
+      
+      toast.success('Welcome!', {
+        description: 'You have been successfully logged in with LinkedIn.',
+      });
+      
+      // Redirect to dashboard or intended page
+      window.location.href = '/';
+    } catch (error: any) {
+      console.error('OAuth callback error:', error);
+      toast.error('Authentication Failed', {
+        description: error.message || 'Failed to complete LinkedIn authentication. Please try again.',
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const value: AuthContextType = {
     user,
     profile,
@@ -300,6 +379,9 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     isEmployer,
     isJobSeeker,
     isFreelancer,
+    setTokens,
+    signInWithLinkedIn,
+    handleOAuthCallback,
     impersonateUser,
     stopImpersonation,
     isImpersonating,
