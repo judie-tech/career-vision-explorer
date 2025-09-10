@@ -3,7 +3,7 @@ import { useEffect, lazy, Suspense } from "react";
 import { useLocation } from "react-router-dom";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
-// Lazy load major pages
+// Lazy load pages
 const Index = lazy(() => import("@/pages/Index"));
 const Login = lazy(() => import("@/pages/Login"));
 const Signup = lazy(() => import("@/pages/Signup"));
@@ -118,7 +118,7 @@ export const AppRoutes = () => {
     <>
       <ScrollToTop />
       <Routes>
-        {/* Public */}
+        {/* Public Routes */}
         <Route
           path="/"
           element={
@@ -256,7 +256,7 @@ export const AppRoutes = () => {
           }
         />
 
-        {/* Admin */}
+        {/* Admin Routes */}
         <Route
           path="/admin/login"
           element={
@@ -266,147 +266,17 @@ export const AppRoutes = () => {
           }
         />
         <Route
-          path="/admin"
+          path="/admin/*"
           element={
             <ProtectedRoute requiredRole="admin">
               <Suspense fallback={<PageLoader />}>
                 <AdminDashboard />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/dashboard"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <Suspense fallback={<PageLoader />}>
-                <AdminDashboard />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/users"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <Suspense fallback={<PageLoader />}>
-                <AdminUsers />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/jobseeker"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <Suspense fallback={<PageLoader />}>
-                <AdminJobseekers />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/profiles"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <Suspense fallback={<PageLoader />}>
-                <AdminProfiles />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/jobs"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <Suspense fallback={<PageLoader />}>
-                <AdminJobs />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/skills"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <Suspense fallback={<PageLoader />}>
-                <AdminSkills />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/career-paths"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <Suspense fallback={<PageLoader />}>
-                <AdminCareerPaths />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/partners"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <Suspense fallback={<PageLoader />}>
-                <AdminPartners />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/testimonials"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <Suspense fallback={<PageLoader />}>
-                <AdminTestimonials />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/content"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <Suspense fallback={<PageLoader />}>
-                <AdminContent />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/insights"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <Suspense fallback={<PageLoader />}>
-                <AdminInsights />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/api"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <Suspense fallback={<PageLoader />}>
-                <AdminAPI />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/settings"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <Suspense fallback={<PageLoader />}>
-                <AdminSettings />
               </Suspense>
             </ProtectedRoute>
           }
         />
 
-        {/* Employer */}
+        {/* Employer Routes */}
         <Route
           path="/employer/dashboard"
           element={
@@ -448,16 +318,6 @@ export const AppRoutes = () => {
           }
         />
         <Route
-          path="/employer/jobs/:id/applicants"
-          element={
-            <ProtectedRoute requiredRole="employer">
-              <Suspense fallback={<PageLoader />}>
-                <JobApplicants />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/employer/applicants"
           element={
             <ProtectedRoute requiredRole="employer">
@@ -477,18 +337,8 @@ export const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/employer/interviews/schedule"
-          element={
-            <ProtectedRoute requiredRole="employer">
-              <Suspense fallback={<PageLoader />}>
-                <InterviewSchedule />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
 
-        {/* Jobseeker */}
+        {/* Jobseeker Routes */}
         <Route
           path="/jobseeker/dashboard"
           element={
@@ -510,7 +360,7 @@ export const AppRoutes = () => {
           }
         />
 
-        {/* Freelancer */}
+        {/* Freelancer Routes */}
         <Route
           path="/freelancer/dashboard"
           element={
@@ -532,7 +382,7 @@ export const AppRoutes = () => {
           }
         />
 
-        {/* Protected General */}
+        {/* General Protected Routes */}
         <Route
           path="/dashboard"
           element={
@@ -554,7 +404,7 @@ export const AppRoutes = () => {
           }
         />
 
-        {/* Other */}
+        {/* Other Routes */}
         <Route
           path="/skills"
           element={
@@ -628,7 +478,7 @@ export const AppRoutes = () => {
           }
         />
 
-        {/* 404 */}
+        {/* 404 Route */}
         <Route
           path="*"
           element={
