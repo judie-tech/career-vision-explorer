@@ -5,9 +5,13 @@ import { JobsContainer } from "@/components/jobs/JobsContainer";
 import { jobsService } from "../services/jobs.service";
 import { Job as ApiJob } from "../types/api";
 import { toast } from "sonner";
+import { AIJobMatchRequest,  } from "@/services/ai-job-matching.service";
+import { apiClient } from "@/lib/api-client";
+import { SalaryExpectationsStep } from "@/components/onboarding/steps/SalaryExpectationsStep";
 
 // Frontend Job type for the UI components
 interface Job {
+  job_id: string;
   id: string;
   title: string;
   company: string;
@@ -22,6 +26,13 @@ interface Job {
   companyInfo?: {
     logoUrl?: string;
   };
+}
+
+// Helper function to generate UUID-like strings for mock data compatibility
+const generateMockUUID = (id: string): string => {
+  // convert simple id to uuid format for backend compatibilty
+  const padded = id.padStart(8, '0');
+  return `${padded.slice(0, 8)}-0000-0000-0000-000000000000`;
 }
 
 const Jobs = () => {
@@ -64,6 +75,8 @@ const Jobs = () => {
     setError(null);
     
     try {
+     
+      {/*
       console.log('Loading jobs from backend API...');
       
       // Use the general jobs endpoint that doesn't require authentication
@@ -75,6 +88,8 @@ const Jobs = () => {
         sort_order: 'desc'
       });
       
+
+
       console.log('Jobs response from API:', jobsResponse);
       
       // Check if component is still mounted before updating state
@@ -96,33 +111,140 @@ const Jobs = () => {
         }
         return;
       }
-      
-      // Transform API data to match frontend format
-      const transformedJobs = apiJobs.map((apiJob: any) => {
-        return {
-          id: apiJob.job_id || apiJob.id,
-          job_id: apiJob.job_id || apiJob.id, // Keep job_id for API compatibility
-          title: apiJob.title,
-          company: apiJob.company,
-          location: apiJob.location,
-          type: apiJob.job_type || "Full-time",
-          salary: apiJob.salary_range || "Competitive",
-          posted: apiJob.created_at ? new Date(apiJob.created_at).toLocaleDateString() : 'Recently',
-          matchScore: Math.floor(Math.random() * 30) + 70,
-          skills: apiJob.skills_required || apiJob.skills || [],
-          description: apiJob.description || apiJob.requirements || 'No description available',
-          experienceLevel: apiJob.experience_level || "Mid Level",
-          companyInfo: {
-            logoUrl: undefined
+        */}
+
+
+        console.log('Loading AI job recommendations...')
+        try {
+          // Try to get AI recommendations first
+        // 1) Get AI recommendations based on profile skills and optional preferences
+        const recommendations = await apiClient.get<Array<{ job_id: string; similarity_score: number; reasons: string[]}>>(
+          '/vector/jobs/recommendations'
+        );
+
+        console.log('Vector jobs recommendations:', recommendations);
+
+        if (!mountedRef.current) {
+          console.log('Component unmounted, skipping state update');
+          return;
+        }
+
+        if (recommendations && recommendations.length > 0) {
+          // Fetch full job details
+          const jobsDetails = await Promise.all(
+            recommendations.map((rec) => jobsService.getJobById(rec.job_id) )
+          );
+
+          // Transform and match details with match_score
+          const transformedJobs = jobsDetails.map((apiJob: any, index: number) => {
+            const rec = recommendations[index];
+            return {
+              id: apiJob.job_id || apiJob.id,
+              job_id: apiJob.job_id || apiJob.id,
+              title: apiJob.title,
+              company: apiJob.company,
+              location: apiJob.location,
+              type: apiJob.job_type || "Full-time",
+              salary: apiJob.salary_range || "Competitive",
+              posted: apiJob.created_at ? new Date(apiJob.created_at).toLocaleDateString() : 'Recently',
+              matchScore: Math.round((rec?.similarity_score ?? 0) * 100 ),
+              skills: apiJob.skills_required || apiJob.skills || [],
+              description: apiJob.description || apiJob.requirements || "No description available",
+              experienceLevel: apiJob.experience_level || "Mid Level",
+              companyInfo: {
+                logoUrl: undefined
+              }
+            } as Job;
+          });
+          
+          console.log('Transformed Vector-recommended jobs:', transformedJobs);
+            transformedJobs.forEach(job =>
+            console.log(`Job: ${job.title} - Match Score: ${job.matchScore}%`)
+          );
+
+          if (mountedRef.current) {
+            setJobs(transformedJobs);
+            toast.success(`Loaded ${transformedJobs.length} Vector-recommended jobs`);
           }
-        };
-      });
+          return;
+        }
+      } catch (aiError: any) {
+   console.warn('Vector jobs recommendations error, falling back to jobs list');      }
+      // Fallback: Try to load regular jobs list
+      console.log('Loading jobs from regular backend API...');
+
+
+      try {
       
-      console.log('Transformed jobs:', transformedJobs);
-      
+          // Fallback to regular jobs list if AI returned nothing
+          const jobsResponse = await jobsService.getJobs({
+            is_active: true,
+            page: 1,
+            limit: 50,
+            sort_by: 'created_at',
+            sort_order: 'desc'
+          });
+
+          console.log('Jobs response from API:', jobsResponse);
+          if (!mountedRef.current) {
+            console.log('Component unmounted, skipping state update');
+            return;
+          }
+
+          const apiJobs = jobsResponse.jobs || [];
+          if (apiJobs.length > 0) {
+          
+          const transformedJobs = apiJobs.map((apiJob: any) => ({
+            id: apiJob.job_id || apiJob.id,
+            job_id: apiJob.job_id || apiJob.id,
+            title: apiJob.title,
+            company: apiJob.company,
+            location: apiJob.location,
+            type: apiJob.job_type || "Full-time",
+            salary: apiJob.salary_range || "Competitive",
+            posted: apiJob.created_at ? new Date(apiJob.created_at).toLocaleDateString(): 'Recently',
+            matchScore: apiJob.match_score ?? Math.floor(Math.random() * 30) + 70,
+            skills: apiJob.skiils_required || apiJob.skills || [],
+            description: apiJob.description || apiJob.requirements || "No description svailable",
+            experienceLevel: apiJob.experience_level || "Mid Level",
+            companyInfo: {
+              logoUrl: undefined
+            }
+            
+          } as Job
+        )
+      );
+        transformedJobs.forEach(job =>
+            console.log(`Job: ${job.title} - Match Score: ${job.matchScore}%`)
+          );
+          if (mountedRef.current) {
+            setJobs(transformedJobs);
+            toast.success(`Loaded ${transformedJobs.length} jobs (fallback)`);
+          }
+          return;
+        }
+      }
+      catch (jobsError: any) {
+        console.log('Regular jobs endpoint also failed, falling back to mock data');
+      }
+
+      // Final fallback: Load mock data with UUID-compstiblr IDS
+      console.log('Loading mock data with UUID-compatible IDS... ');
+      const { mockJobs } = await import("@/data/mockJobs");
+
+      // Transform mock jobs to have UUID-compatible IDs
+      const transformedMockJobs = mockJobs.map((mockJob: any) => ({
+        ...mockJob,
+        job_id: generateMockUUID(mockJob.id || mockJob.job_id),
+        id: generateMockUUID(mockJob.id || mockJob.job_id),
+        matchScore: Math.round((mockJob.similarity_score ?? 0) * 100) || Math.floor(Math.random() * 30) + 70, // Use similarity_score if available
+      }));
+       
+
+     
       if (mountedRef.current) {
-        setJobs(transformedJobs);
-        toast.success(`Loaded ${transformedJobs.length} jobs from database`);
+        setJobs(transformedMockJobs);
+        toast.info('Showing sample jobs from database');
       }
       
     } catch (error: any) {
@@ -133,7 +255,15 @@ const Jobs = () => {
         
         try {
           const { mockJobs } = await import("@/data/mockJobs");
-          setJobs(mockJobs);
+
+          // Transform mock jobs to have UUID-compatible IDS
+          const transformedMockJobs = mockJobs.map((mockJob: any) => ({
+            ...mockJob,
+            job_id: generateMockUUID(mockJob.id || mockJob.job_id),
+            id: generateMockUUID(mockJob.id || mockJob.job_id),
+            matchScore: Math.round((mockJob.similarity_score ?? 0) * 100) || Math.floor(Math.random() * 30) + 70,
+          }));
+          setJobs(transformedMockJobs);
           setError('Failed to load jobs from database. Showing sample data.');
           toast.error('Failed to load jobs from database. Showing sample data.');
         } catch (mockError) {
@@ -157,7 +287,7 @@ const Jobs = () => {
           <div className="relative container py-6 sm:py-12 px-3 sm:px-4">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading jobs from database...</p>
+              <p className="mt-4 text-gray-600">Loading jobs ...</p>
             </div>
           </div>
         </div>

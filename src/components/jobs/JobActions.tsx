@@ -6,8 +6,10 @@ import { toast } from "sonner";
  
  interface JobActionsProps {
    job: {
-     id: string;
-     salary: string;
+     id?: string;
+     salary?: string;
+     job_id?: string;
+     salary_range: string | null;
    };
    isApplied: boolean;
    isSaved: boolean;
@@ -21,6 +23,7 @@ import { toast } from "sonner";
     toast.success("Job link copied to clipboard");
   };
 
+  const displaySalary =  job.salary ?? job.salary_range ?? 'Not specified';
   return (
     <Card className="career-card">
       <CardHeader>
@@ -29,7 +32,7 @@ import { toast } from "sonner";
       <CardContent className="space-y-6">
         <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-100">
           <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            {job.salary}
+            {displaySalary}
           </div>
           <div className="text-sm text-muted-foreground">Salary Range</div>
         </div>

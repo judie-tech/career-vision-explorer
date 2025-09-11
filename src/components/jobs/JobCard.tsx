@@ -144,7 +144,12 @@ export const JobCard = ({ job, isApplied, isSaved, onApply, onSave }: JobCardPro
         </div>
         
         <div className="flex justify-between items-center pt-4 border-t">
-          <Link to={`/jobs/${job.job_id}`}>
+          <Link to={`/jobs/${job.job_id}`}
+            state={{
+              matchScore: job.matchScore,
+              jobData: job
+            }}
+          >
             <Button variant="outline" className="modern-btn-secondary hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300">
               View Details
             </Button>
