@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 const Index = lazy(() => import("@/pages/Index"));
 const Login = lazy(() => import("@/pages/Login"));
 const Signup = lazy(() => import("@/pages/Signup"));
+const OAuthCallback = lazy(() => import("@/pages/auth/OAuthCallback"));
+const LinkedInCallback = lazy(() => import("@/pages/auth/LinkedInCallback"));
 const Jobs = lazy(() => import("@/pages/Jobs"));
 const JobDetails = lazy(() => import("@/pages/JobDetails"));
 const PublicProfile = lazy(() => import("@/pages/PublicProfile"));
@@ -107,6 +109,11 @@ export const AppRoutes = () => {
         <Route path="/signup" element={
           <Suspense fallback={<PageLoader />}>
             <Signup />
+          </Suspense>
+        } />
+        <Route path="/auth/callback" element={
+          <Suspense fallback={<PageLoader />}>
+            <LinkedInCallback />
           </Suspense>
         } />
         <Route path="/profile/:id" element={

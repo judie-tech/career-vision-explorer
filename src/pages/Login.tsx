@@ -38,7 +38,7 @@ const loginSchema = z.object({
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, user } = useAuth();
+  const { login, user, signInWithLinkedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -74,19 +74,22 @@ const Login = () => {
     }
   };
 
-  const handleLinkedInLogin = () => {
-    setIsLoading(true);
-    toast.info("LinkedIn Authentication", {
-      description: "Please complete authorization in the popup window.",
-    });
-    // In a real app, this would trigger OAuth flow
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success("Login Successful", {
-        description: "You've been logged in with LinkedIn.",
+  const handleLinkedInLogin = async () => {
+    try {
+      setIsLoading(true);
+      toast.info("LinkedIn Authentication", {
+        description: "Redirecting to LinkedIn for authentication...",
       });
-      navigate("/jobs");
-    }, 1500);
+      
+      await signInWithLinkedIn();
+      // The OAuth flow will redirect the user, so we don't need to navigate here
+    } catch (error: any) {
+      console.error('LinkedIn login error:', error);
+      toast.error("LinkedIn Authentication Failed", {
+        description: error.message || "Failed to initiate LinkedIn authentication. Please try again.",
+      });
+      setIsLoading(false);
+    }
   };
   
   return (
