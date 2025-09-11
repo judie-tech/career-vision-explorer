@@ -80,7 +80,8 @@ class EnhancedAIService {
     reasons: string[];
   }>> {
     try {
-      const response = await apiClient.post<any[]>('/ai/job-recommendations', preferences);
+      const params = new URLSearchParams(preferences as any).toString();
+      const response = await apiClient.get<any[]>(`/vector/jobs/recommendations?${params}`);
       return response || [];
     } catch (error) {
       console.error('Error fetching job recommendations:', error);

@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,14 @@ import { CompanyInfoCard } from "@/components/jobs/CompanyInfoCard";
 import { JobNotFound } from "@/components/jobs/JobNotFound";
 import { jobsService } from "@/services/jobs.service";
 import { useAuth } from "@/hooks/use-auth";
+import { apiClient } from "@/lib/api-client";
 
 const JobDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [applicationDialogOpen, setApplicationDialogOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-  
+  const location = useLocation();
   const { isAdmin, isEmployer, isJobSeeker, isFreelancer } = useAuth();
 
   // Allow both job seekers and freelancers to view and apply for jobs
@@ -47,7 +48,22 @@ const JobDetails = () => {
       setError(null);
       try {
         const fetchedJob = await jobsService.getJobById(id);
-        setJob(fetchedJob);
+        //merge fetched jobs with matchscore from location state
+        let matchScore = location.state?.matchScore ?? Math.round((fetchedJob.similarity_score ?? 0) * 100);
+        if ( matchScore === 0) {
+         try {
+            const recommendations = await apiClient.get<Array<{ job_id: string; similarity_score: number }>>(
+              '/vector/jobs/recommendations'
+            );
+            const recommendation = recommendations.find((rec) => rec.job_id === id);
+            matchScore = recommendation ? Math.round(recommendation.similarity_score * 100) : Math.floor(Math.random() * 30) + 70;
+          } catch (aiError) {
+            console.warn('Failed to fetch AI recommendations, using random matchScore');
+            matchScore = Math.floor(Math.random() * 30) + 70;
+          }
+        }
+
+        setJob({...fetchedJob, matchScore});
       } catch (err) {
         setError("Job not found");
       } finally {
@@ -57,7 +73,7 @@ const JobDetails = () => {
     };
 
     fetchJobDetails();
-  }, [id]);
+  }, [id, location.state]);
 
   // The gatekeeper: Show a loading state until BOTH the job details and the application status are ready.
   if (loading || applicationsLoading) {

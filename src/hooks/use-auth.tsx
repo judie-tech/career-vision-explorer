@@ -1,9 +1,15 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { authService } from '../services/auth.service';
-import { profileService } from '../services/profile.service';
-import { User, UserLogin, UserRegister } from '../types/auth';
-import { Profile } from '../types/api';
-import { toast } from 'sonner';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import { authService } from "../services/auth.service";
+import { profileService } from "../services/profile.service";
+import { User, UserLogin, UserRegister } from "../types/auth";
+import { Profile } from "../types/api";
+import { toast } from "sonner";
 
 interface AuthContextType {
   user: User | null;
@@ -14,12 +20,13 @@ interface AuthContextType {
   register: (userData: UserRegister) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
-  hasRole: (role: 'job_seeker' | 'employer' | 'admin' | 'freelancer') => boolean;
+  hasRole: (
+    role: "job_seeker" | "employer" | "admin" | "freelancer"
+  ) => boolean;
   isAdmin: () => boolean;
   isEmployer: () => boolean;
   isJobSeeker: () => boolean;
   isFreelancer: () => boolean;
-  // Impersonation functionality for admin users
   impersonateUser: (targetUser: User) => void;
   stopImpersonation: () => void;
   isImpersonating: boolean;
@@ -36,53 +43,51 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [originalUser, setOriginalUser] = useState<User | null>(null);
   const [isImpersonating, setIsImpersonating] = useState(false);
 
-  // Initialize auth state on mount
   useEffect(() => {
     initializeAuth();
   }, []);
 
   const initializeAuth = async () => {
+    setIsLoading(true);
+    setError(null);
+
     try {
       const storedUser = authService.getStoredUser();
-      console.log('Auth initialization - stored user:', storedUser);
-      
       if (storedUser && authService.isAuthenticated()) {
-        // First set the stored user
         setUser(storedUser);
-        
-        // Then try to get fresh user data from the server
+
         try {
           const freshUser = await authService.getCurrentUser();
-          console.log('Auth initialization - fresh user from server:', freshUser);
           authService.setStoredUser(freshUser);
           setUser(freshUser);
-        } catch (error) {
-          console.error('Failed to get fresh user data:', error);
-          // Continue with stored user if fetch fails
+        } catch {
+          console.warn("Failed to fetch fresh user, using stored one");
         }
-        
+
         await loadUserProfile();
-        
-        // Check if there's an impersonation session
-        const impersonationData = localStorage.getItem('visiondrillImpersonation');
+
+        const impersonationData = localStorage.getItem(
+          "visiondrillImpersonation"
+        );
         if (impersonationData) {
           try {
-            const { originalUser: storedOriginalUser, impersonatedUser } = JSON.parse(impersonationData);
+            const { originalUser: storedOriginalUser, impersonatedUser } =
+              JSON.parse(impersonationData);
             setOriginalUser(storedOriginalUser);
             setUser(impersonatedUser);
             setIsImpersonating(true);
-            console.log('Restored impersonation session:', { originalUser: storedOriginalUser, impersonatedUser });
-          } catch (e) {
-            localStorage.removeItem('visiondrillImpersonation');
+          } catch {
+            localStorage.removeItem("visiondrillImpersonation");
           }
         }
       }
-    } catch (error) {
-      console.error('Error initializing auth:', error);
-      // Clear invalid auth data
+    } catch (err: any) {
+      console.error("Error initializing auth:", err);
+      setError(err.message || "Failed to initialize authentication");
       await authService.logout();
     } finally {
       setIsLoading(false);
@@ -91,77 +96,44 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const loadUserProfile = async () => {
     try {
-      // Increase timeout to 30 seconds for slower connections
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile load timeout')), 30000)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Profile load timeout")), 30000)
       );
-      
       const profilePromise = profileService.getProfile();
       const userProfile = await Promise.race([profilePromise, timeoutPromise]);
       setProfile(userProfile);
-      console.log('Profile loaded successfully:', userProfile);
-    } catch (error) {
-      console.error('Error loading profile:', error);
-      
-      // Don't try refresh token on timeout or network errors
-      if (error.message?.includes('timeout') || error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
-        console.warn('Profile load failed due to network issue, continuing without profile');
-        setProfile(null);
-        // Don't show error toast for timeout/network issues since user can still use the app
-        return;
-      }
-      
-      // Check if it's a 404 (profile doesn't exist yet)
-      if (error.message?.includes('404') || error.message?.includes('Not Found')) {
-        console.warn('Profile not found - user may need to complete profile setup');
-        setProfile(null);
-        return;
-      }
-      
-      // Only try refresh for auth-related errors (401, 403)
-      if (error.message?.includes('401') || error.message?.includes('403') || error.message?.includes('Unauthorized')) {
+    } catch (err: any) {
+      console.error("Error loading profile:", err);
+      setProfile(null);
+      if (err.message?.includes("401") || err.message?.includes("403")) {
         try {
-          console.log('Attempting to refresh token due to auth error');
           await authService.refreshToken();
           const userProfile = await profileService.getProfile();
           setProfile(userProfile);
-          console.log('Profile loaded after token refresh:', userProfile);
-        } catch (refreshError) {
-          console.error('Error refreshing token and loading profile:', refreshError);
-          // If refresh fails, the session is invalid, so log out
-          setProfile(null);
-          console.warn('Logging out due to failed token refresh');
-          // Don't auto-logout for profile issues
-          // await logout();
+        } catch {
+          setError("Session expired. Please log in again.");
         }
-      } else {
-        // For other errors, just continue without profile
-        console.warn('Profile load failed with non-auth error, continuing without profile:', error.message);
-        setProfile(null);
       }
     }
   };
+
   const login = async (credentials: UserLogin) => {
     try {
       setIsLoading(true);
       const tokenResponse = await authService.login(credentials);
-      
-      // Construct user object from token response
       const user: User = {
         user_id: tokenResponse.user_id,
-        name: '', // Will be loaded from profile
+        name: "",
         email: tokenResponse.email,
-        account_type: tokenResponse.account_type as 'job_seeker' | 'employer' | 'admin' | 'freelancer'
+        account_type: tokenResponse.account_type,
       };
-      
       authService.setStoredUser(user);
       setUser(user);
       await loadUserProfile();
-      toast.success('Login successful!');
-    } catch (error: any) {
-      console.error('Login error:', error);
-      toast.error(error.message || 'Login failed. Please check your credentials.');
-      throw error;
+      toast.success("Login successful!");
+    } catch (err: any) {
+      toast.error(err.message || "Login failed.");
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -175,115 +147,72 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       authService.setStoredUser(user);
       setUser(user);
       await loadUserProfile();
-      toast.success('Registration successful! Welcome aboard!');
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      toast.error(error.message || 'Registration failed. Please try again.');
-      throw error;
+      toast.success("Registration successful!");
+    } catch (err: any) {
+      toast.error(err.message || "Registration failed.");
+      throw err;
     } finally {
       setIsLoading(false);
     }
   };
 
   const logout = async () => {
-    try {
-      await authService.logout();
-      localStorage.removeItem('visiondrillImpersonation');
-      setUser(null);
-      setProfile(null);
-      setOriginalUser(null);
-      setIsImpersonating(false);
-      toast.success('Logged out successfully');
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Force clear local state even if API call fails
-      localStorage.removeItem('visiondrillImpersonation');
-      setUser(null);
-      setProfile(null);
-      setOriginalUser(null);
-      setIsImpersonating(false);
-    }
+    await authService.logout();
+    localStorage.removeItem("visiondrillImpersonation");
+    setUser(null);
+    setProfile(null);
+    setOriginalUser(null);
+    setIsImpersonating(false);
+    toast.success("Logged out successfully");
   };
 
   const refreshProfile = async () => {
     if (user && authService.isAuthenticated()) {
       try {
-        // Refresh user data to get updated account_type
         const updatedUser = await authService.getCurrentUser();
         authService.setStoredUser(updatedUser);
         setUser(updatedUser);
-        
-        // Load profile data
         await loadUserProfile();
-      } catch (error) {
-        console.error('Error refreshing user data:', error);
-        // If getCurrentUser fails, just load profile
+      } catch {
         await loadUserProfile();
       }
     }
   };
 
-  const hasRole = (role: 'job_seeker' | 'employer' | 'admin' | 'freelancer'): boolean => {
-    return user?.account_type === role;
-  };
+  const hasRole = (role: "job_seeker" | "employer" | "admin" | "freelancer") =>
+    user?.account_type === role;
 
-  const isAdmin = (): boolean => {
-    return hasRole('admin');
-  };
-
-  const isEmployer = (): boolean => {
-    return hasRole('employer');
-  };
-
-  const isJobSeeker = (): boolean => {
-    return hasRole('job_seeker');
-  };
+  const isAdmin = () => hasRole("admin");
+  const isEmployer = () => hasRole("employer");
+  const isJobSeeker = () => hasRole("job_seeker");
+  const isFreelancer = () => hasRole("freelancer");
 
   const impersonateUser = (targetUser: User) => {
-    if (!user || user.account_type !== 'admin') {
-      toast.error("Access Denied", {
-        description: "Only admin users can impersonate other users",
-      });
+    if (!user || user.account_type !== "admin") {
+      toast.error("Only admins can impersonate users");
       return;
     }
-
-    console.log('Starting impersonation:', { originalUser: user, targetUser });
-    
-    // Store impersonation session
     const impersonationData = {
       originalUser: user,
-      impersonatedUser: targetUser
+      impersonatedUser: targetUser,
     };
-    localStorage.setItem('visiondrillImpersonation', JSON.stringify(impersonationData));
-    
+    localStorage.setItem(
+      "visiondrillImpersonation",
+      JSON.stringify(impersonationData)
+    );
     setOriginalUser(user);
     setUser(targetUser);
     setIsImpersonating(true);
-    
-    toast.success("Impersonation Started", {
-      description: `Now viewing as ${targetUser.name}`,
-    });
+    toast.success(`Now viewing as ${targetUser.name}`);
   };
 
   const stopImpersonation = () => {
     if (!isImpersonating || !originalUser) return;
-    
-    console.log('Stopping impersonation, returning to:', originalUser);
-    
-    // Clear impersonation session
-    localStorage.removeItem('visiondrillImpersonation');
-    
+    localStorage.removeItem("visiondrillImpersonation");
     setUser(originalUser);
     setOriginalUser(null);
     setIsImpersonating(false);
-    
-    toast.success("Impersonation Stopped", {
-      description: `Returned to your original account`,
-    });
-  };
-
-  const isFreelancer = (): boolean => {
-    return hasRole('freelancer');
+    toast.success("Returned to your account");
   };
 
   const value: AuthContextType = {
@@ -306,18 +235,34 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     originalUser,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Loading authentication...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col h-screen items-center justify-center text-red-600 space-y-4">
+        <p>{error}</p>
+        <button
+          onClick={initializeAuth}
+          className="px-4 py-2 bg-red-500 text-white rounded-md"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };
 
