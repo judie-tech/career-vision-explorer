@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Dialog, 
@@ -11,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { VideoRecordingModal } from "./VideoRecordingModal";
-import { AIAssistant } from "./AIAssistant";
+const AIAssistant = lazy(() => import("./AIAssistant").then(module => ({ default: module.AIAssistant })));
 import { submitOnboardingData } from "@/services/onboarding.service";
 import { ProgressIndicator } from "./ProgressIndicator";
 import { StepNavigation } from "./StepNavigation";
@@ -46,7 +45,7 @@ const [aiResponses, setAiResponses] = useState<string[]>([
       ? "Welcome to Visiondrill! I'm here to help you set up your freelancer profile. Let's showcase your skills and services to connect with potential clients."
       : userRole === 'employer'
       ? "Welcome to Visiondrill! I'm here to help you set up your company profile and find the best talent for your team. Let's start by gathering information about your company."
-      : "Welcome to Visiondrill! I'm here to help you set up your profile and find the perfect career opportunities. Let's get started by understanding your career goals and preferences."
+      : "Hello Welcome to Visiondrill! I'm here to help you set up your profile and find the perfect career opportunities. "
   ]);
   
   // Different user types have different number of steps
@@ -56,42 +55,51 @@ const [aiResponses, setAiResponses] = useState<string[]>([
   const updateField = <K extends keyof OnboardingData>(field: K, value: OnboardingData[K]) => {
     setData(prev => ({ ...prev, [field]: value }));
   };
-  
+    
   const simulateAiResponse = () => {
-    const freelancerResponses = [
-      "Tell me about your services and expertise. This will help potential clients understand what you offer.",
-      "Great! Your experience and skills are valuable. Let's make sure clients can find you based on your expertise.",
-      "Setting the right rate is important. We'll help you find clients who value your skills and budget.",
-      "Your work preferences will help us match you with the right projects and clients.",
-      "Excellent! A strong portfolio helps showcase your capabilities to potential clients.",
-      "Perfect! Your location and language skills can open up both local and international opportunities.",
-      "Thank you for completing your profile! Your freelancer profile is now ready to attract potential clients."
-    ];
-    
+  const freelancerResponses = [
+   // "Tell me about your services and expertise. This will help potential clients understand what you offer.",
+    "Great! Your experience and skills are valuable. Let's make sure clients can find you based on your expertise.",
+    "Next up—how do you usually charge for your work? Setting your rates helps us connect you with clients who value your skills.",
+    "Got it. Do you prefer short-term gigs, long-term projects, or both? This will guide the kind of projects we match you with.",
+    "Great 👍. Do you have a portfolio or past work you’d like to showcase? It’s one of the best ways to stand out to clients.",
+    "Almost there! Where are you based, and do you speak other languages? This can help you attract both local and international clients.",
+    "Fantastic 🎉. Your freelancer profile is now complete and ready to attract projects that match your expertise."
+  ];
+
     const jobSeekerResponses = [
-      "You can import your LinkedIn profile or start fresh. This will help us customize your experience to match your needs.",
-      "Thank you for sharing your career goals! This information helps us understand what you're looking for in your career journey.",
-      "Great choice! We'll find opportunities that match your preferred work style and environment.",
-      "Thank you for sharing your salary expectations. This will help us match you with appropriate opportunities within your range.",
-      "Perfect! We'll focus on finding opportunities in your preferred location and nearby areas.",
-      "Thank you for completing your profile! Based on your information, I've identified some initial career paths that might interest you and align with your goals."
+    // "Hello 👋. To make things easier, would you like to import your LinkedIn profile? This helps us quickly match you with roles that fit your experience. Or, you can start fresh and build your profile from scratch—it’s totally up to you.",
+      "Great! What are your career goals? Knowing this helps us understand what you’re aiming for and connect you with the right jobs and employers.",
+      "Nice. What’s your preferred work style—remote, hybrid, or on-site? This way, we’ll filter and show you opportunities that fit your workstyle.",
+      "Got it 👍. What’s your expected salary range? We’ll use this to make sure you see roles that align with your expectations.",
+      "Perfect. Where are you located cities, regions, or are you open to relocation? This helps us focus on the right locations.",
+    //  "Almost done 🙌. What skills would you like to highlight? Employers love knowing what you’re strongest at from the start.",
+      "All set 🎉! Your profile is ready, and from what you’ve shared, we can already start matching you with career opportunities that fit your goals."
     ];
-    
-const employerResponses = [
-      "Welcome! Let's begin by setting up your company's presence on our platform to attract the best talent.",
-      "Great! Let's define the roles you're looking to fill and target potential candidates effectively.",
-      "Understanding your company's culture and values will help us find matching talent with similar ethos.",
-      "Work arrangements are crucial. Let's specify how your future employees will collaborate.",
-      "Highlighting the benefits and perks offered will make your company stand out to top candidates.",
-      "Upload your company logo to give your postings a professional look."
-    ];
-    
-    const responses = userRole === 'freelancer' ? freelancerResponses : userRole === 'employer' ? employerResponses : jobSeekerResponses;
-    
-    if (currentStep < responses.length) {
-      setAiResponses(prev => [...prev, responses[currentStep]]);
-    }
-  };
+
+  const employerResponses = [
+   // "Welcome! First, what’s the name of your company? We’ll use this to set up your company profile.",
+    "Great. What roles are you currently hiring for? This helps us connect you with the most relevant candidates.",
+    "Good to know. Can you describe your company culture or values? This helps us recommend candidates who align with your ethos.",
+    "Now, what type of work arrangement are you offering—remote, hybrid, or on-site? Candidates want to know how they’ll work with you.",
+    "Perfect. What benefits or perks does your company provide? Highlighting these makes your job posts stand out.",
+    "Last step 🎉—can you upload your company logo? It gives your postings a professional, branded look."
+  ];
+
+  const responses =
+    userRole === "freelancer"
+      ? freelancerResponses
+      : userRole === "employer"
+      ? employerResponses
+      : jobSeekerResponses;
+
+  if (currentStep < responses.length) {
+    // optional: add typing delay for realism
+    setTimeout(() => {
+      setAiResponses((prev) => [...prev, responses[currentStep]]);
+    }, 400); // 0.8s delay feels natural
+  }
+};
   
   const handleNext = () => {
     simulateAiResponse();
@@ -197,8 +205,8 @@ const employerResponses = [
   return (
     <>
       <Dialog open={true}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
+        <DialogContent className="max-w-xl space-y-6">
+          <DialogHeader className="space-y-2">
             <DialogTitle>Complete Your Profile</DialogTitle>
             <DialogDescription>
               {userRole === 'employer' 
@@ -211,9 +219,12 @@ const employerResponses = [
           
           <ProgressIndicator progress={progress} />
           
-          <AIAssistant message={aiResponses[aiResponses.length - 1]} />
           
-          <div className="mb-4">
+          <AIAssistant message={aiResponses[aiResponses.length - 1]} />
+
+ 
+          
+          <div className="mb-6 space-y-4">
 {userRole === 'freelancer' ? (
               <FreelancerStepRenderer
                 currentStep={currentStep}
