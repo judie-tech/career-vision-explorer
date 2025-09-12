@@ -1,5 +1,5 @@
 
-import { getCurrentUser } from '@/lib/auth';
+// Removed mock auth import - using real auth service
 
 export interface UserProfile {
   id: string;

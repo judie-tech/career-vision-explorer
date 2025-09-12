@@ -1,6 +1,7 @@
 import { OnboardingData } from "@/components/onboarding/types";
 import { profileService } from "./profile.service";
 import { ProfileUpdate } from "@/types/api";
+import { apiClient } from "../lib/api-client";
 
 export async function submitOnboardingData(
   data: OnboardingData, 
@@ -63,8 +64,13 @@ export async function submitOnboardingData(
     
     // If there's a video introduction, handle it separately
     if (data.videoIntroduction) {
-      // In a real implementation, upload the video to storage
-      console.log('Video introduction would be uploaded here');
+      try {
+        await uploadVideoIntro(data.videoIntroduction);
+        console.log('Video introduction uploaded successfully');
+      } catch (error) {
+        console.error('Failed to upload video introduction:', error);
+        // Continue with profile update even if video upload fails
+      }
     }
 
     return response;
@@ -93,4 +99,26 @@ function mapWorkPreference(preference: string): string {
     '': 'Full-time' // Default to Full-time
   };
   return preferenceMap[preference] || 'Full-time';
+}
+
+async function uploadVideoIntro(videoFile: File): Promise<void> {
+  const formData = new FormData();
+  formData.append('video', videoFile);
+  
+  try {
+    const response = await apiClient.post('/profile/upload-video-intro', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    
+    if (response.data.status === 'success') {
+      console.log('Video uploaded successfully:', response.data.video_url);
+    } else {
+      throw new Error('Video upload failed');
+    }
+  } catch (error) {
+    console.error('Video upload error:', error);
+    throw error;
+  }
 }
