@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
+import { Progress } from "@/components/ui/progress"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,17 +9,20 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Calendar, 
-  Briefcase, 
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  Briefcase,
   GraduationCap,
   Globe,
   Github,
   Linkedin,
+  Whatsapp,
+  Twitter,
+  Instagram,
   Edit3,
   Save,
   X,
@@ -35,7 +39,8 @@ import { toast } from "sonner";
 import { Profile as ProfileType, ProfileUpdate } from "@/types/api";
 import { useNavigate } from "react-router-dom";
 import { useEffect as useEffectNavigate } from "react";
-
+import whatsapp from '/src/assets/whatsapp.png';
+import stackoverflow from '/src/assets/stackoverflow.png'
 const Profile: React.FC = () => {
   const { user, isAuthenticated, profile: authProfile } = useAuth();
   const navigate = useNavigate();
@@ -45,6 +50,17 @@ const Profile: React.FC = () => {
   const [editForm, setEditForm] = useState<Partial<ProfileUpdate>>({});
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [isParsing, setIsParsing] = useState(false);
+  const [localCompletionPercentage, setLocalCompletionPercentage] = useState(0);
+
+    // Input refs for scrolling to sections
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const bioInputRef = useRef<HTMLTextAreaElement>(null);
+  const linkedinInputRef = useRef<HTMLInputElement>(null);
+  const skillsInputRef = useRef<HTMLTextAreaElement>(null);
+  const workExperienceInputRef = useRef<HTMLTextAreaElement>(null);
+  const educationInputRef = useRef<HTMLTextAreaElement>(null);
+  const preferencesInputRef = useRef<HTMLTextAreaElement>(null);
+
 
   // Redirect employers to their dashboard
   useEffectNavigate(() => {
@@ -57,6 +73,8 @@ const Profile: React.FC = () => {
     if (isAuthenticated && authProfile) {
       setProfile(authProfile);
       setEditForm(authProfile);
+            setLocalCompletionPercentage(authProfile.profile_completion_percentage || calculateProfileCompletion(authProfile));
+
       setLoading(false);
     } else if (isAuthenticated && !authProfile) {
       loadProfile();
@@ -72,6 +90,7 @@ const Profile: React.FC = () => {
       const profileData = await profileService.getProfile();
       setProfile(profileData);
       setEditForm(profileData);
+       setLocalCompletionPercentage(profileData.profile_completion_percentage || calculateProfileCompletion(profileData));
     } catch (error) {
       console.error('Error loading profile:', error);
       toast.error("Failed to load profile");
@@ -92,6 +111,8 @@ const Profile: React.FC = () => {
       const updatedProfile = await profileService.updateProfile(payload);
       setProfile(updatedProfile);
       setEditForm(updatedProfile);
+            setLocalCompletionPercentage(updatedProfile.profile_completion_percentage || calculateProfileCompletion(updatedProfile));
+
       setEditing(false);
       toast.success("Profile updated successfully!");
     } catch (error) {
@@ -102,12 +123,70 @@ const Profile: React.FC = () => {
 
   const handleCancel = () => {
     setEditForm(profile as ProfileType);
+        setLocalCompletionPercentage(profile?.profile_completion_percentage || calculateProfileCompletion(profile));
+
     setEditing(false);
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       setResumeFile(event.target.files[0]);
+    }
+  };
+
+  const getAvailabilityColor = (status: string) => {
+    switch(status) {
+      case 'Available':
+        return 'bg-green-300 text-green-800 border-green-500';
+      case 'Not Available':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'Available in 2 weeks':
+      case 'Available in 1 month':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  }
+
+  const calculateProfileCompletion = (profile: ProfileType | null): number => {
+    if (!profile) return 0;
+   const fields: Array<keyof ProfileType> = [
+    'name', 'email', 'bio', 'linkedin_url', 'skills', 'work_experience',
+    'phone', 'location', 'date_of_birth', 'salary_expectation', 'preferred_job_type',
+    'work_authorization', 'availability', 'experience_years', 'github_url', 
+    'twitter_url',  'portfolio_url', 'resume_link', 'education',
+    'projects', 'languages', 'certifications', 'preferences'
+  ];
+
+  const totalFields = fields.length;
+  const completedFields = fields.reduce((count, field) => {
+    const value = profile[field];
+    if (Array.isArray(value)) return value.length > 0 ? count + 1 : count;
+    if (typeof value == 'object' && value !== null) return Object.keys(value).length > 0 ? count + 1 : count;
+    return value ? count + 1 : count; 
+  }, 0);
+  return Math.round((completedFields / totalFields) * 100);
+  };
+  // update local completion percentage when editing form
+  useEffect(() => {
+    setLocalCompletionPercentage(calculateProfileCompletion(editForm));
+  }, [editForm]);
+
+  const handleJumpToField = (field: string) => {
+    setEditing(true);
+    const refs: Record<string, React.RefObject<HTMLElement>> = {
+      name: nameInputRef,
+      bio: bioInputRef,
+      linkedin_url: linkedinInputRef,
+      skills: skillsInputRef,
+      work_experience: workExperienceInputRef,
+      education: educationInputRef,
+      preferences: preferencesInputRef,
+    };
+    const ref = refs[field];
+    if (ref?.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth' });
+      ref.current.focus();
     }
   };
 
@@ -121,15 +200,15 @@ const Profile: React.FC = () => {
     try {
       const response = await profileService.parseResume(resumeFile);
       console.log('Resume parse response:', response);
-      
+
       // Check if response has the expected structure
       if (!response || !response.parsed_data) {
         throw new Error('Invalid response structure from CV parser');
       }
-      
+
       const updatedProfile = response.updated_profile;
       const parsedData = response.parsed_data;
-      
+
       // Log the parsed data for debugging
       console.log('Parsed data:', parsedData);
 
@@ -137,12 +216,12 @@ const Profile: React.FC = () => {
       const updatePayload = {
         ...profile,
         // Safely spread personal_info if it exists
-        ...(parsedData.personal_info && typeof parsedData.personal_info === 'object' 
-          ? parsedData.personal_info 
+        ...(parsedData.personal_info && typeof parsedData.personal_info === 'object'
+          ? parsedData.personal_info
           : {}),
         // Safely spread professional_summary if it exists
-        ...(parsedData.professional_summary && typeof parsedData.professional_summary === 'object' 
-          ? parsedData.professional_summary 
+        ...(parsedData.professional_summary && typeof parsedData.professional_summary === 'object'
+          ? parsedData.professional_summary
           : {}),
         // Update arrays with fallbacks
         skills: parsedData.skills || profile?.skills || [],
@@ -152,8 +231,8 @@ const Profile: React.FC = () => {
         certifications: parsedData.certifications || profile?.certifications || [],
         languages: parsedData.languages || profile?.languages || [],
         // Safely spread additional_info if it exists
-        ...(parsedData.additional_info && typeof parsedData.additional_info === 'object' 
-          ? parsedData.additional_info 
+        ...(parsedData.additional_info && typeof parsedData.additional_info === 'object'
+          ? parsedData.additional_info
           : {}),
         resume_link: response.cv_file_url || profile?.resume_link,
       };
@@ -245,7 +324,7 @@ const Profile: React.FC = () => {
                         {profile?.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    
+
                     {editing ? (
                       <div className="space-y-3">
                         <Input
@@ -280,7 +359,7 @@ const Profile: React.FC = () => {
                       <Mail className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">{profile?.email}</span>
                     </div>
-                    
+
                     {editing ? (
                       <div className="flex items-center gap-3">
                         <Phone className="h-4 w-4 text-muted-foreground" />
@@ -407,7 +486,9 @@ const Profile: React.FC = () => {
                     ) : profile?.availability ? (
                       <div className="flex items-center gap-3">
                         <Briefcase className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{profile.availability}</span>
+                        <span className={`text-sm px-2 py-1 rounded border ${getAvailabilityColor(profile.availability || '')}`}>
+                        {profile.availability}
+                        </span>
                       </div>
                     ) : null}
 
@@ -470,14 +551,50 @@ const Profile: React.FC = () => {
                             className="text-sm"
                           />
                         </div>
+                        <div className="flex items-center gap-3">
+                          <Twitter className="h-4 w-4 text-muted-foreground" />
+                          <Input
+                            value={editForm.twitter_url || ''}
+                            onChange={(e) => setEditForm({ ...editForm, twitter_url: e.target.value })}
+                            placeholder="twitter url"
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Instagram className="h-4 w-4 text-muted-foreground" />
+                          <Input
+                            value={editForm.instagram_url || ''}
+                            onChange={(e) => setEditForm({ ...editForm, instagram_url: e.target.value })}
+                            placeholder="Instagram url"
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <img src={whatsapp} className="h-4 w-4 text-muted-foreground" />
+                          <Input
+                            value={editForm.whatsapp_dm || ''}
+                            onChange={(e) => setEditForm({ ...editForm, whatsapp_dm: e.target.value })}
+                            placeholder="Whatsapp dm"
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <img src={stackoverflow} className="h-4 w-4 text-muted-foreground" />
+                          <Input
+                            value={editForm.stackoverflow_url || ''}
+                            onChange={(e) => setEditForm({ ...editForm, stackoverflow_url: e.target.value })}
+                            placeholder="Stackoverflow url"
+                            className="text-sm"
+                          />
+                        </div>
                       </>
                     ) : (
                       <>
                         {profile?.linkedin_url && (
                           <div className="flex items-center gap-3">
                             <Linkedin className="h-4 w-4 text-muted-foreground" />
-                            <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" 
-                               className="text-sm text-blue-600 hover:underline">
+                            <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:underline">
                               LinkedIn
                             </a>
                           </div>
@@ -486,7 +603,7 @@ const Profile: React.FC = () => {
                           <div className="flex items-center gap-3">
                             <Github className="h-4 w-4 text-muted-foreground" />
                             <a href={profile.github_url} target="_blank" rel="noopener noreferrer"
-                               className="text-sm text-blue-600 hover:underline">
+                              className="text-sm text-blue-600 hover:underline">
                               GitHub
                             </a>
                           </div>
@@ -495,8 +612,45 @@ const Profile: React.FC = () => {
                           <div className="flex items-center gap-3">
                             <Globe className="h-4 w-4 text-muted-foreground" />
                             <a href={profile.portfolio_url} target="_blank" rel="noopener noreferrer"
-                               className="text-sm text-blue-600 hover:underline">
+                              className="text-sm text-blue-600 hover:underline">
                               Portfolio
+                            </a>
+                          </div>
+                        )}
+                        {profile?.twitter_url && (
+                          <div className="flex items-center gap-3">
+                            <Twitter className="h-4 w-4 text-muted-foreground" />
+                            <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:underline">
+                              Twitter
+                            </a>
+                          </div>
+                        )}
+                        {profile?.instagram_url && (
+                          <div className="flex items-center gap-3">
+                            <Twitter className="h-4 w-4 text-muted-foreground" />
+                            <a href={profile.instagram_url} target="_blank" rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:underline">
+                              Instagram
+                            </a>
+                          </div>
+
+                        )}
+                        {profile?.whatsapp_dm && (
+                          <div className="flex items-center gap-3">
+                            <img src={whatsapp} className="h-4 w-4 text-muted-foreground" />
+                            <a href={profile.whatsapp_dm} target="_blank" rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:underline">
+                              Whatsapp Dm
+                            </a>
+                          </div>
+                        )}
+                        {profile?.stackoverflow_url && (
+                          <div className="flex items-center gap-3">
+                            <img src={stackoverflow} className="h-4 w-4 text-muted-foreground" />
+                            <a href={profile.stackoverflow_url} target="_blank" rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:underline">
+                              Stackoverflow
                             </a>
                           </div>
                         )}
@@ -531,7 +685,7 @@ const Profile: React.FC = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Resume Upload/Parse */}
                     <div className="border-t pt-4">
                       <p className="text-sm text-muted-foreground mb-3">
@@ -543,7 +697,7 @@ const Profile: React.FC = () => {
                         <UploadCloud className="ml-2 h-4 w-4" />
                       </Button>
                     </div>
-                    
+
                     {/* Manual Resume Link */}
                     {editing && (
                       <div className="border-t pt-4">
@@ -584,14 +738,110 @@ const Profile: React.FC = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Availability</span>
-                      <Badge variant="outline">{profile?.availability}</Badge>
+                      <Badge variant="outline" className={`text-sm ${getAvailabilityColor(profile.availability)}`}>{profile?.availability}</Badge>
                     </div>
-                    {profile?.profile_completion_percentage && (
+                        <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Profile Complete</span>
-                        <span className="font-medium">{profile.profile_completion_percentage}%</span>
+                        <span className="font-medium">{localCompletionPercentage}%</span>
                       </div>
-                    )}
+                      <Progress
+                        value={localCompletionPercentage}
+                        className={`w-full h-2 ${localCompletionPercentage < 50 ? 'bg-red-500' : localCompletionPercentage < 75 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                        aria-label="Profile completion progress"
+                      />
+                      {localCompletionPercentage < 100 && (
+                        <div className="text-xs text-muted-foreground">
+                          <p>Complete your profile by adding:</p>
+                          <ul className="list-disc pl-4">
+                            {!editForm.name && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('name')}
+                                  aria-label="Add name"
+                                >
+                                  Name
+                                </Button>
+                              </li>
+                            )}
+                            {!editForm.bio && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('bio')}
+                                  aria-label="Add bio"
+                                >
+                                  Bio
+                                </Button>
+                              </li>
+                            )}
+                            {!editForm.linkedin_url && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('linkedin_url')}
+                                  aria-label="Add LinkedIn URL"
+                                >
+                                  LinkedIn URL
+                                </Button>
+                              </li>
+                            )}
+                            {!editForm.skills?.length && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('skills')}
+                                  aria-label="Add skills"
+                                >
+                                  Skills
+                                </Button>
+                              </li>
+                            )}
+                            {!editForm.work_experience?.length && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('work_experience')}
+                                  aria-label="Add work experience"
+                                >
+                                  Work Experience
+                                </Button>
+                              </li>
+                            )}
+                            {!editForm.education && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('education')}
+                                  aria-label="Add education"
+                                >
+                                  Education
+                                </Button>
+                              </li>
+                            )}
+                            {!editForm.preferences && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('preferences')}
+                                  aria-label="Add job preferences"
+                                >
+                                  Job Preferences
+                                </Button>
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
                     {profile?.updated_at && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Last Updated</span>
@@ -677,7 +927,7 @@ const Profile: React.FC = () => {
                           <h4 className="font-semibold">{project.name}</h4>
                           {project.url && (
                             <a href={project.url} target="_blank" rel="noopener noreferrer"
-                               className="text-sm text-blue-600 hover:underline">
+                              className="text-sm text-blue-600 hover:underline">
                               View Project
                             </a>
                           )}
@@ -706,8 +956,8 @@ const Profile: React.FC = () => {
                     {editing ? (
                       <Textarea
                         value={editForm.languages?.join(', ') || ''}
-                        onChange={(e) => setEditForm({ 
-                          ...editForm, 
+                        onChange={(e) => setEditForm({
+                          ...editForm,
                           languages: e.target.value.split(',').map(lang => lang.trim()).filter(lang => lang)
                         })}
                         placeholder="Languages (comma-separated)"
@@ -732,8 +982,8 @@ const Profile: React.FC = () => {
                     {editing ? (
                       <Textarea
                         value={editForm.certifications?.join('\n') || ''}
-                        onChange={(e) => setEditForm({ 
-                          ...editForm, 
+                        onChange={(e) => setEditForm({
+                          ...editForm,
                           certifications: e.target.value.split('\n').map(cert => cert.trim()).filter(cert => cert)
                         })}
                         placeholder="Certifications (one per line)"
@@ -750,7 +1000,7 @@ const Profile: React.FC = () => {
                   </CardContent>
                 </Card>
               </div>
-              
+
               {/* Preferences */}
               <Card>
                 <CardHeader>
