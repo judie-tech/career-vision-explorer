@@ -18,6 +18,10 @@ export interface JobMatch {
   skillOverlap: number;
   experienceLevel?: string;
   postedDate?: string;
+  // Additional fields
+  benefits?: string[];
+  remoteFriendly?: boolean;
+  applicationDeadline?: string;
 }
 
 export interface MarketAnalysis {

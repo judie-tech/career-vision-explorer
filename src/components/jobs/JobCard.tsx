@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Building, Briefcase, Clock, BarChart3, Heart } from "lucide-react";
+import { MapPin, Building, Briefcase, Clock, BarChart3, Heart, Home, Calendar, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface Job {
@@ -20,6 +20,13 @@ interface Job {
   companyInfo?: {
     logoUrl?: string;
   };
+  // Additional fields from backend
+  benefits?: string[];
+  remoteFriendly?: boolean;
+  applicationDeadline?: string;
+  requirements?: string;
+  postedBy?: string;
+  isActive?: boolean;
 }
 
 interface JobCardProps {
@@ -114,7 +121,12 @@ export const JobCard = ({ job, isApplied, isSaved, onApply, onSave }: JobCardPro
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <MapPin className="h-4 w-4 text-primary" />
-            {job.location}
+            <span className="flex items-center gap-1">
+              {job.location}
+              {job.remoteFriendly && (
+                <Home className="h-3 w-3 text-green-500" title="Remote friendly" />
+              )}
+            </span>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Briefcase className="h-4 w-4 text-primary" />
@@ -130,6 +142,22 @@ export const JobCard = ({ job, isApplied, isSaved, onApply, onSave }: JobCardPro
           </div>
         </div>
         
+        {/* Experience Level and Application Deadline */}
+        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+          {job.experienceLevel && (
+            <div className="flex items-center gap-2">
+              <Star className="h-4 w-4 text-primary" />
+              {job.experienceLevel}
+            </div>
+          )}
+          {job.applicationDeadline && (
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-primary" />
+              Apply by {new Date(job.applicationDeadline).toLocaleDateString()}
+            </div>
+          )}
+        </div>
+        
         <p className="text-muted-foreground leading-relaxed">{job.description}</p>
         
         <div className="flex flex-wrap gap-2">
@@ -142,6 +170,29 @@ export const JobCard = ({ job, isApplied, isSaved, onApply, onSave }: JobCardPro
             </Badge>
           ))}
         </div>
+        
+        {/* Benefits */}
+        {job.benefits && job.benefits.length > 0 && (
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-gray-700">Benefits:</h4>
+            <div className="flex flex-wrap gap-2">
+              {job.benefits.slice(0, 3).map((benefit, index) => (
+                <Badge 
+                  key={index} 
+                  variant="secondary"
+                  className="bg-green-50 text-green-700 border-green-200"
+                >
+                  {benefit}
+                </Badge>
+              ))}
+              {job.benefits.length > 3 && (
+                <Badge variant="outline" className="text-gray-500">
+                  +{job.benefits.length - 3} more
+                </Badge>
+              )}
+            </div>
+          </div>
+        )}
         
         <div className="flex justify-between items-center pt-4 border-t">
           <Link to={`/jobs/${job.job_id}`}

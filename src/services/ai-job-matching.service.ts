@@ -1,7 +1,8 @@
 import { geminiService } from './gemini.service';
 import { profileService } from './profile.service';
 import { jobsService } from './jobs.service';
-import { JobMatch, Job, Profile } from '../types/api';
+import { Job, Profile } from '../types/api';
+import { JobMatch } from './job-matching.service';
 
 export interface AIJobMatchRequest {
   user_skills: string[];
@@ -115,7 +116,7 @@ class AIJobMatchingService {
     }
 
     // Check AI cache first
-    const cacheKey = `ai_job_matches_${userProfile?.id || 'guest'}_${JSON.stringify(preferences)}`;
+    const cacheKey = `ai_job_matches_${userProfile?.user_id || 'guest'}_${JSON.stringify(preferences)}`;
     const cachedResult = jobsService.getCachedAIResult<EnhancedJobMatch[]>(cacheKey);
     if (cachedResult) {
       console.log('✅ Using cached AI job matches');
@@ -321,7 +322,7 @@ class AIJobMatchingService {
     try {
       const jobsContext = jobs.map((job, index) => `
         JOB ${index + 1}:
-        - ID: ${job.id}
+        - ID: ${job.job_id}
         - Title: ${job.title}
         - Company: ${job.company}
         - Location: ${job.location}
@@ -444,24 +445,28 @@ class AIJobMatchingService {
     jobs: Job[]
   ): EnhancedJobMatch[] {
     return aiMatches.map(aiMatch => {
-      const job = jobs.find(j => j.id === aiMatch.job_id);
+      const job = jobs.find(j => j.job_id === aiMatch.job_id);
       if (!job) return null;
 
       const basicMatch: JobMatch = {
-        id: job.id,
+        id: job.job_id,
         title: job.title,
         company: job.company,
         location: job.location,
         type: job.job_type || 'Full-time',
         salary: job.salary_range || 'Competitive',
-        description: job.description || '',
+        description: job.description || job.requirements || '',
         requiredSkills: job.skills_required || [],
         matchScore: aiMatch.ai_score?.overall_score || 0,
         matchedSkills: [], // Will be calculated from AI analysis
         missingSkills: [], // Will be calculated from AI analysis
         skillOverlap: 0,
         experienceLevel: job.experience_level,
-        postedDate: job.created_at ? new Date(job.created_at).toLocaleDateString() : 'Recently'
+        postedDate: job.created_at ? new Date(job.created_at).toLocaleDateString() : 'Recently',
+        // Add additional fields
+        benefits: job.benefits || [],
+        remoteFriendly: job.remote_friendly || false,
+        applicationDeadline: job.application_deadline
       };
 
       const enhancedMatch: EnhancedJobMatch = {
@@ -528,7 +533,7 @@ class AIJobMatchingService {
 
   private createBasicMatches(jobs: Job[]): EnhancedJobMatch[] {
     return jobs.map(job => ({
-      id: job.id,
+      id: job.job_id,
       title: job.title,
       company: job.company,
       location: job.location,

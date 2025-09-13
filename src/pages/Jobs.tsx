@@ -29,6 +29,13 @@ interface Job {
   companyInfo?: {
     logoUrl?: string;
   };
+  // Additional fields from backend
+  benefits?: string[];
+  remoteFriendly?: boolean;
+  applicationDeadline?: string;
+  requirements?: string;
+  postedBy?: string;
+  isActive?: boolean;
 }
 
 // Helper function to generate UUID-like strings for mock data compatibility
@@ -46,6 +53,7 @@ const Jobs = () => {
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
+  const [clearingCache, setClearingCache] = useState(false);
   const loadingRef = useRef(false);
   const mountedRef = useRef(true);
   const initialLoadRef = useRef(false);
@@ -114,33 +122,28 @@ const Jobs = () => {
       console.log(`Loading more jobs - page ${nextPage}, current jobs count: ${jobs.length}`);
       
       if (isAuthenticated && user) {
-        // Try vector recommendations for authenticated users
+        // Try unified recommendations for authenticated users
         try {
-          const response = await JobMatchService.getVectorJobRecommendations(nextPage, 6);
-          console.log(`Vector recommendations response for page ${nextPage}:`, response);
+          const response = await JobMatchService.getVectorJobRecommendations(nextPage, 6, user.user_id);
+          console.log(`Unified recommendations response for page ${nextPage}:`, response);
           
           if (response.jobs && response.jobs.length > 0) {
-            // Fetch full job details for new jobs
-            const jobsDetails = await Promise.all(
-              response.jobs.map((rec) => jobsService.getJobById(rec.job_id))
-            );
-
-            // Transform and match details with match_score
-            const transformedJobs = jobsDetails.map((apiJob: any, index: number) => {
-              const rec = response.jobs[index];
+            // Transform directly from unified response - no need for additional API calls
+            const transformedJobs = response.jobs.map((job: any) => {
               return {
-                id: apiJob.job_id || apiJob.id,
-                job_id: apiJob.job_id || apiJob.id,
-                title: apiJob.title,
-                company: apiJob.company,
-                location: apiJob.location,
-                type: apiJob.job_type || "Full-time",
-                salary: apiJob.salary_range || "Competitive",
-                posted: apiJob.created_at ? new Date(apiJob.created_at).toLocaleDateString() : 'Recently',
-                matchScore: Math.round((rec?.similarity_score ?? 0) * 100),
-                skills: apiJob.skills_required || apiJob.skills || [],
-                description: apiJob.description || apiJob.requirements || "No description available",
-                experienceLevel: apiJob.experience_level || "Mid Level",
+                id: job.job_id,
+                job_id: job.job_id,
+                title: job.title,
+                company: job.company,
+                location: job.location,
+                type: job.job_type || "Full-time",
+                salary: job.salary_range || "Competitive",
+                posted: job.created_at ? new Date(job.created_at).toLocaleDateString() : 'Recently',
+                // Use the match_score directly from unified service
+                matchScore: job.match_score || 0,
+                skills: job.skills_required || job.matched_skills || [],
+                description: job.description || "No description available",
+                experienceLevel: job.experience_level || "Mid Level",
                 companyInfo: {
                   logoUrl: undefined
                 }
@@ -156,7 +159,8 @@ const Jobs = () => {
             return [...prevJobs, ...newJobs];
           });
           setCurrentPage(nextPage);
-          setHasMore(response.hasMore || false);
+          setHasMore(response.jobs.length === 6);
+          console.log(`Page ${nextPage} loaded. HasMore: ${response.jobs.length === 6}, Jobs returned: ${response.jobs.length}`);
           toast.success(`Loaded ${transformedJobs.length} more jobs`);
         }
             return;
@@ -222,6 +226,29 @@ const Jobs = () => {
     }
   }, [currentPage, hasMore, loadingMore, isAuthenticated, user]);
 
+  const clearCache = async () => {
+    setClearingCache(true);
+    try {
+      // Clear unified service cache
+      await JobMatchService.clearUnifiedCache();
+      
+      // Reset pagination state
+      setCurrentPage(0);
+      setHasMore(true);
+      setJobs([]);
+      
+      // Reload jobs
+      await loadJobs();
+      
+      toast.success('Cache cleared and jobs reloaded');
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+      toast.error('Failed to clear cache');
+    } finally {
+      setClearingCache(false);
+    }
+  };
+
   const loadJobs = async () => {
     // Prevent multiple simultaneous loads
     if (loadingRef.current) {
@@ -243,13 +270,13 @@ const Jobs = () => {
       console.log('Is authenticated:', isAuthenticated);
       console.log('Access token:', localStorage.getItem('access_token'));
       
-      // Try vector recommendations if user is authenticated, otherwise use regular jobs with pagination
+      // Try unified recommendations if user is authenticated, otherwise use regular jobs with pagination
       if (isAuthenticated && user) {
         try {
-          // Use the new paginated vector recommendations API
-          const response = await JobMatchService.getVectorJobRecommendations(0, 6);
+          // Use the unified match service for recommendations
+          const response = await JobMatchService.getVectorJobRecommendations(0, 6, user.user_id);
         
-          console.log('Vector jobs recommendations response:', response);
+          console.log('Unified jobs recommendations response:', response);
 
           if (!mountedRef.current) {
             console.log('Component unmounted, skipping state update');
@@ -272,14 +299,18 @@ const Jobs = () => {
                 type: job.job_type || "Full-time",
                 salary: job.salary_range || "Competitive",
                 posted: job.created_at ? new Date(job.created_at).toLocaleDateString() : 'Recently',
-                // Use hybrid_score from optimized backend if available
-                matchScore: Math.round((job.hybrid_score || job.match_score || job.similarity_score || 0) * 100),
+                // Use match_score directly from unified service
+                matchScore: job.match_score || 0,
                 skills: job.skills_required || job.matched_skills || [],
-                description: job.description || job.requirements || "No description available",
+                description: job.description || "No description available",
                 experienceLevel: job.experience_level || "Mid Level",
                 companyInfo: {
                   logoUrl: undefined
-                }
+                },
+                // Include additional fields
+                benefits: job.benefits,
+                remoteFriendly: job.remote_friendly,
+                requirements: job.requirements
               } as Job;
             });
             
@@ -290,19 +321,20 @@ const Jobs = () => {
 
             if (mountedRef.current) {
               setJobs(transformedJobs); // Initial load - replace existing jobs
-              setHasMore(response.hasMore || false);
-              toast.success(`Loaded ${transformedJobs.length} Vector-recommended jobs`);
+              setHasMore(response.jobs.length === 6);
+              console.log(`Initial load. HasMore: ${response.jobs.length === 6}, Jobs returned: ${response.jobs.length}`);
+              toast.success(`Loaded ${transformedJobs.length} unified-recommended jobs`);
             }
             return;
           }
         } catch (aiError: any) {
-          console.error('Vector jobs recommendations error:', aiError);
+          console.error('Unified jobs recommendations error:', aiError);
           console.error('Error details:', {
             message: aiError.message,
             status: aiError.status,
             response: aiError.response
           });
-          console.warn('Falling back to jobs list due to vector recommendations error');
+          console.warn('Falling back to jobs list due to unified recommendations error');
         }
       }
       
@@ -327,7 +359,24 @@ const Jobs = () => {
 
         const apiJobs = jobsResponse.jobs || [];
         if (apiJobs.length > 0) {
-          const transformedJobs = apiJobs.map((apiJob: any) => ({
+        const transformedJobs = apiJobs.map((apiJob: any) => {
+          // Parse skills from requirements if skills_required is null or empty
+          let skills = [];
+          if (Array.isArray(apiJob.skills_required) && apiJob.skills_required.length > 0) {
+            skills = apiJob.skills_required;
+          } else if (apiJob.skills_required && !Array.isArray(apiJob.skills_required)) {
+            skills = [apiJob.skills_required];
+          } else if (apiJob.requirements) {
+            // Parse skills from requirements field (comma-separated or space-separated)
+            const requirementsText = apiJob.requirements.toString();
+            skills = requirementsText
+              .split(/[,\n\r]+/)
+              .map(skill => skill.trim())
+              .filter(skill => skill.length > 0 && skill.length < 50) // Filter out very long strings
+              .slice(0, 10); // Limit to 10 skills max
+          }
+          
+          return {
             id: apiJob.job_id || apiJob.id,
             job_id: apiJob.job_id || apiJob.id,
             title: apiJob.title,
@@ -337,13 +386,21 @@ const Jobs = () => {
             salary: apiJob.salary_range || "Competitive",
             posted: apiJob.created_at ? new Date(apiJob.created_at).toLocaleDateString(): 'Recently',
             matchScore: 0, // Set match score to 0 for unauthenticated users
-            skills: apiJob.skills_required || apiJob.skills || [],
+            skills: skills,
             description: apiJob.description || apiJob.requirements || "No description available",
             experienceLevel: apiJob.experience_level || "Mid Level",
             companyInfo: {
               logoUrl: undefined
-            }
-          } as Job));
+            },
+            // Add additional fields that might be missing
+            benefits: Array.isArray(apiJob.benefits) ? apiJob.benefits : (apiJob.benefits ? [apiJob.benefits] : []),
+            remoteFriendly: apiJob.remote_friendly || false,
+            applicationDeadline: apiJob.application_deadline,
+            requirements: apiJob.requirements || "",
+            postedBy: apiJob.posted_by_name || apiJob.posted_by,
+            isActive: apiJob.is_active !== undefined ? apiJob.is_active : true
+          } as Job;
+        });
           
           transformedJobs.forEach(job =>
             console.log(`Job: ${job.title} - Match Score: ${job.matchScore}%`)
@@ -437,19 +494,66 @@ const Jobs = () => {
         <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none"></div>
         
         <div className="relative container py-6 sm:py-12 px-3 sm:px-4">
+          {/* Debug Panel and Cache Clear Button */}
+          <div className="flex justify-between items-center mb-4">
+            {/* Debug Info */}
+            <div className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">
+              <div>Jobs: {jobs.length} | Page: {currentPage} | HasMore: {hasMore ? 'Yes' : 'No'}</div>
+              <div>Loading: {loading ? 'Yes' : 'No'} | LoadingMore: {loadingMore ? 'Yes' : 'No'}</div>
+            </div>
+            
+            {/* Cache Clear Button */}
+            <button
+              onClick={clearCache}
+              disabled={clearingCache}
+              className="flex items-center space-x-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white rounded-lg transition-colors duration-200"
+            >
+              {clearingCache ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Clearing...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span>Clear Cache</span>
+                </>
+              )}
+            </button>
+          </div>
+          
           <JobsContainer jobs={jobs} />
           
-          {/* Infinite scroll trigger - show for all users */}
+          {/* Load More Section */}
           {hasMore && (
-            <div ref={loadMoreRef} className="flex justify-center py-8">
-              {loadingMore ? (
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                  <span className="text-gray-600">Loading more jobs...</span>
-                </div>
-              ) : (
-                <div className="text-gray-500 text-sm">Scroll to load more jobs</div>
-              )}
+            <div className="flex flex-col items-center py-8 space-y-4">
+              {/* Manual Load More Button */}
+              <button
+                onClick={loadMoreJobs}
+                disabled={loadingMore}
+                className="px-6 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-lg transition-colors duration-200 flex items-center space-x-2"
+              >
+                {loadingMore ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Loading...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Load More Jobs</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </>
+                )}
+              </button>
+              
+              {/* Infinite scroll trigger */}
+              <div ref={loadMoreRef} className="text-gray-500 text-sm">
+                Or scroll to load more jobs automatically
+              </div>
             </div>
           )}
           
