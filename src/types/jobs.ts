@@ -17,6 +17,11 @@ export interface JobListing extends APIJob {
     industry?: string;
     size?: string;
   };
+  
+  // Additional UI fields
+  remoteFriendly?: boolean;
+  applicationDeadline?: string;
+  experienceLevel?: string;
 }
 
 // Type for job search/filter results
@@ -62,6 +67,12 @@ export function transformJobToListing(apiJob: APIJob): JobListing {
     salary: apiJob.salary_range || 'Not specified',
     posted: formatPostedDate(apiJob.created_at),
     skills: apiJob.skills_required || [],
+    // Ensure all fields are properly mapped
+    description: apiJob.description || apiJob.requirements || 'No description available',
+    benefits: apiJob.benefits || [],
+    remoteFriendly: apiJob.remote_friendly || false,
+    applicationDeadline: apiJob.application_deadline,
+    experienceLevel: apiJob.experience_level || 'Mid Level',
   };
 }
 
