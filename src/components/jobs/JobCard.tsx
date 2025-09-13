@@ -158,7 +158,11 @@ export const JobCard = ({ job, isApplied, isSaved, onApply, onSave }: JobCardPro
           )}
         </div>
         
-        <p className="text-muted-foreground leading-relaxed">{job.description}</p>
+        <p className="text-muted-foreground leading-relaxed line-clamp-2">
+          {job.description && job.description.length > 150 
+            ? `${job.description.substring(0, 150)}...` 
+            : job.description}
+        </p>
         
         <div className="flex flex-wrap gap-2">
           {job.skills.map(skill => (
