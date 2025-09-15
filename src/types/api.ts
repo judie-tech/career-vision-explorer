@@ -96,7 +96,7 @@ export interface Profile {
   email: string;
   skills: string[];
   resume_link?: string;
-  account_type: 'job_seeker' | 'employer' | 'admin';
+  account_type: 'job_seeker' | 'employer' | 'admin' | 'freelancer';
   created_at: string;
   updated_at: string;
   // Enhanced fields
@@ -109,6 +109,7 @@ export interface Profile {
   github_url?: string;
   portfolio_url?: string;
   profile_image_url?: string;
+  video_intro_url?: string;
   date_of_birth?: string;
   salary_expectation?: string;
   availability?: 'Available' | 'Not Available' | 'Available in 2 weeks' | 'Available in 1 month';
@@ -129,7 +130,94 @@ export interface Profile {
     url?: string;
   }>;
   preferences?: Record<string, any>;
+  active_role?: string;
   profile_completion_percentage?: number;
+  
+  // Freelancer-specific fields (only present when account_type is 'freelancer')
+  freelancer_data?: {
+    freelancer_id: string;
+    title: string;
+    hourly_rate?: number;
+    available_for_hire: boolean;
+    rating: number;
+    total_reviews: number;
+    total_projects: number;
+    last_active?: string;
+    portfolio_items?: Array<{
+      id: string;
+      title: string;
+      description: string;
+      image_url: string;
+      project_url?: string;
+      tags: string[];
+      created_at: string;
+    }>;
+    pricing?: {
+      basic_package?: {
+        name: string;
+        price: number;
+        description: string;
+        features: string[];
+        delivery_days: number;
+        revisions: number;
+      };
+      standard_package?: {
+        name: string;
+        price: number;
+        description: string;
+        features: string[];
+        delivery_days: number;
+        revisions: number;
+      };
+      premium_package?: {
+        name: string;
+        price: number;
+        description: string;
+        features: string[];
+        delivery_days: number;
+        revisions: number;
+      };
+    };
+  };
+  
+  // Company-specific fields (only present when account_type is 'employer')
+  company_data?: {
+    company_id: string;
+    company_name: string;
+    company_website?: string;
+    industry: string;
+    company_size: '1-10' | '11-50' | '51-200' | '201-500' | '501-1000' | '1000+';
+    founded_year?: number;
+    company_description?: string;
+    company_culture?: string;
+    company_logo_url?: string;
+    cover_image_url?: string;
+    contact_email?: string;
+    contact_phone?: string;
+    linkedin_url?: string;
+    twitter_url?: string;
+    facebook_url?: string;
+    glassdoor_url?: string;
+    benefits?: Array<{
+      name: string;
+      description?: string;
+      icon?: string;
+    }>;
+    tech_stack?: string[];
+    offices?: Array<{
+      address: string;
+      city: string;
+      state_province?: string;
+      country: string;
+      postal_code?: string;
+      is_headquarters: boolean;
+    }>;
+    preferred_skills?: string[];
+    hiring_process?: string;
+    remote_work_policy?: 'No Remote' | 'Hybrid' | 'Fully Remote' | 'Flexible';
+    is_verified: boolean;
+    verification_date?: string;
+  };
 }
 
 export interface ProfileUpdate {
@@ -145,6 +233,7 @@ export interface ProfileUpdate {
   github_url?: string;
   portfolio_url?: string;
   profile_image_url?: string;
+  video_intro_url?: string;
   date_of_birth?: string;
   salary_expectation?: string;
   availability?: 'Available' | 'Not Available' | 'Available in 2 weeks' | 'Available in 1 month';
@@ -165,6 +254,83 @@ export interface ProfileUpdate {
     url?: string;
   }>;
   preferences?: Record<string, any>;
+  active_role?: string;
+  
+  // Freelancer-specific fields
+  freelancer_data?: {
+    title?: string;
+    hourly_rate?: number;
+    available_for_hire?: boolean;
+    portfolio_items?: Array<{
+      title: string;
+      description: string;
+      image_url: string;
+      project_url?: string;
+      tags: string[];
+    }>;
+    pricing?: {
+      basic_package?: {
+        name: string;
+        price: number;
+        description: string;
+        features: string[];
+        delivery_days: number;
+        revisions: number;
+      };
+      standard_package?: {
+        name: string;
+        price: number;
+        description: string;
+        features: string[];
+        delivery_days: number;
+        revisions: number;
+      };
+      premium_package?: {
+        name: string;
+        price: number;
+        description: string;
+        features: string[];
+        delivery_days: number;
+        revisions: number;
+      };
+    };
+  };
+  
+  // Company-specific fields
+  company_data?: {
+    company_name?: string;
+    company_website?: string;
+    industry?: string;
+    company_size?: '1-10' | '11-50' | '51-200' | '201-500' | '501-1000' | '1000+';
+    founded_year?: number;
+    company_description?: string;
+    company_culture?: string;
+    company_logo_url?: string;
+    cover_image_url?: string;
+    contact_email?: string;
+    contact_phone?: string;
+    linkedin_url?: string;
+    twitter_url?: string;
+    facebook_url?: string;
+    glassdoor_url?: string;
+    benefits?: Array<{
+      name: string;
+      description?: string;
+      icon?: string;
+    }>;
+    tech_stack?: string[];
+    offices?: Array<{
+      address: string;
+      city: string;
+      state_province?: string;
+      country: string;
+      postal_code?: string;
+      is_headquarters: boolean;
+    }>;
+    preferred_skills?: string[];
+    hiring_process?: string;
+    remote_work_policy?: 'No Remote' | 'Hybrid' | 'Fully Remote' | 'Flexible';
+  };
 }
 
 export interface Skill {
