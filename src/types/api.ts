@@ -107,6 +107,10 @@ export interface Profile {
   phone?: string;
   linkedin_url?: string;
   github_url?: string;
+  twitter_url?: string;
+  instagram_url?: string;
+  whatsapp_dm?: string;
+  stackoverflow_url?: string;
   portfolio_url?: string;
   profile_image_url?: string;
   video_intro_url?: string;
@@ -231,6 +235,10 @@ export interface ProfileUpdate {
   phone?: string;
   linkedin_url?: string;
   github_url?: string;
+  twitter_url?: string;
+  stackoverflow_url?: string;
+  instagram_url?: string;
+  whatsapp_dm?: string;
   portfolio_url?: string;
   profile_image_url?: string;
   video_intro_url?: string;
