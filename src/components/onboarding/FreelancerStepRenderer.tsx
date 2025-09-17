@@ -4,7 +4,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent } from "@/components/ui/card";
-import { Briefcase, DollarSign, Globe, Target, PenTool, Camera } from "lucide-react";
+import { Briefcase, DollarSign, Globe, Target, PenTool, Camera, Upload } from "lucide-react";
+import { TypingQuestion } from "./steps/TypingQuestion";
 
 interface FreelancerStepRendererProps {
   currentStep: number;
@@ -29,10 +30,12 @@ export const FreelancerStepRenderer = ({
 }: FreelancerStepRendererProps) => {
   const steps = [
     // Step 0: Service Overview
-    {
-      icon: <Briefcase className="w-8 h-8 text-blue-500" />,
-      title: "What services do you offer?",
-      content: (
+    () => (
+      <TypingQuestion 
+        question="What services do you offer?"
+        icon={<Briefcase className="w-8 h-8 text-blue-500" />}
+        typingSpeed={30}
+      >
         <div className="space-y-4">
           <Label>Professional Title</Label>
           <Input
@@ -48,13 +51,15 @@ export const FreelancerStepRenderer = ({
             rows={4}
           />
         </div>
-      )
-    },
+      </TypingQuestion>
+    ),
     // Step 1: Experience & Skills
-    {
-      icon: <PenTool className="w-8 h-8 text-green-500" />,
-      title: "Share your experience and skills",
-      content: (
+    () => (
+      <TypingQuestion 
+        question="Share your experience and skills"
+        icon={<PenTool className="w-8 h-8 text-green-500" />}
+        typingSpeed={30}
+      >
         <div className="space-y-4">
           <Label>Years of Experience</Label>
           <RadioGroup value={data.experienceYears || ""} onValueChange={(value) => updateField("experienceYears", value)}>
@@ -84,13 +89,15 @@ export const FreelancerStepRenderer = ({
             rows={3}
           />
         </div>
-      )
-    },
+      </TypingQuestion>
+    ),
     // Step 2: Pricing & Availability
-    {
-      icon: <DollarSign className="w-8 h-8 text-yellow-500" />,
-      title: "Set your rates and availability",
-      content: (
+    () => (
+      <TypingQuestion 
+        question="What are your rates and availability?"
+        icon={<DollarSign className="w-8 h-8 text-yellow-500" />}
+        typingSpeed={30}
+      >
         <div className="space-y-4">
           <Label>Hourly Rate (USD)</Label>
           <Input
@@ -100,6 +107,13 @@ export const FreelancerStepRenderer = ({
             onChange={(e) => updateField("hourlyRate", e.target.value)}
           />
           
+             <Label>Daily Rate (USD) (Optional)</Label>
+          <Input
+            type="number"
+            placeholder="e.g., 400"
+            value={data.dailyRate || ""}
+            onChange={(e) => updateField("dailyRate", e.target.value)}
+          />
           <Label className="mt-4">Availability</Label>
           <RadioGroup value={data.availability || "full-time"} onValueChange={(value) => updateField("availability", value)}>
             <div className="flex items-center space-x-2">
@@ -116,13 +130,15 @@ export const FreelancerStepRenderer = ({
             </div>
           </RadioGroup>
         </div>
-      )
-    },
+      </TypingQuestion>
+    ),
     // Step 3: Work Preferences
-    {
-      icon: <Globe className="w-8 h-8 text-purple-500" />,
-      title: "Your work preferences",
-      content: (
+    () => (
+      <TypingQuestion 
+        question="What are your work preferences?"
+        icon={<Globe className="w-8 h-8 text-purple-500" />}
+        typingSpeed={30}
+      >
         <div className="space-y-4">
           <Label>Preferred Work Arrangement</Label>
           <RadioGroup value={data.workPreference || "remote"} onValueChange={(value) => updateField("workPreference", value)}>
@@ -156,13 +172,15 @@ export const FreelancerStepRenderer = ({
             </div>
           </RadioGroup>
         </div>
-      )
-    },
+      </TypingQuestion>
+    ),
     // Step 4: Portfolio
-    {
-      icon: <Target className="w-8 h-8 text-red-500" />,
-      title: "Share your portfolio",
-      content: (
+    () => (
+      <TypingQuestion 
+        question="Tell us about your portfolio"
+        icon={<Target className="w-8 h-8 text-red-500" />}
+        typingSpeed={30}
+      >
         <div className="space-y-4">
           <Label>Portfolio Website (Optional)</Label>
           <Input
@@ -188,13 +206,15 @@ export const FreelancerStepRenderer = ({
             rows={4}
           />
         </div>
-      )
-    },
+      </TypingQuestion>
+    ),
     // Step 5: Location
-    {
-      icon: <Globe className="w-8 h-8 text-indigo-500" />,
-      title: "Where are you based?",
-      content: (
+    () => (
+      <TypingQuestion 
+        question="Where are you based?"
+        icon={<Globe className="w-8 h-8 text-indigo-500" />}
+        typingSpeed={30}
+      >
         <div className="space-y-4">
           <Label>City, Country</Label>
           <Input
@@ -210,25 +230,33 @@ export const FreelancerStepRenderer = ({
             onChange={(e) => updateField("languages", e.target.value)}
           />
         </div>
-      )
-    },
+      </TypingQuestion>
+    ),
     // Step 6: Video Introduction
-    {
-      icon: <Camera className="w-8 h-8 text-pink-500" />,
-      title: "Create a video introduction (Optional)",
-      content: (
+    () => (
+      <TypingQuestion 
+        question="Would you like to create a video introduction?"
+        icon={<Camera className="w-8 h-8 text-pink-500" />}
+        typingSpeed={30}
+      >
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
             A video introduction helps clients get to know you better and can increase your chances of getting hired.
           </p>
           
           {!data.videoIntroduction && (
-            <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" onClick={openVideoRecording}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Button 
+                variant="outline" 
+                onClick={openVideoRecording}
+                className="flex items-center gap-2"
+              >
+                <Camera className="w-4 h-4" />
                 Record Video
               </Button>
               <Button variant="outline" asChild>
-                <label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Upload className="w-4 h-4" />
                   Upload Video
                   <input
                     type="file"
@@ -245,26 +273,39 @@ export const FreelancerStepRenderer = ({
           )}
           
           {videoAnalyzing && (
-            <div className="text-center py-4">
+            <div className="text-center py-6">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
               <p className="text-sm text-gray-600">Analyzing your video...</p>
             </div>
           )}
           
           {videoAnalysisResult && (
-            <Card>
+            <Card className="border-green-200 bg-green-50">
               <CardContent className="pt-4">
-                <p className="text-sm">{videoAnalysisResult}</p>
+                <div className="flex items-start gap-2">
+                  <div className="text-green-500 mt-0.5">✓</div>
+                  <p className="text-sm text-green-800">{videoAnalysisResult}</p>
+                </div>
               </CardContent>
             </Card>
           )}
           
           {data.videoIntroduction && !videoAnalyzing && (
-            <div className="text-center py-4">
-              <p className="text-green-600 font-medium">✓ Video uploaded successfully</p>
-              <Button variant="link" onClick={() => updateField("videoIntroduction", null)}>
-                Upload a different video
-              </Button>
-            </div>
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="pt-4">
+                <div className="text-center">
+                  <div className="text-blue-500 mb-2">✓</div>
+                  <p className="text-blue-800 font-medium">Video uploaded successfully!</p>
+                  <Button 
+                    variant="link" 
+                    onClick={() => updateField("videoIntroduction", null)}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    Upload a different video
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           )}
           
           <Button
@@ -275,19 +316,23 @@ export const FreelancerStepRenderer = ({
             {data.videoIntroduction ? "Continue" : "Skip for now"}
           </Button>
         </div>
-      )
-    }
+      </TypingQuestion>
+    )
   ];
 
-  const currentStepData = steps[currentStep];
+  const StepComponent = steps[currentStep];
+  
+  if (!StepComponent) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-center mb-4">
-        {currentStepData.icon}
-      </div>
-      <h3 className="text-lg font-semibold text-center">{currentStepData.title}</h3>
-      {currentStepData.content}
+      <StepComponent />
     </div>
   );
 };

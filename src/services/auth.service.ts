@@ -8,152 +8,95 @@ import {
   RefreshTokenRequest,
   PasswordChangeRequest,
   PasswordResetRequest,
-  PasswordResetConfirm 
-} from '../types/auth';
-import { trackDbOperation } from '../utils/performance';
+  PasswordResetConfirm,
+} from "../types/auth";
+import { trackDbOperation } from "../utils/performance";
 
 class AuthService {
+  private setSession(tokenResponse: TokenResponse): User {
+    if (!tokenResponse.access_token) throw new Error("Missing access_token");
+
+    apiClient.setToken(tokenResponse.access_token);
+    localStorage.setItem("refresh_token", tokenResponse.refresh_token);
+
+    const user: User = {
+      user_id: tokenResponse.user_id,
+      name: tokenResponse.user?.name || "",
+      email: tokenResponse.email,
+      account_type: tokenResponse.account_type,
+      skills: tokenResponse.user?.skills,
+      resume_link: tokenResponse.user?.resume_link,
+    };
+
+    localStorage.setItem("user", JSON.stringify(user));
+    return user;
+  }
+
   async register(userData: UserRegister): Promise<TokenResponse> {
-    const response = await apiClient.post<TokenResponse>('/auth/register', userData);
-    
-    // Store tokens and user data
-    if (response.access_token) {
-      apiClient.setToken(response.access_token);
-      localStorage.setItem('refresh_token', response.refresh_token);
-      
-      // Construct user object from flat response
-      const user: User = {
-        user_id: response.user_id,
-        name: '', // Will be loaded from profile
-        email: response.email,
-        account_type: response.account_type as 'job_seeker' | 'employer' | 'admin' | 'freelancer'
-      };
-      localStorage.setItem('user', JSON.stringify(user));
-    }
-    
+    const response = await apiClient.post<TokenResponse>(
+      "/auth/register",
+      userData
+    );
+    this.setSession(response);
     return response;
   }
 
   async login(credentials: UserLogin): Promise<TokenResponse> {
-    return trackDbOperation('User Login', async () => {
-      const response = await apiClient.post<TokenResponse>('/auth/login', credentials);
-      
-      // Store tokens and user data
-      if (response.access_token) {
-        apiClient.setToken(response.access_token);
-        localStorage.setItem('refresh_token', response.refresh_token);
-        
-        // Construct user object from flat response
-        const user: User = {
-          user_id: response.user_id,
-          name: '', // Will be loaded from profile
-          email: response.email,
-          account_type: response.account_type as 'job_seeker' | 'employer' | 'admin' | 'freelancer'
-        };
-        localStorage.setItem('user', JSON.stringify(user));
-      }
-      
+    return trackDbOperation("User Login", async () => {
+      const response = await apiClient.post<TokenResponse>(
+        "/auth/login",
+        credentials
+      );
+      this.setSession(response);
       return response;
     });
   }
 
   async logout(): Promise<void> {
-    // Clear all stored data
     apiClient.setToken(null);
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('visiondrillUser'); // Clear old mock data
-    localStorage.removeItem('visiondrillImpersonation');
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("visiondrillImpersonation");
   }
 
   async refreshToken(): Promise<TokenResponse> {
-    const refreshToken = localStorage.getItem('refresh_token');
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
+    const refreshToken = localStorage.getItem("refresh_token");
+    if (!refreshToken) throw new Error("No refresh token available");
 
     const request: RefreshTokenRequest = { refresh_token: refreshToken };
-    const response = await apiClient.post<TokenResponse>('/auth/refresh', request);
-    
-    // Update stored tokens
-    if (response.access_token) {
-      apiClient.setToken(response.access_token);
-      localStorage.setItem('refresh_token', response.refresh_token);
-      
-      // Construct user object from token response
-      const user: User = {
-        user_id: response.user_id,
-        name: '', // Will be loaded from profile
-        email: response.email,
-        account_type: response.account_type as 'job_seeker' | 'employer' | 'admin' | 'freelancer'
-      };
-      localStorage.setItem('user', JSON.stringify(user));
-    }
-    
+    const response = await apiClient.post<TokenResponse>(
+      "/auth/refresh",
+      request
+    );
+    this.setSession(response);
     return response;
   }
 
   async getCurrentUser(): Promise<User> {
-    const response = await apiClient.get<{ user_id: string; email: string; account_type: string }>('/auth/me');
+    const response = await apiClient.get<{
+      user_id: string;
+      email: string;
+      account_type: string;
+    }>("/auth/me");
     return {
       user_id: response.user_id,
-      name: '', // Will be filled from profile
+      name: "",
       email: response.email,
-      account_type: response.account_type as 'job_seeker' | 'employer' | 'admin' | 'freelancer'
+      account_type: response.account_type as User["account_type"],
     };
   }
 
-  async changePassword(passwordChange: PasswordChangeRequest): Promise<{ message: string }> {
-    return await apiClient.post<{ message: string }>('/auth/change-password', passwordChange);
-  }
-
-  async resetPassword(resetRequest: PasswordResetRequest): Promise<{ message: string }> {
-    return await apiClient.post<{ message: string }>('/auth/reset-password', resetRequest);
-  }
-
-  async confirmPasswordReset(confirmRequest: PasswordResetConfirm): Promise<{ message: string }> {
-    return await apiClient.post<{ message: string }>('/auth/reset-password/confirm', confirmRequest);
-  }
-
-  async registerAdmin(userData: UserRegister): Promise<TokenResponse> {
-    const response = await apiClient.post<TokenResponse>('/auth/register/admin', userData);
-    
-    if (response.access_token) {
-      apiClient.setToken(response.access_token);
-      localStorage.setItem('refresh_token', response.refresh_token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-    }
-    
-    return response;
-  }
-
-  async registerFirstAdmin(userData: UserRegister): Promise<TokenResponse> {
-    const response = await apiClient.post<TokenResponse>('/auth/register/first-admin', userData);
-    
-    if (response.access_token) {
-      apiClient.setToken(response.access_token);
-      localStorage.setItem('refresh_token', response.refresh_token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-    }
-    
-    return response;
-  }
-
-  // Helper methods
   isAuthenticated(): boolean {
-    const token = apiClient.getToken();
-    const user = this.getStoredUser();
-    return !!(token && user);
+    return !!(apiClient.getToken() && this.getStoredUser());
   }
 
   getStoredUser(): User | null {
-    const userStr = localStorage.getItem('user');
-    if (userStr && userStr !== 'undefined') {
+    const userStr = localStorage.getItem("user");
+    if (userStr && userStr !== "undefined") {
       try {
         return JSON.parse(userStr);
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
-        localStorage.removeItem('user');
+      } catch {
+        localStorage.removeItem("user");
       }
     }
     return null;
@@ -246,7 +189,6 @@ async signInWithLinkedIn(): Promise<void> {
         email: supabaseUser.email!,
         name: linkedinProfile?.full_name || linkedinProfile?.name || 'LinkedIn User',
         linkedin_id: supabaseUser.id,
-        profile_image: linkedinProfile?.avatar_url || linkedinProfile?.picture,
         account_type: 'job_seeker' as const, // Default to job_seeker, can be changed later
       };
 
@@ -255,7 +197,6 @@ async signInWithLinkedIn(): Promise<void> {
         supabase_user_id: supabaseUser.id,
         email: supabaseUser.email,
         name: userData.name,
-        profile_image: userData.profile_image,
         linkedin_data: linkedinProfile,
       });
 

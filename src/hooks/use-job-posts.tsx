@@ -1,8 +1,6 @@
-
 import { create } from "zustand";
 import { toast } from "sonner";
 import { jobsService } from "../services/jobs.service";
-
 
 export interface JobPost {
   id: string;
@@ -15,6 +13,19 @@ export interface JobPost {
   datePosted: string;
   applicants: number;
   views: number;
+  company: string; // ✅ added
+  requirements: string; // ✅ added
+}
+
+// This matches what you send to the API
+export interface JobCreate {
+  title: string;
+  description: string;
+  location: string;
+  job_type: string;
+  salary_range: string;
+  company: string;
+  requirements: string;
 }
 
 export interface JobFilters {
@@ -29,7 +40,8 @@ interface JobStore {
   jobs: JobPost[];
   filteredJobs: JobPost[];
   filters: JobFilters;
-  addJob: (job: JobPost) => void;
+  fetchJobs: () => Promise<void>;
+  createJob: (jobData: JobCreate) => Promise<void>; // ✅ fixed type
   removeJob: (id: string) => void;
   updateJob: (id: string, updatedJob: Partial<JobPost>) => void;
   getJob: (id: string) => JobPost | undefined;
@@ -37,90 +49,100 @@ interface JobStore {
   resetFilters: () => void;
 }
 
-// Enhanced sample job data
-const initialJobs: JobPost[] = [];
-
 export const useJobPosts = create<JobStore>((set, get) => ({
   jobs: [],
   filteredJobs: [],
   filters: {
-    jobType: 'all',
+    jobType: "all",
     dateRange: 30,
     boostedOnly: false,
-    searchQuery: '',
-    location: 'all',
+    searchQuery: "",
+    location: "all",
   },
 
   fetchJobs: async () => {
     try {
       const response = await jobsService.getJobs();
-      // Map API jobs to JobPost UI shape
-      const mappedJobs: JobPost[] = response.jobs.map(job => ({
+      const mappedJobs: JobPost[] = response.jobs.map((job: any) => ({
         id: job.job_id,
         title: job.title,
-        description: job.description ?? '',
+        description: job.description ?? "",
         location: job.location,
-        type: job.job_type ?? 'Full-time',
-        salary: job.salary_range ?? '',
-        isBoosted: false, // No field in API, default false
+        type: job.job_type ?? "Full-time",
+        salary: job.salary_range ?? "",
+        company: job.company ?? "", // ✅ map
+        requirements: job.requirements ?? "", // ✅ map
+        isBoosted: false,
         datePosted: job.created_at,
         applicants: job.application_count ?? 0,
-        views: 0, // No field in API, default 0
+        views: 0,
       }));
       set({
         jobs: mappedJobs,
-        filteredJobs: mappedJobs,
+        filteredJobs: applyFilters(mappedJobs, get().filters),
       });
     } catch (error) {
-      console.error('Failed to fetch jobs:', error);
-      toast.error('Failed to load jobs');
+      console.error("Failed to fetch jobs:", error);
+      toast.error("Failed to load jobs");
     }
   },
 
-  addJob: (job) => {
-    set((state) => {
-      const newJobs = [...state.jobs, job];
-      return {
-        jobs: newJobs,
-        filteredJobs: applyFilters(newJobs, state.filters),
+  createJob: async (jobData) => {
+    try {
+      const newJob = await jobsService.createJob(jobData);
+      const job: JobPost = {
+        id: newJob.job_id,
+        title: newJob.title,
+        description: newJob.description ?? "",
+        location: newJob.location,
+        type: newJob.job_type ?? "Full-time",
+        salary: newJob.salary_range ?? "",
+        company: newJob.company ?? "",
+        requirements: newJob.requirements ?? "",
+        isBoosted: false,
+        datePosted: newJob.created_at,
+        applicants: 0,
+        views: 0,
       };
-    });
-    toast.success("Job posted successfully!");
+      set((state) => {
+        const updated = [...state.jobs, job];
+        return {
+          jobs: updated,
+          filteredJobs: applyFilters(updated, state.filters),
+        };
+      });
+      toast.success("Job posted successfully!");
+    } catch (error) {
+      console.error("Failed to create job:", error);
+      toast.error("Failed to post job");
+    }
   },
 
   removeJob: (id) => {
-    const jobToRemove = get().jobs.find(job => job.id === id);
-    if (jobToRemove) {
-      set((state) => {
-        const newJobs = state.jobs.filter(job => job.id !== id);
-        return {
-          jobs: newJobs,
-          filteredJobs: applyFilters(newJobs, state.filters),
-        };
-      });
-      toast.success(`Job "${jobToRemove.title}" has been deleted.`);
-    }
+    set((state) => {
+      const updated = state.jobs.filter((j) => j.id !== id);
+      return {
+        jobs: updated,
+        filteredJobs: applyFilters(updated, state.filters),
+      };
+    });
+    toast.success("Job deleted");
   },
 
   updateJob: (id, updatedJob) => {
-    const jobs = get().jobs;
-    const jobIndex = jobs.findIndex(job => job.id === id);
-    
-    if (jobIndex !== -1) {
-      const updatedJobs = [...jobs];
-      updatedJobs[jobIndex] = { ...updatedJobs[jobIndex], ...updatedJob };
-      
-      set((state) => ({
-        jobs: updatedJobs,
-        filteredJobs: applyFilters(updatedJobs, state.filters),
-      }));
-      toast.success(`Job updated successfully.`);
-    }
+    set((state) => {
+      const updated = state.jobs.map((job) =>
+        job.id === id ? { ...job, ...updatedJob } : job
+      );
+      return {
+        jobs: updated,
+        filteredJobs: applyFilters(updated, state.filters),
+      };
+    });
+    toast.success("Job updated");
   },
 
-  getJob: (id) => {
-    return get().jobs.find(job => job.id === id);
-  },
+  getJob: (id) => get().jobs.find((job) => job.id === id),
 
   updateFilters: (newFilters) => {
     set((state) => {
@@ -134,11 +156,11 @@ export const useJobPosts = create<JobStore>((set, get) => ({
 
   resetFilters: () => {
     const defaultFilters = {
-      jobType: 'all',
+      jobType: "all",
       dateRange: 30,
       boostedOnly: false,
-      searchQuery: '',
-      location: 'all',
+      searchQuery: "",
+      location: "all",
     };
     set((state) => ({
       filters: defaultFilters,
@@ -147,46 +169,40 @@ export const useJobPosts = create<JobStore>((set, get) => ({
   },
 }));
 
-
-// Enhanced filter function
 function applyFilters(jobs: JobPost[], filters: JobFilters): JobPost[] {
-  return jobs.filter(job => {
-    // Filter by job type
-    if (filters.jobType && filters.jobType !== 'all' && job.type !== filters.jobType) {
+  return jobs.filter((job) => {
+    if (
+      filters.jobType &&
+      filters.jobType !== "all" &&
+      job.type !== filters.jobType
+    ) {
       return false;
     }
-    
-    // Filter by location
-    if (filters.location && filters.location !== 'all' && !job.location.toLowerCase().includes(filters.location.toLowerCase())) {
+    if (
+      filters.location &&
+      filters.location !== "all" &&
+      !job.location.toLowerCase().includes(filters.location.toLowerCase())
+    ) {
       return false;
     }
-    
-    // Filter by date range
     if (filters.dateRange) {
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - filters.dateRange);
-      if (new Date(job.datePosted) < cutoffDate) {
-        return false;
-      }
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - filters.dateRange);
+      if (new Date(job.datePosted) < cutoff) return false;
     }
-    
-    // Filter by boosted status
-    if (filters.boostedOnly && !job.isBoosted) {
-      return false;
-    }
-    
-    // Filter by search query
-    if (filters.searchQuery && filters.searchQuery.trim() !== '') {
-      const query = filters.searchQuery.toLowerCase();
+    if (filters.boostedOnly && !job.isBoosted) return false;
+    if (filters.searchQuery && filters.searchQuery.trim() !== "") {
+      const q = filters.searchQuery.toLowerCase();
       return (
-        job.title.toLowerCase().includes(query) ||
-        job.description.toLowerCase().includes(query) ||
-        job.location.toLowerCase().includes(query) ||
-        job.type.toLowerCase().includes(query) ||
-        job.salary.toLowerCase().includes(query)
+        job.title.toLowerCase().includes(q) ||
+        job.description.toLowerCase().includes(q) ||
+        job.location.toLowerCase().includes(q) ||
+        job.type.toLowerCase().includes(q) ||
+        job.salary.toLowerCase().includes(q)
       );
     }
-    
     return true;
   });
 }
+
+export default useJobPosts;

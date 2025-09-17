@@ -1,22 +1,22 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Search, MapPin, Star, DollarSign, Filter } from 'lucide-react';
-import { freelancerService } from '@/services/freelancer.service';
-import { FreelancerListItem, FreelancerFilter } from '@/types/freelancer';
-import { toast } from 'sonner';
-import Layout from '@/components/layout/Layout';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Search, MapPin, Star, DollarSign, Filter } from "lucide-react";
+import { freelancerService } from "@/services/freelancer.service";
+import { FreelancerListItem, FreelancerFilter } from "@/types/freelancer";
+import { toast } from "sonner";
+import Layout from "@/components/layout/Layout";
 
 export default function Freelancers() {
   const navigate = useNavigate();
   const [freelancers, setFreelancers] = useState<FreelancerListItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<FreelancerFilter>({
     available_only: true,
   });
@@ -39,8 +39,8 @@ export default function Freelancers() {
       setFreelancers(response.freelancers);
       setTotal(response.total);
     } catch (error) {
-      console.error('Error loading freelancers:', error);
-      toast.error('Failed to load freelancers');
+      console.error("Error loading freelancers:", error);
+      toast.error("Failed to load freelancers");
     } finally {
       setLoading(false);
     }
@@ -58,9 +58,9 @@ export default function Freelancers() {
 
   const getInitials = (name: string) => {
     return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
@@ -98,7 +98,12 @@ export default function Freelancers() {
               <Badge
                 variant={filters.available_only ? "default" : "outline"}
                 className="cursor-pointer"
-                onClick={() => setFilters({ ...filters, available_only: !filters.available_only })}
+                onClick={() =>
+                  setFilters({
+                    ...filters,
+                    available_only: !filters.available_only,
+                  })
+                }
               >
                 Available Now
               </Badge>
@@ -124,7 +129,9 @@ export default function Freelancers() {
             </div>
           ) : freelancers.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500 dark:text-gray-400">No freelancers found</p>
+              <p className="text-gray-500 dark:text-gray-400">
+                No freelancers found
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -132,13 +139,17 @@ export default function Freelancers() {
                 <Card
                   key={freelancer.freelancer_id}
                   className="hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => handleFreelancerClick(freelancer.freelancer_id)}
+                  onClick={() =>
+                    handleFreelancerClick(freelancer.freelancer_id)
+                  }
                 >
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <Avatar className="h-12 w-12">
                         <AvatarImage src={freelancer.profile_image_url} />
-                        <AvatarFallback>{getInitials(freelancer.name)}</AvatarFallback>
+                        <AvatarFallback>
+                          {getInitials(freelancer.name)}
+                        </AvatarFallback>
                       </Avatar>
                       {freelancer.available_for_hire && (
                         <Badge variant="success" className="text-xs">
@@ -147,7 +158,9 @@ export default function Freelancers() {
                       )}
                     </div>
 
-                    <h3 className="font-semibold text-lg mb-1">{freelancer.name}</h3>
+                    <h3 className="font-semibold text-lg mb-1">
+                      {freelancer.name}
+                    </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                       {freelancer.title}
                     </p>
@@ -158,7 +171,11 @@ export default function Freelancers() {
                     {/* Skills */}
                     <div className="flex flex-wrap gap-1 mb-4">
                       {freelancer.skills.slice(0, 3).map((skill, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="text-xs"
+                        >
                           {skill}
                         </Badge>
                       ))}
@@ -187,7 +204,9 @@ export default function Freelancers() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                        <span className="font-medium">{freelancer.rating.toFixed(1)}</span>
+                        <span className="font-medium">
+                          {freelancer.rating.toFixed(1)}
+                        </span>
                         <span className="text-gray-500 dark:text-gray-400">
                           ({freelancer.total_reviews})
                         </span>

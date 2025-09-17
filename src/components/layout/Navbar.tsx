@@ -1,10 +1,8 @@
-
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, Shield, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-// ThemeToggle removed
 import { useAuth } from "@/hooks/use-auth";
 import {
   DropdownMenu,
@@ -20,7 +18,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout, refreshProfile } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -34,33 +32,34 @@ const Navbar = () => {
   const getDashboardUrl = () => {
     if (!user) return "/";
     switch (user.account_type) {
-      case 'admin':
-        return '/admin/dashboard';
-      case 'employer':
-        return '/employer/dashboard';
-      case 'job_seeker':
-        return '/jobseeker/dashboard';
-      case 'freelancer':
-        return '/freelancer/dashboard';
+      case "admin":
+        return "/admin/dashboard";
+      case "employer":
+        return "/employer/dashboard";
+      case "job_seeker":
+        return "/jobseeker/dashboard";
+      case "freelancer":
+        return "/freelancer/dashboard";
       default:
-        return '/';
+        return "/";
     }
   };
 
   const getDashboardLink = () => {
     if (!isAuthenticated || !user) return null;
-    
+
     const dashboardUrl = getDashboardUrl();
-    const dashboardName = user.account_type === 'admin' ? 'Admin Dashboard' : 'Dashboard';
-    
+    const dashboardName =
+      user.account_type === "admin" ? "Admin Dashboard" : "Dashboard";
+
     return {
       name: dashboardName,
       href: dashboardUrl,
-      icon: user.account_type === 'admin' ? Shield : User
+      icon: user.account_type === "admin" ? Shield : User,
     };
   };
 
-  // Build navigation dynamically based on user authentication and role
+  // Base navigation for everyone
   const baseNavigation = [
     { name: "Home", href: "/" },
     { name: "Jobs", href: "/jobs" },
@@ -73,29 +72,33 @@ const Navbar = () => {
     { name: "Insights", href: "/insights" },
   ];
 
-  // Filter navigation based on user role
+  // Role-based navigation filtering
   let navigation = baseNavigation;
-  
+
   if (isAuthenticated && user) {
-    if (user.account_type === 'employer') {
-      // For employers, only show Freelancers, Insights, and Dashboard
+    if (user.account_type === "employer") {
+      // Employers see Freelancers, Insights, and custom pages
       navigation = [
         { name: "Freelancers", href: "/freelancers" },
         { name: "Insights", href: "/insights" },
+        { name: "Jobs", href: "/employer/jobs" }, // employer's posted jobs
+        { name: "Projects", href: "/employer/projects" }, // employer's projects
+        { name: "Boosting Services", href: "/employer/boosting-services" }, // boosting page
       ];
-    } else if (user.account_type === 'job_seeker' || user.account_type === 'freelancer') {
-      // For job seekers and freelancers, filter out Freelancers and Insights pages
-      navigation = baseNavigation.filter(item => 
-        item.name !== "Freelancers" && item.name !== "Insights"
+    } else if (
+      user.account_type === "job_seeker" ||
+      user.account_type === "freelancer"
+    ) {
+      // Job seekers/freelancers don’t see Freelancers or Insights
+      navigation = baseNavigation.filter(
+        (item) => item.name !== "Freelancers" && item.name !== "Insights"
       );
-      // Add Profile to navigation
       navigation = [...navigation, { name: "Profile", href: "/profile" }];
     } else {
-      // For other users (admin), add Profile to navigation
+      // Admin or other accounts
       navigation = [...baseNavigation, { name: "Profile", href: "/profile" }];
     }
   }
-
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -103,6 +106,7 @@ const Navbar = () => {
     <nav className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b border-border/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
+          {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
               <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
@@ -128,37 +132,49 @@ const Navbar = () => {
             ))}
           </div>
 
+          {/* Desktop right side */}
           <div className="hidden md:flex md:items-center md:space-x-2">
-            {/* Dashboard Link - Show for authenticated users */}
-            {isAuthenticated && user && (() => {
-              const dashboardInfo = getDashboardLink();
-              if (!dashboardInfo) return null;
-              
-              const Icon = dashboardInfo.icon;
-              const isDashboardActive = location.pathname.startsWith(dashboardInfo.href) || 
-                                      (user.account_type === 'admin' && location.pathname.startsWith('/admin')) ||
-                                      (user.account_type === 'employer' && location.pathname.startsWith('/employer')) ||
-                                      (user.account_type === 'job_seeker' && location.pathname.startsWith('/jobseeker'));
-              
-              return (
-                <Link
-                  to={dashboardInfo.href}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isDashboardActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {dashboardInfo.name}
-                </Link>
-              );
-            })()}
-            
+            {/* Dashboard link */}
+            {isAuthenticated &&
+              user &&
+              (() => {
+                const dashboardInfo = getDashboardLink();
+                if (!dashboardInfo) return null;
+
+                const Icon = dashboardInfo.icon;
+                const isDashboardActive =
+                  location.pathname.startsWith(dashboardInfo.href) ||
+                  (user.account_type === "admin" &&
+                    location.pathname.startsWith("/admin")) ||
+                  (user.account_type === "employer" &&
+                    location.pathname.startsWith("/employer")) ||
+                  (user.account_type === "job_seeker" &&
+                    location.pathname.startsWith("/jobseeker"));
+
+                return (
+                  <Link
+                    to={dashboardInfo.href}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isDashboardActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {dashboardInfo.name}
+                  </Link>
+                );
+              })()}
+
+            {/* User menu */}
             {isAuthenticated && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
                     <User className="h-4 w-4" />
                     {user.name}
                   </Button>
@@ -166,7 +182,10 @@ const Navbar = () => {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="text-red-600"
+                  >
                     <LogOut className="h-4 w-4 mr-2" />
                     Log out
                   </DropdownMenuItem>
@@ -180,9 +199,7 @@ const Navbar = () => {
                   </Button>
                 </Link>
                 <Link to="/signup">
-                  <Button size="sm">
-                    Sign up
-                  </Button>
+                  <Button size="sm">Sign up</Button>
                 </Link>
               </>
             )}
@@ -195,7 +212,11 @@ const Navbar = () => {
               onClick={toggleMenu}
               className="inline-flex items-center justify-center p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary transition-colors"
             >
-              {isMenuOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
+              {isMenuOpen ? (
+                <X className="block h-6 w-6" />
+              ) : (
+                <Menu className="block h-6 w-6" />
+              )}
             </button>
           </div>
         </div>
@@ -220,41 +241,47 @@ const Navbar = () => {
               </Link>
             ))}
             <div className="pt-4 pb-3 border-t border-border">
-              {/* Dashboard Link - Show for authenticated users */}
-              {isAuthenticated && user && (() => {
-                const dashboardInfo = getDashboardLink();
-                if (!dashboardInfo) return null;
-                
-                const Icon = dashboardInfo.icon;
-                const isDashboardActive = location.pathname.startsWith(dashboardInfo.href) || 
-                                        (user.account_type === 'admin' && location.pathname.startsWith('/admin')) ||
-                                        (user.account_type === 'employer' && location.pathname.startsWith('/employer')) ||
-                                        (user.account_type === 'job_seeker' && location.pathname.startsWith('/jobseeker'));
-                
-                return (
-                  <div className="flex items-center px-3 space-x-2">
-                    <Link
-                      to={dashboardInfo.href}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base font-medium transition-colors ${
-                        isDashboardActive
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                      }`}
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <Icon className="h-4 w-4" />
-                      {dashboardInfo.name}
-                    </Link>
-                  </div>
-                );
-              })()}
+              {/* Dashboard Link */}
+              {isAuthenticated &&
+                user &&
+                (() => {
+                  const dashboardInfo = getDashboardLink();
+                  if (!dashboardInfo) return null;
+
+                  const Icon = dashboardInfo.icon;
+                  const isDashboardActive =
+                    location.pathname.startsWith(dashboardInfo.href) ||
+                    (user.account_type === "admin" &&
+                      location.pathname.startsWith("/admin")) ||
+                    (user.account_type === "employer" &&
+                      location.pathname.startsWith("/employer")) ||
+                    (user.account_type === "job_seeker" &&
+                      location.pathname.startsWith("/jobseeker"));
+
+                  return (
+                    <div className="flex items-center px-3 space-x-2">
+                      <Link
+                        to={dashboardInfo.href}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base font-medium transition-colors ${
+                          isDashboardActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                        }`}
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <Icon className="h-4 w-4" />
+                        {dashboardInfo.name}
+                      </Link>
+                    </div>
+                  );
+                })()}
               <div className="mt-3 px-2 space-y-1">
                 {isAuthenticated && user ? (
                   <>
                     <div className="px-3 py-2 text-base font-medium text-muted-foreground">
                       Signed in as {user.name}
                     </div>
-                    {user.account_type !== 'employer' && (
+                    {user.account_type !== "employer" && (
                       <Link
                         to="/profile"
                         className="block px-3 py-2 rounded-lg text-base font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"

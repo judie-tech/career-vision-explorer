@@ -1,32 +1,32 @@
-
 import React, { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { 
+import {
   Dialog,
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  Form, 
-  FormControl, 
-  FormDescription, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Edit } from "lucide-react";
-import { useJobPosts, JobPost } from "@/hooks/use-job-posts";
+import useJobPosts, { JobPost } from "@/hooks/use-job-posts";
+
 import { toast } from "sonner";
 
 const formSchema = z.object({
@@ -47,7 +47,7 @@ interface EditJobDialogProps {
 export function EditJobDialog({ job }: EditJobDialogProps) {
   const { updateJob } = useJobPosts();
   const [open, setOpen] = useState(false);
-  
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -89,13 +89,16 @@ export function EditJobDialog({ job }: EditJobDialogProps) {
                 <FormItem>
                   <FormLabel>Job Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Senior Frontend Developer" {...field} />
+                    <Input
+                      placeholder="e.g., Senior Frontend Developer"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="description"
@@ -103,9 +106,9 @@ export function EditJobDialog({ job }: EditJobDialogProps) {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Detail the job responsibilities and requirements" 
-                      {...field} 
+                    <Textarea
+                      placeholder="Detail the job responsibilities and requirements"
+                      {...field}
                       rows={3}
                     />
                   </FormControl>
@@ -113,7 +116,7 @@ export function EditJobDialog({ job }: EditJobDialogProps) {
                 </FormItem>
               )}
             />
-            
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -122,13 +125,16 @@ export function EditJobDialog({ job }: EditJobDialogProps) {
                   <FormItem>
                     <FormLabel>Location</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Remote, New York, etc." {...field} />
+                      <Input
+                        placeholder="e.g., Remote, New York, etc."
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="type"
@@ -136,14 +142,17 @@ export function EditJobDialog({ job }: EditJobDialogProps) {
                   <FormItem>
                     <FormLabel>Job Type</FormLabel>
                     <FormControl>
-                      <Input placeholder="Full-time, Part-time, Contract" {...field} />
+                      <Input
+                        placeholder="Full-time, Part-time, Contract"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-            
+
             <FormField
               control={form.control}
               name="salary"
@@ -157,7 +166,7 @@ export function EditJobDialog({ job }: EditJobDialogProps) {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="isBoosted"
@@ -178,9 +187,13 @@ export function EditJobDialog({ job }: EditJobDialogProps) {
                 </FormItem>
               )}
             />
-            
+
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit">Update Job</Button>
