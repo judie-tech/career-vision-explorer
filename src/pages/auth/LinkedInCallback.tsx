@@ -12,7 +12,15 @@ const LinkedInCallback: React.FC = () => {
   const { setTokens } = useAuth();
 
   useEffect(() => {
+    let isProcessing = false;
+    
     const handleCallback = async () => {
+      if (isProcessing) {
+        console.log('🔍 LinkedInCallback: Already processing, skipping');
+        return;
+      }
+      
+      isProcessing = true;
       try {
         console.log('🔍 LinkedInCallback: Starting callback handling');
         console.log('🔍 Current URL:', window.location.href);
@@ -154,10 +162,17 @@ const LinkedInCallback: React.FC = () => {
           description: error.message || 'Failed to complete LinkedIn login. Please try again.'
         });
         navigate('/login?error=auth_failed');
+      } finally {
+        isProcessing = false;
       }
     };
 
     handleCallback();
+    
+    // Cleanup function
+    return () => {
+      isProcessing = false;
+    };
   }, [location, navigate, setTokens]);
 
   return (

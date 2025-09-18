@@ -1,15 +1,12 @@
-
 import { Routes, Route } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
 import { useLocation } from "react-router-dom";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { Skeleton } from "@/components/ui/skeleton";
 
 // Lazy load major pages
 const Index = lazy(() => import("@/pages/Index"));
 const Login = lazy(() => import("@/pages/Login"));
 const Signup = lazy(() => import("@/pages/Signup"));
-const OAuthCallback = lazy(() => import("@/pages/auth/OAuthCallback"));
 const LinkedInCallback = lazy(() => import("@/pages/auth/LinkedInCallback"));
 const Jobs = lazy(() => import("@/pages/Jobs"));
 const JobDetails = lazy(() => import("@/pages/JobDetails"));
@@ -20,32 +17,10 @@ const Skills = lazy(() => import("@/pages/Skills"));
 const CareerPaths = lazy(() => import("@/pages/CareerPaths"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 
-// Lazy load admin pages
+// Admin
 const AdminLogin = lazy(() => import("@/pages/admin/AdminLogin"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
-const JobSeekerDashboard = lazy(() => import("@/pages/jobseeker/JobSeekerDashboard"));
 const AdminAPI = lazy(() => import("@/pages/admin/AdminAPI"));
-
-// Lazy load employer pages
-const EmployerDashboard = lazy(() => import("@/pages/employer/EmployerDashboard"));
-
-// Other pages that are loaded less frequently
-const About = lazy(() => import("@/pages/About"));
-const Blog = lazy(() => import("@/pages/Blog"));
-const Help = lazy(() => import("@/pages/Help"));
-const Contact = lazy(() => import("@/pages/Contact"));
-const FAQ = lazy(() => import("@/pages/FAQ"));
-const Privacy = lazy(() => import("@/pages/Privacy"));
-const Terms = lazy(() => import("@/pages/Terms"));
-const LearningPaths = lazy(() => import("@/pages/LearningPaths"));
-const Partners = lazy(() => import("@/pages/Partners"));
-const Insights = lazy(() => import("@/pages/Insights"));
-const JobSeekerSettings = lazy(() => import("@/pages/jobseeker/JobSeekerSettings"));
-const InterviewPrep = lazy(() => import("@/pages/InterviewPrep"));
-const SkillGapAnalysis = lazy(() => import("@/pages/SkillGapAnalysis"));
-const EnhancedSkillAnalysis = lazy(() => import("@/pages/EnhancedSkillAnalysis"));
-const AIJobMatching = lazy(() => import("@/pages/AIJobMatching"));
-const JobMatching = lazy(() => import("@/pages/JobMatching"));
 const AdminUsers = lazy(() => import("@/pages/admin/AdminUsers"));
 const AdminJobseekers = lazy(() => import("@/pages/admin/AdminJobseekers"));
 const AdminJobs = lazy(() => import("@/pages/admin/AdminJobs"));
@@ -57,36 +32,84 @@ const AdminContent = lazy(() => import("@/pages/admin/AdminContent"));
 const AdminInsights = lazy(() => import("@/pages/admin/AdminInsights"));
 const AdminSettings = lazy(() => import("@/pages/admin/AdminSettings"));
 const AdminProfiles = lazy(() => import("@/pages/admin/AdminProfiles"));
+
+// Employer
+const EmployerDashboard = lazy(
+  () => import("@/pages/employer/EmployerDashboard")
+);
 const EmployerJobs = lazy(() => import("@/pages/employer/EmployerJobs"));
+const EmployerProjects = lazy(() => import("@/pages/EmployerProjects"));
+const EmployerBoostingServices = lazy(
+  () => import("@/pages/BoostingServicesPage")
+);
 const JobApplicants = lazy(() => import("@/pages/employer/JobApplicants"));
 const AllApplicants = lazy(() => import("@/pages/employer/AllApplicants"));
-const EmployerInterviews = lazy(() => import("@/pages/employer/EmployerInterviews"));
-const InterviewSchedule = lazy(() => import("@/pages/employer/InterviewSchedule"));
+const EmployerInterviews = lazy(
+  () => import("@/pages/employer/EmployerInterviews")
+);
+const InterviewSchedule = lazy(
+  () => import("@/pages/employer/InterviewSchedule")
+);
 
-// Freelancer pages
+// Jobseeker
+const JobSeekerDashboard = lazy(
+  () => import("@/pages/jobseeker/JobSeekerDashboard")
+);
+const JobSeekerSettings = lazy(
+  () => import("@/pages/jobseeker/JobSeekerSettings")
+);
+
+// Freelancer
 const Freelancers = lazy(() => import("@/pages/Freelancers"));
 const FreelancerProfile = lazy(() => import("@/pages/FreelancerProfile"));
-const FreelancerDashboard = lazy(() => import("@/pages/freelancer/FreelancerDashboard"));
-const CreateFreelancerProfile = lazy(() => import("@/pages/freelancer/CreateFreelancerProfile"));
+const FreelancerDashboard = lazy(
+  () => import("@/pages/freelancer/FreelancerDashboard")
+);
+const CreateFreelancerProfile = lazy(
+  () => import("@/pages/freelancer/CreateFreelancerProfile")
+);
 
-// Lightweight loading component
+// Other
+const About = lazy(() => import("@/pages/About"));
+const Blog = lazy(() => import("@/pages/Blog"));
+const Help = lazy(() => import("@/pages/Help"));
+const Contact = lazy(() => import("@/pages/Contact"));
+const FAQ = lazy(() => import("@/pages/FAQ"));
+const Privacy = lazy(() => import("@/pages/Privacy"));
+const Terms = lazy(() => import("@/pages/Terms"));
+const LearningPaths = lazy(() => import("@/pages/LearningPaths"));
+const Partners = lazy(() => import("@/pages/Partners"));
+const Insights = lazy(() => import("@/pages/Insights"));
+const InterviewPrep = lazy(() => import("@/pages/InterviewPrep"));
+const SkillGapAnalysis = lazy(() => import("@/pages/SkillGapAnalysis"));
+const EnhancedSkillAnalysis = lazy(
+  () => import("@/pages/EnhancedSkillAnalysis")
+);
+const AIJobMatching = lazy(() => import("@/pages/AIJobMatching"));
+const JobMatching = lazy(() => import("@/pages/JobMatching"));
+
+// Loader
 const PageLoader = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
     <div className="flex items-center gap-2">
       <div className="w-4 h-4 bg-primary rounded-full animate-pulse"></div>
-      <div className="w-4 h-4 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-      <div className="w-4 h-4 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+      <div
+        className="w-4 h-4 bg-primary rounded-full animate-pulse"
+        style={{ animationDelay: "0.2s" }}
+      ></div>
+      <div
+        className="w-4 h-4 bg-primary rounded-full animate-pulse"
+        style={{ animationDelay: "0.4s" }}
+      ></div>
     </div>
   </div>
 );
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
-
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
-
   return null;
 };
 
@@ -96,335 +119,524 @@ export const AppRoutes = () => {
       <ScrollToTop />
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={
-          <Suspense fallback={<PageLoader />}>
-            <Index />
-          </Suspense>
-        } />
-        <Route path="/login" element={
-          <Suspense fallback={<PageLoader />}>
-            <Login />
-          </Suspense>
-        } />
-        <Route path="/signup" element={
-          <Suspense fallback={<PageLoader />}>
-            <Signup />
-          </Suspense>
-        } />
-        <Route path="/auth/callback" element={
-          <Suspense fallback={<PageLoader />}>
-            <LinkedInCallback />
-          </Suspense>
-        } />
-        <Route path="/profile/:id" element={
-          <Suspense fallback={<PageLoader />}>
-            <PublicProfile />
-          </Suspense>
-        } />
-        <Route path="/jobs" element={
-          <Suspense fallback={<PageLoader />}>
-            <Jobs />
-          </Suspense>
-        } />
-        <Route path="/jobs/:id" element={
-          <Suspense fallback={<PageLoader />}>
-            <JobDetails />
-          </Suspense>
-        } />
-        <Route path="/freelancers" element={
-          <Suspense fallback={<PageLoader />}>
-            <Freelancers />
-          </Suspense>
-        } />
-        <Route path="/freelancers/:freelancerId" element={
-          <Suspense fallback={<PageLoader />}>
-            <FreelancerProfile />
-          </Suspense>
-        } />
-        <Route path="/about" element={
-          <Suspense fallback={<PageLoader />}>
-            <About />
-          </Suspense>
-        } />
-        <Route path="/blog" element={
-          <Suspense fallback={<PageLoader />}>
-            <Blog />
-          </Suspense>
-        } />
-        <Route path="/help" element={
-          <Suspense fallback={<PageLoader />}>
-            <Help />
-          </Suspense>
-        } />
-        <Route path="/contact" element={
-          <Suspense fallback={<PageLoader />}>
-            <Contact />
-          </Suspense>
-        } />
-        <Route path="/faq" element={
-          <Suspense fallback={<PageLoader />}>
-            <FAQ />
-          </Suspense>
-        } />
-        <Route path="/privacy" element={
-          <Suspense fallback={<PageLoader />}>
-            <Privacy />
-          </Suspense>
-        } />
-        <Route path="/terms" element={
-          <Suspense fallback={<PageLoader />}>
-            <Terms />
-          </Suspense>
-        } />
-        
-        {/* Admin Routes */}
-        <Route path="/admin/login" element={
-          <Suspense fallback={<PageLoader />}>
-            <AdminLogin />
-          </Suspense>
-        } />
-        <Route path="/admin" element={
-          <ProtectedRoute requiredRole="admin">
+        <Route
+          path="/"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <AdminDashboard />
+              <Index />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/dashboard" element={
-          <ProtectedRoute requiredRole="admin">
+          }
+        />
+        <Route
+          path="/login"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <AdminDashboard />
+              <Login />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/users" element={
-          <ProtectedRoute requiredRole="admin">
+          }
+        />
+        <Route
+          path="/signup"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <AdminUsers />
+              <Signup />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/jobseeker" element={
-          <ProtectedRoute requiredRole="admin">
+          }
+        />
+        <Route
+          path="/auth/callback"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <AdminJobseekers />
+              <LinkedInCallback />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/profiles" element={
-          <ProtectedRoute requiredRole="admin">
+          }
+        />
+        <Route
+          path="/profile/:id"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <AdminProfiles />
+              <PublicProfile />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/jobs" element={
-          <ProtectedRoute requiredRole="admin">
+          }
+        />
+        <Route
+          path="/jobs"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <AdminJobs />
+              <Jobs />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/skills" element={
-          <ProtectedRoute requiredRole="admin">
+          }
+        />
+        <Route
+          path="/jobs/:id"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <AdminSkills />
+              <JobDetails />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/career-paths" element={
-          <ProtectedRoute requiredRole="admin">
+          }
+        />
+        <Route
+          path="/freelancers"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <AdminCareerPaths />
+              <Freelancers />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/partners" element={
-          <ProtectedRoute requiredRole="admin">
+          }
+        />
+        <Route
+          path="/freelancers/:freelancerId"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <AdminPartners />
+              <FreelancerProfile />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/testimonials" element={
-          <ProtectedRoute requiredRole="admin">
+          }
+        />
+        <Route
+          path="/about"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <AdminTestimonials />
+              <About />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/content" element={
-          <ProtectedRoute requiredRole="admin">
+          }
+        />
+        <Route
+          path="/blog"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <AdminContent />
+              <Blog />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/insights" element={
-          <ProtectedRoute requiredRole="admin">
+          }
+        />
+        <Route
+          path="/help"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <AdminInsights />
+              <Help />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/api" element={
-          <ProtectedRoute requiredRole="admin">
+          }
+        />
+        <Route
+          path="/contact"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <AdminAPI />
+              <Contact />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/settings" element={
-          <ProtectedRoute requiredRole="admin">
+          }
+        />
+        <Route
+          path="/faq"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <AdminSettings />
+              <FAQ />
             </Suspense>
-          </ProtectedRoute>
-        } />
+          }
+        />
+        <Route
+          path="/privacy"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Privacy />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/terms"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Terms />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/insights"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Insights />
+            </Suspense>
+          }
+        />
 
-        {/* Employer Routes */}
-        <Route path="/employer/dashboard" element={
-          <ProtectedRoute requiredRole="employer">
+        {/* Admin */}
+        <Route
+          path="/admin/login"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <EmployerDashboard />
+              <AdminLogin />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/employer/jobs" element={
-          <ProtectedRoute requiredRole="employer">
-            <Suspense fallback={<PageLoader />}>
-              <EmployerJobs />
-            </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/employer/jobs/:id/applicants" element={
-          <ProtectedRoute requiredRole="employer">
-            <Suspense fallback={<PageLoader />}>
-              <JobApplicants />
-            </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/employer/applicants" element={
-          <ProtectedRoute requiredRole="employer">
-            <Suspense fallback={<PageLoader />}>
-              <AllApplicants />
-            </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/employer/interviews" element={
-          <ProtectedRoute requiredRole="employer">
-            <Suspense fallback={<PageLoader />}>
-              <EmployerInterviews />
-            </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/employer/interviews/schedule" element={
-          <ProtectedRoute requiredRole="employer">
-            <Suspense fallback={<PageLoader />}>
-              <InterviewSchedule />
-            </Suspense>
-          </ProtectedRoute>
-        } />
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<PageLoader />}>
+                <AdminDashboard />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<PageLoader />}>
+                <AdminDashboard />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<PageLoader />}>
+                <AdminUsers />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/jobseeker"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<PageLoader />}>
+                <AdminJobseekers />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/profiles"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<PageLoader />}>
+                <AdminProfiles />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/jobs"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<PageLoader />}>
+                <AdminJobs />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/skills"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<PageLoader />}>
+                <AdminSkills />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/career-paths"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<PageLoader />}>
+                <AdminCareerPaths />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/partners"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<PageLoader />}>
+                <AdminPartners />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/testimonials"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<PageLoader />}>
+                <AdminTestimonials />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/content"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<PageLoader />}>
+                <AdminContent />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/insights"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<PageLoader />}>
+                <AdminInsights />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/api"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<PageLoader />}>
+                <AdminAPI />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<PageLoader />}>
+                <AdminSettings />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
 
-        {/* Job Seeker Protected Routes */}
-        <Route path="/jobseeker/dashboard" element={
-          <ProtectedRoute requiredRole="jobseeker">
+        {/* Employer */}
+        <Route
+          path="/employer/dashboard"
+          element={
+            <ProtectedRoute requiredRole="employer">
+              <Suspense fallback={<PageLoader />}>
+                <EmployerDashboard />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/jobs"
+          element={
+            <ProtectedRoute requiredRole="employer">
+              <Suspense fallback={<PageLoader />}>
+                <EmployerJobs />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/projects"
+          element={
+            <ProtectedRoute requiredRole="employer">
+              <Suspense fallback={<PageLoader />}>
+                <EmployerProjects />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/boosting-services"
+          element={
+            <ProtectedRoute requiredRole="employer">
+              <Suspense fallback={<PageLoader />}>
+                <EmployerBoostingServices />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/jobs/:id/applicants"
+          element={
+            <ProtectedRoute requiredRole="employer">
+              <Suspense fallback={<PageLoader />}>
+                <JobApplicants />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/applicants"
+          element={
+            <ProtectedRoute requiredRole="employer">
+              <Suspense fallback={<PageLoader />}>
+                <AllApplicants />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/interviews"
+          element={
+            <ProtectedRoute requiredRole="employer">
+              <Suspense fallback={<PageLoader />}>
+                <EmployerInterviews />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/interviews/schedule"
+          element={
+            <ProtectedRoute requiredRole="employer">
+              <Suspense fallback={<PageLoader />}>
+                <InterviewSchedule />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Jobseeker */}
+        <Route
+          path="/jobseeker/dashboard"
+          element={
+            <ProtectedRoute requiredRole="jobseeker">
+              <Suspense fallback={<PageLoader />}>
+                <JobSeekerDashboard />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/jobseeker/settings"
+          element={
+            <ProtectedRoute requiredRole="jobseeker">
+              <Suspense fallback={<PageLoader />}>
+                <JobSeekerSettings />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Freelancer */}
+        <Route
+          path="/freelancer/dashboard"
+          element={
+            <ProtectedRoute requiredRole="freelancer">
+              <Suspense fallback={<PageLoader />}>
+                <FreelancerDashboard />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/freelancer/create-profile"
+          element={
+            <ProtectedRoute requiredRole="freelancer">
+              <Suspense fallback={<PageLoader />}>
+                <CreateFreelancerProfile />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Protected General */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <Dashboard />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <Profile />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Other */}
+        <Route
+          path="/skills"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <JobSeekerDashboard />
+              <Skills />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/jobseeker/settings" element={
-          <ProtectedRoute requiredRole="jobseeker">
+          }
+        />
+        <Route
+          path="/career-paths"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <JobSeekerSettings />
+              <CareerPaths />
             </Suspense>
-        </ProtectedRoute>
-        } />
-        
-        {/* Freelancer Routes */}
-        <Route path="/freelancer/dashboard" element={
-          <ProtectedRoute requiredRole="freelancer">
+          }
+        />
+        <Route
+          path="/learning-paths"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <FreelancerDashboard />
+              <LearningPaths />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/freelancer/create-profile" element={
-          <ProtectedRoute requiredRole="freelancer">
+          }
+        />
+        <Route
+          path="/partners"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <CreateFreelancerProfile />
+              <Partners />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
+          }
+        />
+        <Route
+          path="/interview-prep"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <Dashboard />
+              <InterviewPrep />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/profile" element={
-          <ProtectedRoute>
+          }
+        />
+        <Route
+          path="/skill-gap-analysis"
+          element={
             <Suspense fallback={<PageLoader />}>
-              <Profile />
+              <SkillGapAnalysis />
             </Suspense>
-          </ProtectedRoute>
-        } />
-        <Route path="/skills" element={
-          <Suspense fallback={<PageLoader />}>
-            <Skills />
-          </Suspense>
-        } />
-        <Route path="/career-paths" element={
-          <Suspense fallback={<PageLoader />}>
-            <CareerPaths />
-          </Suspense>
-        } />
-        <Route path="/learning-paths" element={
-          <Suspense fallback={<PageLoader />}>
-            <LearningPaths />
-          </Suspense>
-        } />
-        
-        <Route path="/insights" element={
-          <Suspense fallback={<PageLoader />}>
-            <Insights />
-          </Suspense>
-        } />
-        <Route path="/interview-prep" element={
-          <Suspense fallback={<PageLoader />}>
-            <InterviewPrep />
-          </Suspense>
-        } />
-        <Route path="/skill-gap-analysis" element={
-          <Suspense fallback={<PageLoader />}>
-            <SkillGapAnalysis />
-          </Suspense>
-        } />
-        <Route path="/enhanced-skill-analysis" element={
-          <Suspense fallback={<PageLoader />}>
-            <EnhancedSkillAnalysis />
-          </Suspense>
-        } />
-        <Route path="/ai-job-matching" element={
-          <Suspense fallback={<PageLoader />}>
-            <AIJobMatching />
-          </Suspense>
-        } />
-        <Route path="/job-matching" element={
-          <Suspense fallback={<PageLoader />}>
-            <JobMatching />
-          </Suspense>
-        } />
-        
-        {/* Catch-all route for 404 */}
-        <Route path="*" element={
-          <Suspense fallback={<PageLoader />}>
-            <NotFound />
-          </Suspense>
-        } />
+          }
+        />
+        <Route
+          path="/enhanced-skill-analysis"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <EnhancedSkillAnalysis />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/ai-job-matching"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <AIJobMatching />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/job-matching"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <JobMatching />
+            </Suspense>
+          }
+        />
+
+        {/* 404 */}
+        <Route
+          path="*"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <NotFound />
+            </Suspense>
+          }
+        />
       </Routes>
     </>
   );

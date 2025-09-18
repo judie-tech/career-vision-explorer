@@ -1,18 +1,15 @@
-
 import { lazy, Suspense } from "react";
 import { AppProviders } from "@/providers/AppProviders";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMobileOptimizations } from "@/hooks/use-mobile-optimizations";
 import { usePerformanceOptimizations } from "@/hooks/use-performance-optimizations";
+import { useAuth } from "@/hooks/use-auth";
 
-// Lazy load the routes component with better chunking
-const AppRoutes = lazy(() => 
-  import("@/routes/AppRoutes").then(module => ({ 
-    default: module.AppRoutes 
-  }))
+// Lazy load routes
+const AppRoutes = lazy(() =>
+  import("@/routes/AppRoutes").then((m) => ({ default: m.AppRoutes }))
 );
 
-// Enhanced loading fallback component
 const AppLoading = () => (
   <div className="min-h-screen bg-background">
     <div className="h-16 bg-white border-b">
@@ -39,15 +36,34 @@ const AppLoading = () => (
   </div>
 );
 
+const AppContent = () => {
+  const { isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <Skeleton className="h-10 w-40 mx-auto" />
+          <Skeleton className="h-6 w-60 mx-auto" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Suspense fallback={<AppLoading />}>
+      <AppRoutes />
+    </Suspense>
+  );
+};
+
 function App() {
   useMobileOptimizations();
   usePerformanceOptimizations();
 
   return (
     <AppProviders>
-      <Suspense fallback={<AppLoading />}>
-        <AppRoutes />
-      </Suspense>
+      <AppContent />
     </AppProviders>
   );
 }
