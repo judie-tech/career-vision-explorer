@@ -61,16 +61,16 @@ const Profile: React.FC = () => {
   const workExperienceInputRef = useRef<HTMLTextAreaElement>(null);
   const educationInputRef = useRef<HTMLTextAreaElement>(null);
   const preferencesInputRef = useRef<HTMLTextAreaElement>(null);
-  const salaryInputRef = useRef<HTMLTextAreaElement>(null);
-  const dobInputRef = useRef<HTMLTextAreaElement>(null);
-  const phoneInputRef = useRef<HTMLTextAreaElement>(null);
-  const locationInputRef = useRef<HTMLTextAreaElement>(null);
-  const jobInputRef = useRef<HTMLTextAreaElement>(null);
-  const experience_yearsInputRef = useRef<HTMLTextAreaElement>(null);
+  const salaryInputRef = useRef<HTMLInputElement>(null);
+  const dobInputRef = useRef<HTMLInputElement>(null);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const jobInputRef = useRef<HTMLInputElement>(null);
+  const experience_yearsInputRef = useRef<HTMLInputElement>(null);
   const twitterInputRef = useRef<HTMLTextAreaElement>(null);
   const resumeInputRef = useRef<HTMLTextAreaElement>(null);
   const stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
-  const projectsInputRef = useRef<HTMLTextAreaElement>(null);
+  const projectsInputRef = useRef<HTMLDivElement>(null);
 
 
   // Redirect employers to their dashboard
@@ -386,6 +386,7 @@ const Profile: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <Phone className="h-4 w-4 text-muted-foreground" />
                         <Input
+                          ref={phoneInputRef}
                           value={editForm.phone || ''}
                           onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                           placeholder="Phone number"
@@ -403,6 +404,7 @@ const Profile: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
                         <Input
+                          ref={locationInputRef}
                           value={editForm.location || ''}
                           onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
                           placeholder="Location"
@@ -420,6 +422,7 @@ const Profile: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <Input
+                        ref={dobInputRef}
                           type="date"
                           value={editForm.date_of_birth || ''}
                           onChange={(e) => setEditForm({ ...editForm, date_of_birth: e.target.value })}
@@ -437,6 +440,7 @@ const Profile: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                         <Input
+                          ref={salaryInputRef}
                           value={editForm.salary_expectation || ''}
                           onChange={(e) => setEditForm({ ...editForm, salary_expectation: e.target.value })}
                           placeholder="Salary expectation"
@@ -453,7 +457,8 @@ const Profile: React.FC = () => {
                     {editing ? (
                       <div className="flex items-center gap-3">
                         <Briefcase className="h-4 w-4 text-muted-foreground" />
-                        <Select value={editForm.preferred_job_type || ''} onValueChange={(value) => setEditForm({ ...editForm, preferred_job_type: value as any })}>
+                        <Select
+                        value={editForm.preferred_job_type || ''} onValueChange={(value) => setEditForm({ ...editForm, preferred_job_type: value as any })}>
                           <SelectTrigger className="text-sm">
                             <SelectValue placeholder="Preferred job type" />
                           </SelectTrigger>
@@ -477,6 +482,7 @@ const Profile: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <Building className="h-4 w-4 text-muted-foreground" />
                         <Input
+                          
                           value={editForm.work_authorization || ''}
                           onChange={(e) => setEditForm({ ...editForm, work_authorization: e.target.value })}
                           placeholder="Work authorization status"
@@ -518,6 +524,7 @@ const Profile: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <GraduationCap className="h-4 w-4 text-muted-foreground" />
                         <Input
+                        ref={experience_yearsInputRef}
                           type="number"
                           value={editForm.experience_years || ''}
                           onChange={(e) => setEditForm({ ...editForm, experience_years: parseInt(e.target.value) || 0 })}
@@ -549,6 +556,7 @@ const Profile: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <Linkedin className="h-4 w-4 text-muted-foreground" />
                           <Input
+                          ref={linkedinInputRef}
                             value={editForm.linkedin_url || ''}
                             onChange={(e) => setEditForm({ ...editForm, linkedin_url: e.target.value })}
                             placeholder="LinkedIn URL"
@@ -558,6 +566,7 @@ const Profile: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <Github className="h-4 w-4 text-muted-foreground" />
                           <Input
+                            
                             value={editForm.github_url || ''}
                             onChange={(e) => setEditForm({ ...editForm, github_url: e.target.value })}
                             placeholder="GitHub URL"
@@ -985,6 +994,50 @@ const Profile: React.FC = () => {
                   <CardTitle>Skills</CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {editing ? (
+                    <div className="space-y-4">
+                      {editForm.skills?.map((skill, skillIndex) => (
+                          <div key={skillIndex} className="flex items-c enter gap-2">
+                            <Input
+                              value={skill || ''}
+                              onChange={(e) => {
+                                const newSkills = [...editForm.skills || []];
+                                newSkills[skillIndex] = e.target.value;
+                                setEditForm({ ...editForm, skills: newSkills})
+                              }}
+                              placeholder="Enter a skill"
+                              className="w-full"
+                              />
+                              <Button 
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const newSkills = [...editForm.skills || []];
+                                  newSkills.splice(skillIndex, 1)
+                                  setEditForm({ ...editForm, skills: newSkills})
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+
+                              </Button>
+
+                            </div>
+                      ))}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditForm({...editForm, skills:[...(editForm.skills || []), '']})
+                        }}
+                        >
+                          <Plus className="h-4 w-4" />
+                          Add Skill
+                        </Button>
+                    
+
+                    
+                    </div>
+                  ) :(
                   <div className="flex flex-wrap gap-2">
                     {profile?.skills?.map((skill, index) => (
                       <Badge key={index} variant="secondary">
@@ -992,6 +1045,7 @@ const Profile: React.FC = () => {
                       </Badge>
                     ))}
                   </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -1004,7 +1058,69 @@ const Profile: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                 { editing ? (
+                  <div className="space-y-6">
+                    {editForm.work_experience?.map((exp, index) => (
+                      <div key={index} className="border rounded-lg p-4 space-y-4">
+                    
+                        <Input 
+                          value={exp.position || ''}
+                          onChange={(e) => {
+                            const newExperience = [...(editForm.work_experience || [])];
+                            newExperience[index] = { ...newExperience[index], position: e.target.value};
+                            setEditForm({ ...editForm, work_experience: newExperience});
+                          }}
+                          placeholder="Position"
+                          className="w-full"
+                          />
+
+                          <Input 
+                            value={exp.company || ''}
+                            onChange={(e) => {
+                              const newExperience = [...(editForm.work_experience || [])];
+                              newExperience[index] = { ...newExperience[index], company: e.target.value};
+                              setEditForm({ ...editForm, work_experience: newExperience});
+                            }}
+                            placeholder="Company"
+                            className="w-full"
+                            />
+                            <Input 
+                                value={exp.duration || ''}
+                                onChange={(e) => {
+                                  const newExperience = [...(editForm.work_experience || [])];
+                                  newExperience[index] = { ...newExperience[index], duration: e.target.value};
+                                  setEditForm({ ...editForm, work_experience: newExperience})
+                                }}
+                                placeholder="Duration"
+                                className="w-full"
+                                />
+                            <Textarea
+                                value={exp.description || ''}
+                                onChange={(e) => {
+                                  const newExperience = [...(editForm.work_experience || [])];
+                                  newExperience[index] = { ...newExperience[index], description: e.target.value };
+                                  setEditForm({ ...editForm, work_experience: newExperience})
+                                }}
+                                placeholder="Description"
+                                rows={3}
+                                />
+
+                        </div>
+                    ))} 
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        const newExperience = [...(editForm.work_experience || []), { position: '', company: '', duration: '', description: ''}];
+                        setEditForm({...editForm, work_experience: newExperience})
+                      }}
+                      className="w-full">
+                        <Plus className="h-4 w-4 mr-2"/>
+                        Add New Work Experience
+                      </Button>
+                  </div>
+                 )
+                 :
+                 ( <div className="space-y-4">
                     {profile?.work_experience?.map((exp, index) => (
                       <div key={index} className="border-l-2 border-primary/20 pl-4">
                         <h4 className="font-semibold">{exp.position}</h4>
@@ -1013,7 +1129,8 @@ const Profile: React.FC = () => {
                         <p className="text-sm mt-2">{exp.description}</p>
                       </div>
                     ))}
-                  </div>
+                  </div>)
+                  }
                 </CardContent>
               </Card>
 
@@ -1109,10 +1226,10 @@ const Profile: React.FC = () => {
                           setEditForm({ ...editForm, projects: newProjects })
                         }}
                         className="w-full"
-
-                      />
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add New Project
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add New Project
+                      </Button>
                     </div>
                   ) :
                     (<div className="space-y-4">
