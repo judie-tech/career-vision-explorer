@@ -60,6 +60,15 @@ const Profile: React.FC = () => {
   const workExperienceInputRef = useRef<HTMLTextAreaElement>(null);
   const educationInputRef = useRef<HTMLTextAreaElement>(null);
   const preferencesInputRef = useRef<HTMLTextAreaElement>(null);
+  const salaryInputRef = useRef<HTMLTextAreaElement>(null);
+const dobInputRef = useRef<HTMLTextAreaElement>(null);
+const phoneInputRef = useRef<HTMLTextAreaElement>(null);
+const locationInputRef = useRef<HTMLTextAreaElement>(null);
+const jobInputRef = useRef<HTMLTextAreaElement>(null);
+const experience_yearsInputRef = useRef<HTMLTextAreaElement>(null);
+const  twitterInputRef = useRef<HTMLTextAreaElement>(null);
+const  resumeInputRef = useRef<HTMLTextAreaElement>(null);
+const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
 
 
   // Redirect employers to their dashboard
@@ -100,6 +109,7 @@ const Profile: React.FC = () => {
   };
 
   const handleSave = async (dataToSave?: Partial<ProfileUpdate>) => {
+    
     const payload = dataToSave || editForm;
     if (!payload || Object.keys(payload).length === 0) {
       toast.info("No changes to save.");
@@ -182,6 +192,15 @@ const Profile: React.FC = () => {
       work_experience: workExperienceInputRef,
       education: educationInputRef,
       preferences: preferencesInputRef,
+      salary: salaryInputRef,
+      dob: dobInputRef,
+      resume: resumeInputRef,
+      location: locationInputRef,
+      twitter: twitterInputRef,
+      phone: phoneInputRef,
+      job_type: jobInputRef,
+      stackoverflow: stackoverflowInputRef,
+      experience_years: experience_yearsInputRef
     };
     const ref = refs[field];
     if (ref?.current) {
@@ -754,7 +773,7 @@ const Profile: React.FC = () => {
                         <div className="text-xs text-muted-foreground">
                           <p>Complete your profile by adding:</p>
                           <ul className="list-disc pl-4">
-                            {!editForm.name && (
+                            {!profile?.name && (
                               <li>
                                 <Button
                                   variant="link"
@@ -766,7 +785,7 @@ const Profile: React.FC = () => {
                                 </Button>
                               </li>
                             )}
-                            {!editForm.bio && (
+                            {!profile?.bio && (
                               <li>
                                 <Button
                                   variant="link"
@@ -778,7 +797,7 @@ const Profile: React.FC = () => {
                                 </Button>
                               </li>
                             )}
-                            {!editForm.linkedin_url && (
+                            {!profile?.linkedin_url && (
                               <li>
                                 <Button
                                   variant="link"
@@ -790,7 +809,7 @@ const Profile: React.FC = () => {
                                 </Button>
                               </li>
                             )}
-                            {!editForm.skills?.length && (
+                            {!profile?.skills?.length && (
                               <li>
                                 <Button
                                   variant="link"
@@ -802,7 +821,7 @@ const Profile: React.FC = () => {
                                 </Button>
                               </li>
                             )}
-                            {!editForm.work_experience?.length && (
+                            {!profile?.work_experience?.length && (
                               <li>
                                 <Button
                                   variant="link"
@@ -814,7 +833,7 @@ const Profile: React.FC = () => {
                                 </Button>
                               </li>
                             )}
-                            {!editForm.education && (
+                            {!profile?.education && (
                               <li>
                                 <Button
                                   variant="link"
@@ -826,7 +845,7 @@ const Profile: React.FC = () => {
                                 </Button>
                               </li>
                             )}
-                            {!editForm.preferences && (
+                            {!profile?.preferences && (
                               <li>
                                 <Button
                                   variant="link"
@@ -836,6 +855,108 @@ const Profile: React.FC = () => {
                                 >
                                   Job Preferences
                                 </Button>
+                              </li>
+                            )}
+                            {!profile?.salary_expectation && (
+                              <li>
+                                <Button 
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('salary')}
+                                  aria-label="Add your expected salary">
+                                    Salary Expectation
+                                  </Button>
+                              </li>
+                            )}
+                            {!profile?.date_of_birth && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('dob')}
+                                  aria-label="Add your date of birth">
+                                    Date of Birth
+                                  </Button>
+                              </li>
+                            )}
+                            {!profile?.location && (
+                              <li>
+                                <Button 
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('location')}
+                                  aria-label="Add your location">
+                                    Location
+                                  </Button>
+                              </li>
+                            )}
+                            {!profile?.experience_years && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('experience_years')}
+                                  aria-label="Years of experience"
+                                  >
+                                    Years of Experience
+                                  </Button>
+                                  
+                              </li>
+                            )}
+                            {!profile?.preferred_job_type && (
+                              <li>
+                                <Button 
+                                variant="link"
+                                className="text-xs p-0 h-auto"
+                                onClick={() => handleJumpToField('job_type')}
+                                aria-label="Preferred job type">
+                                  Preferred Job Type
+                                </Button>
+                              </li>
+                            )}
+                            {!profile?.phone && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('phone')}
+                                  aria-label="Phone Number">
+                                    Phone Number
+                                  </Button>
+                              </li>
+                            )}
+                            {!profile?.twitter_url && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('twitter')}
+                                  aria-label="Your twitter handle url"
+                                  >
+                                    Twitter
+                                  </Button>
+                              </li>
+                            )}
+                             {!profile?.stackoverflow_url && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('stackoverflow')}
+                                  aria-label="Your twitter handle url"
+                                  >
+                                    Stackoverflow
+                                  </Button>
+                              </li>
+                            )}
+                            {!profile?.resume_link && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('resume')}
+                                  aria-label="resume link"
+                                  >Resume Link</Button>
                               </li>
                             )}
                           </ul>
