@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
-import { Progress } from "@/components/ui/progress"; 
+import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,8 @@ import {
   Building,
   FileText,
   Download,
-  Settings
+  Settings,
+  Plus
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { profileService } from "@/services/profile.service";
@@ -52,7 +53,7 @@ const Profile: React.FC = () => {
   const [isParsing, setIsParsing] = useState(false);
   const [localCompletionPercentage, setLocalCompletionPercentage] = useState(0);
 
-    // Input refs for scrolling to sections
+  // Input refs for scrolling to sections
   const nameInputRef = useRef<HTMLInputElement>(null);
   const bioInputRef = useRef<HTMLTextAreaElement>(null);
   const linkedinInputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +61,16 @@ const Profile: React.FC = () => {
   const workExperienceInputRef = useRef<HTMLTextAreaElement>(null);
   const educationInputRef = useRef<HTMLTextAreaElement>(null);
   const preferencesInputRef = useRef<HTMLTextAreaElement>(null);
+  const salaryInputRef = useRef<HTMLInputElement>(null);
+  const dobInputRef = useRef<HTMLInputElement>(null);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const jobInputRef = useRef<HTMLInputElement>(null);
+  const experience_yearsInputRef = useRef<HTMLInputElement>(null);
+  const twitterInputRef = useRef<HTMLTextAreaElement>(null);
+  const resumeInputRef = useRef<HTMLTextAreaElement>(null);
+  const stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
+  const projectsInputRef = useRef<HTMLDivElement>(null);
 
 
   // Redirect employers to their dashboard
@@ -73,7 +84,7 @@ const Profile: React.FC = () => {
     if (isAuthenticated && authProfile) {
       setProfile(authProfile);
       setEditForm(authProfile);
-            setLocalCompletionPercentage(authProfile.profile_completion_percentage || calculateProfileCompletion(authProfile));
+      setLocalCompletionPercentage(authProfile.profile_completion_percentage || calculateProfileCompletion(authProfile));
 
       setLoading(false);
     } else if (isAuthenticated && !authProfile) {
@@ -90,7 +101,7 @@ const Profile: React.FC = () => {
       const profileData = await profileService.getProfile();
       setProfile(profileData);
       setEditForm(profileData);
-       setLocalCompletionPercentage(profileData.profile_completion_percentage || calculateProfileCompletion(profileData));
+      setLocalCompletionPercentage(profileData.profile_completion_percentage || calculateProfileCompletion(profileData));
     } catch (error) {
       console.error('Error loading profile:', error);
       toast.error("Failed to load profile");
@@ -100,6 +111,7 @@ const Profile: React.FC = () => {
   };
 
   const handleSave = async (dataToSave?: Partial<ProfileUpdate>) => {
+
     const payload = dataToSave || editForm;
     if (!payload || Object.keys(payload).length === 0) {
       toast.info("No changes to save.");
@@ -111,7 +123,7 @@ const Profile: React.FC = () => {
       const updatedProfile = await profileService.updateProfile(payload);
       setProfile(updatedProfile);
       setEditForm(updatedProfile);
-            setLocalCompletionPercentage(updatedProfile.profile_completion_percentage || calculateProfileCompletion(updatedProfile));
+      setLocalCompletionPercentage(updatedProfile.profile_completion_percentage || calculateProfileCompletion(updatedProfile));
 
       setEditing(false);
       toast.success("Profile updated successfully!");
@@ -123,7 +135,7 @@ const Profile: React.FC = () => {
 
   const handleCancel = () => {
     setEditForm(profile as ProfileType);
-        setLocalCompletionPercentage(profile?.profile_completion_percentage || calculateProfileCompletion(profile));
+    setLocalCompletionPercentage(profile?.profile_completion_percentage || calculateProfileCompletion(profile));
 
     setEditing(false);
   };
@@ -135,7 +147,7 @@ const Profile: React.FC = () => {
   };
 
   const getAvailabilityColor = (status: string) => {
-    switch(status) {
+    switch (status) {
       case 'Available':
         return 'bg-green-300 text-green-800 border-green-500';
       case 'Not Available':
@@ -150,22 +162,22 @@ const Profile: React.FC = () => {
 
   const calculateProfileCompletion = (profile: ProfileType | null): number => {
     if (!profile) return 0;
-   const fields: Array<keyof ProfileType> = [
-    'name', 'email', 'bio', 'linkedin_url', 'skills', 'work_experience',
-    'phone', 'location', 'date_of_birth', 'salary_expectation', 'preferred_job_type',
-    'work_authorization', 'availability', 'experience_years', 'github_url', 
-    'twitter_url',  'portfolio_url', 'resume_link', 'education',
-    'projects', 'languages', 'certifications', 'preferences'
-  ];
+    const fields: Array<keyof ProfileType> = [
+      'name', 'email', 'bio', 'linkedin_url', 'skills', 'work_experience',
+      'phone', 'location', 'date_of_birth', 'salary_expectation', 'preferred_job_type',
+      'work_authorization', 'availability', 'experience_years', 'github_url',
+      'twitter_url', 'portfolio_url', 'resume_link', 'education',
+      'projects', 'languages', 'certifications', 'preferences'
+    ];
 
-  const totalFields = fields.length;
-  const completedFields = fields.reduce((count, field) => {
-    const value = profile[field];
-    if (Array.isArray(value)) return value.length > 0 ? count + 1 : count;
-    if (typeof value == 'object' && value !== null) return Object.keys(value).length > 0 ? count + 1 : count;
-    return value ? count + 1 : count; 
-  }, 0);
-  return Math.round((completedFields / totalFields) * 100);
+    const totalFields = fields.length;
+    const completedFields = fields.reduce((count, field) => {
+      const value = profile[field];
+      if (Array.isArray(value)) return value.length > 0 ? count + 1 : count;
+      if (typeof value == 'object' && value !== null) return Object.keys(value).length > 0 ? count + 1 : count;
+      return value ? count + 1 : count;
+    }, 0);
+    return Math.round((completedFields / totalFields) * 100);
   };
   // update local completion percentage when editing form
   useEffect(() => {
@@ -182,6 +194,16 @@ const Profile: React.FC = () => {
       work_experience: workExperienceInputRef,
       education: educationInputRef,
       preferences: preferencesInputRef,
+      salary: salaryInputRef,
+      dob: dobInputRef,
+      resume: resumeInputRef,
+      location: locationInputRef,
+      twitter: twitterInputRef,
+      phone: phoneInputRef,
+      job_type: jobInputRef,
+      stackoverflow: stackoverflowInputRef,
+      experience_years: experience_yearsInputRef,
+      projects: projectsInputRef
     };
     const ref = refs[field];
     if (ref?.current) {
@@ -364,6 +386,7 @@ const Profile: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <Phone className="h-4 w-4 text-muted-foreground" />
                         <Input
+                          ref={phoneInputRef}
                           value={editForm.phone || ''}
                           onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                           placeholder="Phone number"
@@ -381,6 +404,7 @@ const Profile: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
                         <Input
+                          ref={locationInputRef}
                           value={editForm.location || ''}
                           onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
                           placeholder="Location"
@@ -398,6 +422,7 @@ const Profile: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <Input
+                        ref={dobInputRef}
                           type="date"
                           value={editForm.date_of_birth || ''}
                           onChange={(e) => setEditForm({ ...editForm, date_of_birth: e.target.value })}
@@ -415,6 +440,7 @@ const Profile: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                         <Input
+                          ref={salaryInputRef}
                           value={editForm.salary_expectation || ''}
                           onChange={(e) => setEditForm({ ...editForm, salary_expectation: e.target.value })}
                           placeholder="Salary expectation"
@@ -431,7 +457,8 @@ const Profile: React.FC = () => {
                     {editing ? (
                       <div className="flex items-center gap-3">
                         <Briefcase className="h-4 w-4 text-muted-foreground" />
-                        <Select value={editForm.preferred_job_type || ''} onValueChange={(value) => setEditForm({ ...editForm, preferred_job_type: value as any })}>
+                        <Select
+                        value={editForm.preferred_job_type || ''} onValueChange={(value) => setEditForm({ ...editForm, preferred_job_type: value as any })}>
                           <SelectTrigger className="text-sm">
                             <SelectValue placeholder="Preferred job type" />
                           </SelectTrigger>
@@ -455,6 +482,7 @@ const Profile: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <Building className="h-4 w-4 text-muted-foreground" />
                         <Input
+                          
                           value={editForm.work_authorization || ''}
                           onChange={(e) => setEditForm({ ...editForm, work_authorization: e.target.value })}
                           placeholder="Work authorization status"
@@ -487,7 +515,7 @@ const Profile: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <Briefcase className="h-4 w-4 text-muted-foreground" />
                         <span className={`text-sm px-2 py-1 rounded border ${getAvailabilityColor(profile.availability || '')}`}>
-                        {profile.availability}
+                          {profile.availability}
                         </span>
                       </div>
                     ) : null}
@@ -496,6 +524,7 @@ const Profile: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <GraduationCap className="h-4 w-4 text-muted-foreground" />
                         <Input
+                        ref={experience_yearsInputRef}
                           type="number"
                           value={editForm.experience_years || ''}
                           onChange={(e) => setEditForm({ ...editForm, experience_years: parseInt(e.target.value) || 0 })}
@@ -527,6 +556,7 @@ const Profile: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <Linkedin className="h-4 w-4 text-muted-foreground" />
                           <Input
+                          ref={linkedinInputRef}
                             value={editForm.linkedin_url || ''}
                             onChange={(e) => setEditForm({ ...editForm, linkedin_url: e.target.value })}
                             placeholder="LinkedIn URL"
@@ -536,6 +566,7 @@ const Profile: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <Github className="h-4 w-4 text-muted-foreground" />
                           <Input
+                            
                             value={editForm.github_url || ''}
                             onChange={(e) => setEditForm({ ...editForm, github_url: e.target.value })}
                             placeholder="GitHub URL"
@@ -740,7 +771,7 @@ const Profile: React.FC = () => {
                       <span className="text-muted-foreground">Availability</span>
                       <Badge variant="outline" className={`text-sm ${getAvailabilityColor(profile.availability)}`}>{profile?.availability}</Badge>
                     </div>
-                        <div className="space-y-2">
+                    <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Profile Complete</span>
                         <span className="font-medium">{localCompletionPercentage}%</span>
@@ -754,7 +785,7 @@ const Profile: React.FC = () => {
                         <div className="text-xs text-muted-foreground">
                           <p>Complete your profile by adding:</p>
                           <ul className="list-disc pl-4">
-                            {!editForm.name && (
+                            {!profile?.name && (
                               <li>
                                 <Button
                                   variant="link"
@@ -766,7 +797,7 @@ const Profile: React.FC = () => {
                                 </Button>
                               </li>
                             )}
-                            {!editForm.bio && (
+                            {!profile?.bio && (
                               <li>
                                 <Button
                                   variant="link"
@@ -778,7 +809,7 @@ const Profile: React.FC = () => {
                                 </Button>
                               </li>
                             )}
-                            {!editForm.linkedin_url && (
+                            {!profile?.linkedin_url && (
                               <li>
                                 <Button
                                   variant="link"
@@ -790,7 +821,7 @@ const Profile: React.FC = () => {
                                 </Button>
                               </li>
                             )}
-                            {!editForm.skills?.length && (
+                            {!profile?.skills?.length && (
                               <li>
                                 <Button
                                   variant="link"
@@ -802,7 +833,7 @@ const Profile: React.FC = () => {
                                 </Button>
                               </li>
                             )}
-                            {!editForm.work_experience?.length && (
+                            {!profile?.work_experience?.length && (
                               <li>
                                 <Button
                                   variant="link"
@@ -814,7 +845,7 @@ const Profile: React.FC = () => {
                                 </Button>
                               </li>
                             )}
-                            {!editForm.education && (
+                            {!profile?.education && (
                               <li>
                                 <Button
                                   variant="link"
@@ -826,7 +857,7 @@ const Profile: React.FC = () => {
                                 </Button>
                               </li>
                             )}
-                            {!editForm.preferences && (
+                            {!profile?.preferences && (
                               <li>
                                 <Button
                                   variant="link"
@@ -836,6 +867,108 @@ const Profile: React.FC = () => {
                                 >
                                   Job Preferences
                                 </Button>
+                              </li>
+                            )}
+                            {!profile?.salary_expectation && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('salary')}
+                                  aria-label="Add your expected salary">
+                                  Salary Expectation
+                                </Button>
+                              </li>
+                            )}
+                            {!profile?.date_of_birth && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('dob')}
+                                  aria-label="Add your date of birth">
+                                  Date of Birth
+                                </Button>
+                              </li>
+                            )}
+                            {!profile?.location && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('location')}
+                                  aria-label="Add your location">
+                                  Location
+                                </Button>
+                              </li>
+                            )}
+                            {!profile?.experience_years && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('experience_years')}
+                                  aria-label="Years of experience"
+                                >
+                                  Years of Experience
+                                </Button>
+
+                              </li>
+                            )}
+                            {!profile?.preferred_job_type && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('job_type')}
+                                  aria-label="Preferred job type">
+                                  Preferred Job Type
+                                </Button>
+                              </li>
+                            )}
+                            {!profile?.phone && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('phone')}
+                                  aria-label="Phone Number">
+                                  Phone Number
+                                </Button>
+                              </li>
+                            )}
+                            {!profile?.twitter_url && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('twitter')}
+                                  aria-label="Your twitter handle url"
+                                >
+                                  Twitter
+                                </Button>
+                              </li>
+                            )}
+                            {!profile?.stackoverflow_url && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('stackoverflow')}
+                                  aria-label="Your twitter handle url"
+                                >
+                                  Stackoverflow
+                                </Button>
+                              </li>
+                            )}
+                            {!profile?.resume_link && (
+                              <li>
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('resume')}
+                                  aria-label="resume link"
+                                >Resume Link</Button>
                               </li>
                             )}
                           </ul>
@@ -861,6 +994,50 @@ const Profile: React.FC = () => {
                   <CardTitle>Skills</CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {editing ? (
+                    <div className="space-y-4">
+                      {editForm.skills?.map((skill, skillIndex) => (
+                          <div key={skillIndex} className="flex items-c enter gap-2">
+                            <Input
+                              value={skill || ''}
+                              onChange={(e) => {
+                                const newSkills = [...editForm.skills || []];
+                                newSkills[skillIndex] = e.target.value;
+                                setEditForm({ ...editForm, skills: newSkills})
+                              }}
+                              placeholder="Enter a skill"
+                              className="w-full"
+                              />
+                              <Button 
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const newSkills = [...editForm.skills || []];
+                                  newSkills.splice(skillIndex, 1)
+                                  setEditForm({ ...editForm, skills: newSkills})
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+
+                              </Button>
+
+                            </div>
+                      ))}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditForm({...editForm, skills:[...(editForm.skills || []), '']})
+                        }}
+                        >
+                          <Plus className="h-4 w-4" />
+                          Add Skill
+                        </Button>
+                    
+
+                    
+                    </div>
+                  ) :(
                   <div className="flex flex-wrap gap-2">
                     {profile?.skills?.map((skill, index) => (
                       <Badge key={index} variant="secondary">
@@ -868,6 +1045,7 @@ const Profile: React.FC = () => {
                       </Badge>
                     ))}
                   </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -880,7 +1058,69 @@ const Profile: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                 { editing ? (
+                  <div className="space-y-6">
+                    {editForm.work_experience?.map((exp, index) => (
+                      <div key={index} className="border rounded-lg p-4 space-y-4">
+                    
+                        <Input 
+                          value={exp.position || ''}
+                          onChange={(e) => {
+                            const newExperience = [...(editForm.work_experience || [])];
+                            newExperience[index] = { ...newExperience[index], position: e.target.value};
+                            setEditForm({ ...editForm, work_experience: newExperience});
+                          }}
+                          placeholder="Position"
+                          className="w-full"
+                          />
+
+                          <Input 
+                            value={exp.company || ''}
+                            onChange={(e) => {
+                              const newExperience = [...(editForm.work_experience || [])];
+                              newExperience[index] = { ...newExperience[index], company: e.target.value};
+                              setEditForm({ ...editForm, work_experience: newExperience});
+                            }}
+                            placeholder="Company"
+                            className="w-full"
+                            />
+                            <Input 
+                                value={exp.duration || ''}
+                                onChange={(e) => {
+                                  const newExperience = [...(editForm.work_experience || [])];
+                                  newExperience[index] = { ...newExperience[index], duration: e.target.value};
+                                  setEditForm({ ...editForm, work_experience: newExperience})
+                                }}
+                                placeholder="Duration"
+                                className="w-full"
+                                />
+                            <Textarea
+                                value={exp.description || ''}
+                                onChange={(e) => {
+                                  const newExperience = [...(editForm.work_experience || [])];
+                                  newExperience[index] = { ...newExperience[index], description: e.target.value };
+                                  setEditForm({ ...editForm, work_experience: newExperience})
+                                }}
+                                placeholder="Description"
+                                rows={3}
+                                />
+
+                        </div>
+                    ))} 
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        const newExperience = [...(editForm.work_experience || []), { position: '', company: '', duration: '', description: ''}];
+                        setEditForm({...editForm, work_experience: newExperience})
+                      }}
+                      className="w-full">
+                        <Plus className="h-4 w-4 mr-2"/>
+                        Add New Work Experience
+                      </Button>
+                  </div>
+                 )
+                 :
+                 ( <div className="space-y-4">
                     {profile?.work_experience?.map((exp, index) => (
                       <div key={index} className="border-l-2 border-primary/20 pl-4">
                         <h4 className="font-semibold">{exp.position}</h4>
@@ -889,7 +1129,8 @@ const Profile: React.FC = () => {
                         <p className="text-sm mt-2">{exp.description}</p>
                       </div>
                     ))}
-                  </div>
+                  </div>)
+                  }
                 </CardContent>
               </Card>
 
@@ -919,30 +1160,101 @@ const Profile: React.FC = () => {
                 <CardHeader>
                   <CardTitle>Projects</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {profile?.projects?.map((project, index) => (
-                      <div key={index} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-semibold">{project.name}</h4>
-                          {project.url && (
-                            <a href={project.url} target="_blank" rel="noopener noreferrer"
-                              className="text-sm text-blue-600 hover:underline">
-                              View Project
-                            </a>
-                          )}
+                <CardContent ref={projectsInputRef}>
+                  {editing ? (
+                    <div className="space-y-6">
+                      {editForm.projects && editForm.projects.length > 0 && editForm.projects.map((project, index) => (
+                        <div key={index} className="border rounded-lg p-4 space-y-4">
+                          <Input
+                            value={project.name || ''}
+                            onChange={(e) => {
+                              const newProjects = [...(editForm.projects || [])];
+                              newProjects[index] = { ...newProjects[index], name: e.target.value };
+                              setEditForm({ ...editForm, projects: newProjects });
+
+                            }}
+                            placeholder="Project Name"
+                            className="w-full" />
+                          <Textarea
+                            value={project.description || ''}
+                            onChange={(e) => {
+                              const newProjects = [...(editForm.projects || [])];
+                              newProjects[index] = { ...newProjects[index], description: e.target.value };
+                              setEditForm({ ...editForm, projects: newProjects });
+                            }}
+                            placeholder="Description"
+                            rows={3}
+                          />
+                          <Input
+                            value={project.url || ''}
+                            onChange={(e) => {
+                              const newProjects = [...(editForm.projects || [])];
+                              newProjects[index] = { ...newProjects[index], url: e.target.value };
+                              setEditForm({ ...editForm, projects: newProjects });
+
+                            }}
+                            placeholder="project url (optional)"
+                            className="w-full"
+                          />
+                          <Input
+                            value={project.tech_stack?.join(', ') || ''}
+                            onChange={(e) => {
+                              const newProjects = [...(editForm.projects || [])];
+                              newProjects[index] = { ...newProjects[index], tech_stack: e.target.value.split(',').map(tech => tech.trim()) };
+                              setEditForm({ ...editForm, projects: newProjects });
+                            }}
+                            onBlur={(e) => {
+                              // Clean up empty entries when user finishes editing
+                              const newProjects = [...(editForm.projects || [])];
+                              newProjects[index] = {
+                                ...newProjects[index],
+                                tech_stack: e.target.value.split(',').map(tech => tech.trim()).filter(tech => tech)
+                              };
+                              setEditForm({ ...editForm, projects: newProjects });
+                            }}
+
+                            placeholder="Tech Stack (comma-separated)"
+                            className="w-full"
+                          />
+
                         </div>
-                        <p className="text-muted-foreground text-sm mb-2">{project.description}</p>
-                        <div className="flex flex-wrap gap-1">
-                          {project.tech_stack?.map((tech, techIndex) => (
-                            <Badge key={techIndex} variant="outline" className="text-xs">
-                              {tech}
-                            </Badge>
-                          ))}
+                      ))}
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const newProjects = [...(editForm.projects || []), { name: '', description: '', url: '', tech_stack: [] }];
+                          setEditForm({ ...editForm, projects: newProjects })
+                        }}
+                        className="w-full"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add New Project
+                      </Button>
+                    </div>
+                  ) :
+                    (<div className="space-y-4">
+                      {profile?.projects?.map((project, index) => (
+                        <div key={index} className="border rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-semibold">{project.name}</h4>
+                            {project.url && (
+                              <a href={project.url} target="_blank" rel="noopener noreferrer"
+                                className="text-sm text-blue-600 hover:underline">
+                                View Project
+                              </a>
+                            )}
+                          </div>
+                          <p className="text-muted-foreground text-sm mb-2">{project.description}</p>
+                          <div className="flex flex-wrap gap-1">
+                            {project.tech_stack?.map((tech, techIndex) => (
+                              <Badge key={techIndex} variant="outline" className="text-xs">
+                                {tech}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>)}
                 </CardContent>
               </Card>
 
