@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
-import { Progress } from "@/components/ui/progress"; 
+import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,8 @@ import {
   Building,
   FileText,
   Download,
-  Settings
+  Settings,
+  Plus
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { profileService } from "@/services/profile.service";
@@ -52,7 +53,7 @@ const Profile: React.FC = () => {
   const [isParsing, setIsParsing] = useState(false);
   const [localCompletionPercentage, setLocalCompletionPercentage] = useState(0);
 
-    // Input refs for scrolling to sections
+  // Input refs for scrolling to sections
   const nameInputRef = useRef<HTMLInputElement>(null);
   const bioInputRef = useRef<HTMLTextAreaElement>(null);
   const linkedinInputRef = useRef<HTMLInputElement>(null);
@@ -61,14 +62,15 @@ const Profile: React.FC = () => {
   const educationInputRef = useRef<HTMLTextAreaElement>(null);
   const preferencesInputRef = useRef<HTMLTextAreaElement>(null);
   const salaryInputRef = useRef<HTMLTextAreaElement>(null);
-const dobInputRef = useRef<HTMLTextAreaElement>(null);
-const phoneInputRef = useRef<HTMLTextAreaElement>(null);
-const locationInputRef = useRef<HTMLTextAreaElement>(null);
-const jobInputRef = useRef<HTMLTextAreaElement>(null);
-const experience_yearsInputRef = useRef<HTMLTextAreaElement>(null);
-const  twitterInputRef = useRef<HTMLTextAreaElement>(null);
-const  resumeInputRef = useRef<HTMLTextAreaElement>(null);
-const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
+  const dobInputRef = useRef<HTMLTextAreaElement>(null);
+  const phoneInputRef = useRef<HTMLTextAreaElement>(null);
+  const locationInputRef = useRef<HTMLTextAreaElement>(null);
+  const jobInputRef = useRef<HTMLTextAreaElement>(null);
+  const experience_yearsInputRef = useRef<HTMLTextAreaElement>(null);
+  const twitterInputRef = useRef<HTMLTextAreaElement>(null);
+  const resumeInputRef = useRef<HTMLTextAreaElement>(null);
+  const stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
+  const projectsInputRef = useRef<HTMLTextAreaElement>(null);
 
 
   // Redirect employers to their dashboard
@@ -82,7 +84,7 @@ const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
     if (isAuthenticated && authProfile) {
       setProfile(authProfile);
       setEditForm(authProfile);
-            setLocalCompletionPercentage(authProfile.profile_completion_percentage || calculateProfileCompletion(authProfile));
+      setLocalCompletionPercentage(authProfile.profile_completion_percentage || calculateProfileCompletion(authProfile));
 
       setLoading(false);
     } else if (isAuthenticated && !authProfile) {
@@ -99,7 +101,7 @@ const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
       const profileData = await profileService.getProfile();
       setProfile(profileData);
       setEditForm(profileData);
-       setLocalCompletionPercentage(profileData.profile_completion_percentage || calculateProfileCompletion(profileData));
+      setLocalCompletionPercentage(profileData.profile_completion_percentage || calculateProfileCompletion(profileData));
     } catch (error) {
       console.error('Error loading profile:', error);
       toast.error("Failed to load profile");
@@ -109,7 +111,7 @@ const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
   };
 
   const handleSave = async (dataToSave?: Partial<ProfileUpdate>) => {
-    
+
     const payload = dataToSave || editForm;
     if (!payload || Object.keys(payload).length === 0) {
       toast.info("No changes to save.");
@@ -121,7 +123,7 @@ const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
       const updatedProfile = await profileService.updateProfile(payload);
       setProfile(updatedProfile);
       setEditForm(updatedProfile);
-            setLocalCompletionPercentage(updatedProfile.profile_completion_percentage || calculateProfileCompletion(updatedProfile));
+      setLocalCompletionPercentage(updatedProfile.profile_completion_percentage || calculateProfileCompletion(updatedProfile));
 
       setEditing(false);
       toast.success("Profile updated successfully!");
@@ -133,7 +135,7 @@ const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
 
   const handleCancel = () => {
     setEditForm(profile as ProfileType);
-        setLocalCompletionPercentage(profile?.profile_completion_percentage || calculateProfileCompletion(profile));
+    setLocalCompletionPercentage(profile?.profile_completion_percentage || calculateProfileCompletion(profile));
 
     setEditing(false);
   };
@@ -145,7 +147,7 @@ const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
   };
 
   const getAvailabilityColor = (status: string) => {
-    switch(status) {
+    switch (status) {
       case 'Available':
         return 'bg-green-300 text-green-800 border-green-500';
       case 'Not Available':
@@ -160,22 +162,22 @@ const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
 
   const calculateProfileCompletion = (profile: ProfileType | null): number => {
     if (!profile) return 0;
-   const fields: Array<keyof ProfileType> = [
-    'name', 'email', 'bio', 'linkedin_url', 'skills', 'work_experience',
-    'phone', 'location', 'date_of_birth', 'salary_expectation', 'preferred_job_type',
-    'work_authorization', 'availability', 'experience_years', 'github_url', 
-    'twitter_url',  'portfolio_url', 'resume_link', 'education',
-    'projects', 'languages', 'certifications', 'preferences'
-  ];
+    const fields: Array<keyof ProfileType> = [
+      'name', 'email', 'bio', 'linkedin_url', 'skills', 'work_experience',
+      'phone', 'location', 'date_of_birth', 'salary_expectation', 'preferred_job_type',
+      'work_authorization', 'availability', 'experience_years', 'github_url',
+      'twitter_url', 'portfolio_url', 'resume_link', 'education',
+      'projects', 'languages', 'certifications', 'preferences'
+    ];
 
-  const totalFields = fields.length;
-  const completedFields = fields.reduce((count, field) => {
-    const value = profile[field];
-    if (Array.isArray(value)) return value.length > 0 ? count + 1 : count;
-    if (typeof value == 'object' && value !== null) return Object.keys(value).length > 0 ? count + 1 : count;
-    return value ? count + 1 : count; 
-  }, 0);
-  return Math.round((completedFields / totalFields) * 100);
+    const totalFields = fields.length;
+    const completedFields = fields.reduce((count, field) => {
+      const value = profile[field];
+      if (Array.isArray(value)) return value.length > 0 ? count + 1 : count;
+      if (typeof value == 'object' && value !== null) return Object.keys(value).length > 0 ? count + 1 : count;
+      return value ? count + 1 : count;
+    }, 0);
+    return Math.round((completedFields / totalFields) * 100);
   };
   // update local completion percentage when editing form
   useEffect(() => {
@@ -200,7 +202,8 @@ const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
       phone: phoneInputRef,
       job_type: jobInputRef,
       stackoverflow: stackoverflowInputRef,
-      experience_years: experience_yearsInputRef
+      experience_years: experience_yearsInputRef,
+      projects: projectsInputRef
     };
     const ref = refs[field];
     if (ref?.current) {
@@ -506,7 +509,7 @@ const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
                       <div className="flex items-center gap-3">
                         <Briefcase className="h-4 w-4 text-muted-foreground" />
                         <span className={`text-sm px-2 py-1 rounded border ${getAvailabilityColor(profile.availability || '')}`}>
-                        {profile.availability}
+                          {profile.availability}
                         </span>
                       </div>
                     ) : null}
@@ -759,7 +762,7 @@ const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
                       <span className="text-muted-foreground">Availability</span>
                       <Badge variant="outline" className={`text-sm ${getAvailabilityColor(profile.availability)}`}>{profile?.availability}</Badge>
                     </div>
-                        <div className="space-y-2">
+                    <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Profile Complete</span>
                         <span className="font-medium">{localCompletionPercentage}%</span>
@@ -859,13 +862,13 @@ const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
                             )}
                             {!profile?.salary_expectation && (
                               <li>
-                                <Button 
+                                <Button
                                   variant="link"
                                   className="text-xs p-0 h-auto"
                                   onClick={() => handleJumpToField('salary')}
                                   aria-label="Add your expected salary">
-                                    Salary Expectation
-                                  </Button>
+                                  Salary Expectation
+                                </Button>
                               </li>
                             )}
                             {!profile?.date_of_birth && (
@@ -875,19 +878,19 @@ const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
                                   className="text-xs p-0 h-auto"
                                   onClick={() => handleJumpToField('dob')}
                                   aria-label="Add your date of birth">
-                                    Date of Birth
-                                  </Button>
+                                  Date of Birth
+                                </Button>
                               </li>
                             )}
                             {!profile?.location && (
                               <li>
-                                <Button 
+                                <Button
                                   variant="link"
                                   className="text-xs p-0 h-auto"
                                   onClick={() => handleJumpToField('location')}
                                   aria-label="Add your location">
-                                    Location
-                                  </Button>
+                                  Location
+                                </Button>
                               </li>
                             )}
                             {!profile?.experience_years && (
@@ -897,19 +900,19 @@ const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
                                   className="text-xs p-0 h-auto"
                                   onClick={() => handleJumpToField('experience_years')}
                                   aria-label="Years of experience"
-                                  >
-                                    Years of Experience
-                                  </Button>
-                                  
+                                >
+                                  Years of Experience
+                                </Button>
+
                               </li>
                             )}
                             {!profile?.preferred_job_type && (
                               <li>
-                                <Button 
-                                variant="link"
-                                className="text-xs p-0 h-auto"
-                                onClick={() => handleJumpToField('job_type')}
-                                aria-label="Preferred job type">
+                                <Button
+                                  variant="link"
+                                  className="text-xs p-0 h-auto"
+                                  onClick={() => handleJumpToField('job_type')}
+                                  aria-label="Preferred job type">
                                   Preferred Job Type
                                 </Button>
                               </li>
@@ -921,8 +924,8 @@ const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
                                   className="text-xs p-0 h-auto"
                                   onClick={() => handleJumpToField('phone')}
                                   aria-label="Phone Number">
-                                    Phone Number
-                                  </Button>
+                                  Phone Number
+                                </Button>
                               </li>
                             )}
                             {!profile?.twitter_url && (
@@ -932,21 +935,21 @@ const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
                                   className="text-xs p-0 h-auto"
                                   onClick={() => handleJumpToField('twitter')}
                                   aria-label="Your twitter handle url"
-                                  >
-                                    Twitter
-                                  </Button>
+                                >
+                                  Twitter
+                                </Button>
                               </li>
                             )}
-                             {!profile?.stackoverflow_url && (
+                            {!profile?.stackoverflow_url && (
                               <li>
                                 <Button
                                   variant="link"
                                   className="text-xs p-0 h-auto"
                                   onClick={() => handleJumpToField('stackoverflow')}
                                   aria-label="Your twitter handle url"
-                                  >
-                                    Stackoverflow
-                                  </Button>
+                                >
+                                  Stackoverflow
+                                </Button>
                               </li>
                             )}
                             {!profile?.resume_link && (
@@ -956,7 +959,7 @@ const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
                                   className="text-xs p-0 h-auto"
                                   onClick={() => handleJumpToField('resume')}
                                   aria-label="resume link"
-                                  >Resume Link</Button>
+                                >Resume Link</Button>
                               </li>
                             )}
                           </ul>
@@ -1040,30 +1043,101 @@ const  stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
                 <CardHeader>
                   <CardTitle>Projects</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {profile?.projects?.map((project, index) => (
-                      <div key={index} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-semibold">{project.name}</h4>
-                          {project.url && (
-                            <a href={project.url} target="_blank" rel="noopener noreferrer"
-                              className="text-sm text-blue-600 hover:underline">
-                              View Project
-                            </a>
-                          )}
+                <CardContent ref={projectsInputRef}>
+                  {editing ? (
+                    <div className="space-y-6">
+                      {editForm.projects && editForm.projects.length > 0 && editForm.projects.map((project, index) => (
+                        <div key={index} className="border rounded-lg p-4 space-y-4">
+                          <Input
+                            value={project.name || ''}
+                            onChange={(e) => {
+                              const newProjects = [...(editForm.projects || [])];
+                              newProjects[index] = { ...newProjects[index], name: e.target.value };
+                              setEditForm({ ...editForm, projects: newProjects });
+
+                            }}
+                            placeholder="Project Name"
+                            className="w-full" />
+                          <Textarea
+                            value={project.description || ''}
+                            onChange={(e) => {
+                              const newProjects = [...(editForm.projects || [])];
+                              newProjects[index] = { ...newProjects[index], description: e.target.value };
+                              setEditForm({ ...editForm, projects: newProjects });
+                            }}
+                            placeholder="Description"
+                            rows={3}
+                          />
+                          <Input
+                            value={project.url || ''}
+                            onChange={(e) => {
+                              const newProjects = [...(editForm.projects || [])];
+                              newProjects[index] = { ...newProjects[index], url: e.target.value };
+                              setEditForm({ ...editForm, projects: newProjects });
+
+                            }}
+                            placeholder="project url (optional)"
+                            className="w-full"
+                          />
+                          <Input
+                            value={project.tech_stack?.join(', ') || ''}
+                            onChange={(e) => {
+                              const newProjects = [...(editForm.projects || [])];
+                              newProjects[index] = { ...newProjects[index], tech_stack: e.target.value.split(',').map(tech => tech.trim()) };
+                              setEditForm({ ...editForm, projects: newProjects });
+                            }}
+                            onBlur={(e) => {
+                              // Clean up empty entries when user finishes editing
+                              const newProjects = [...(editForm.projects || [])];
+                              newProjects[index] = {
+                                ...newProjects[index],
+                                tech_stack: e.target.value.split(',').map(tech => tech.trim()).filter(tech => tech)
+                              };
+                              setEditForm({ ...editForm, projects: newProjects });
+                            }}
+
+                            placeholder="Tech Stack (comma-separated)"
+                            className="w-full"
+                          />
+
                         </div>
-                        <p className="text-muted-foreground text-sm mb-2">{project.description}</p>
-                        <div className="flex flex-wrap gap-1">
-                          {project.tech_stack?.map((tech, techIndex) => (
-                            <Badge key={techIndex} variant="outline" className="text-xs">
-                              {tech}
-                            </Badge>
-                          ))}
+                      ))}
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const newProjects = [...(editForm.projects || []), { name: '', description: '', url: '', tech_stack: [] }];
+                          setEditForm({ ...editForm, projects: newProjects })
+                        }}
+                        className="w-full"
+
+                      />
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add New Project
+                    </div>
+                  ) :
+                    (<div className="space-y-4">
+                      {profile?.projects?.map((project, index) => (
+                        <div key={index} className="border rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-semibold">{project.name}</h4>
+                            {project.url && (
+                              <a href={project.url} target="_blank" rel="noopener noreferrer"
+                                className="text-sm text-blue-600 hover:underline">
+                                View Project
+                              </a>
+                            )}
+                          </div>
+                          <p className="text-muted-foreground text-sm mb-2">{project.description}</p>
+                          <div className="flex flex-wrap gap-1">
+                            {project.tech_stack?.map((tech, techIndex) => (
+                              <Badge key={techIndex} variant="outline" className="text-xs">
+                                {tech}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>)}
                 </CardContent>
               </Card>
 
