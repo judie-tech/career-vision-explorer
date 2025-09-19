@@ -16,7 +16,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/components/ui/sonner";
 import { ApiErrorBoundary } from "@/components/error/ApiErrorBoundary";
-import { DashboardSwitcher } from "@/components/layout/empDashboard";
+import { DashboardSwitcher } from "@/components/layout/EmpDashboardSwitch";
 // Mock Active Projects Table component (you'll need to create this)
 const ActiveProjectsTable = () => {
   return (
@@ -178,9 +178,13 @@ const EmployerDashboard = () => {
                         </p>
                       </div>
                     </div>
-              
+
                   </div>
-                       < DashboardSwitcher />
+                  <div className="p-1">
+                    < DashboardSwitcher />
+
+
+                  </div>
                 </div>
               </CardContent>
             </Card>
