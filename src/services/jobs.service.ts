@@ -24,45 +24,79 @@ interface CacheEntry<T> {
 }
 
 // ✅ Helper: runtime validation for required string fields
-function validateJobPayload(jobData: any): void {
-  const requiredFields = [
-    "title",
-    "description",
-    "location",
-    "type",
-    "salary",
-    "company",
-  ];
+// In your jobs.service.ts - UPDATE THE VALIDATION FUNCTION
+function validateJobPayload(jobData: any, isUpdate: boolean = false): void {
+  if (isUpdate) {
+    // For updates, only validate that we have at least one field to update
+    const hasUpdates = Object.keys(jobData).some(
+      (key) =>
+        jobData[key] !== undefined &&
+        jobData[key] !== null &&
+        jobData[key] !== ""
+    );
 
-  const missing: string[] = [];
-  const invalid: string[] = [];
+    if (!hasUpdates) {
+      throw new Error("No fields to update");
+    }
 
-  for (const field of requiredFields) {
-    if (
-      jobData[field] === undefined ||
-      jobData[field] === null ||
-      jobData[field] === ""
-    ) {
-      missing.push(field);
-    } else if (typeof jobData[field] !== "string") {
-      invalid.push(field);
+    // For updates, validate that provided fields have correct types
+    const invalid: string[] = [];
+    for (const [field, value] of Object.entries(jobData)) {
+      if (value !== undefined && value !== null && value !== "") {
+        // Only validate string fields that are actually provided
+        const stringFields = [
+          "title",
+          "description",
+          "location",
+          "type",
+          "salary",
+          "company",
+          "job_type",
+          "experience_level",
+          "salary_range",
+        ];
+        if (stringFields.includes(field) && typeof value !== "string") {
+          invalid.push(field);
+        }
+      }
+    }
+
+    if (invalid.length) {
+      throw new Error(`Invalid type (should be string): ${invalid.join(", ")}`);
+    }
+  } else {
+    // For creation, validate all required fields
+    const requiredFields = ["title", "description", "location", "company"];
+
+    const missing: string[] = [];
+    const invalid: string[] = [];
+
+    for (const field of requiredFields) {
+      if (
+        jobData[field] === undefined ||
+        jobData[field] === null ||
+        jobData[field] === ""
+      ) {
+        missing.push(field);
+      } else if (typeof jobData[field] !== "string") {
+        invalid.push(field);
+      }
+    }
+
+    if (missing.length || invalid.length) {
+      const msg = [
+        missing.length ? `Missing fields: ${missing.join(", ")}` : "",
+        invalid.length
+          ? `Invalid type (should be string): ${invalid.join(", ")}`
+          : "",
+      ]
+        .filter(Boolean)
+        .join("; ");
+
+      throw new Error(msg);
     }
   }
-
-  if (missing.length || invalid.length) {
-    const msg = [
-      missing.length ? `Missing fields: ${missing.join(", ")}` : "",
-      invalid.length
-        ? `Invalid type (should be string): ${invalid.join(", ")}`
-        : "",
-    ]
-      .filter(Boolean)
-      .join("; ");
-
-    throw new Error(msg);
-  }
 }
-
 class JobsService {
   private cache = new Map<string, CacheEntry<any>>();
   private pendingRequests = new Map<string, Promise<any>>();
@@ -191,7 +225,7 @@ class JobsService {
 
   async createJob(jobData: JobCreate): Promise<Job> {
     try {
-      validateJobPayload(jobData);
+      validateJobPayload(jobData, false); // false = creation
       return await apiClient.post<Job>("/jobs/", jobData);
     } catch (error: any) {
       const msg =
@@ -206,24 +240,23 @@ class JobsService {
 
   async updateJob(jobId: string, jobData: JobUpdate): Promise<Job> {
     try {
-      validateJobPayload(jobData);
+      validateJobPayload(jobData, true); // true = update
       return await apiClient.put<Job>(`/jobs/${jobId}`, jobData);
     } catch (error: any) {
       const msg =
         typeof error.message === "string"
           ? error.message
           : JSON.stringify(error.message);
-      console.error("❌ Job update failed:", msg);
+      console.error("Job update failed:", msg);
       toast.error(msg || "Failed to update job");
       throw error;
     }
   }
-
   async deleteJob(jobId: string): Promise<{ message: string }> {
     try {
       return await apiClient.delete<{ message: string }>(`/jobs/${jobId}`);
     } catch (error: any) {
-      console.error("❌ Job delete failed:", error.message);
+      console.error("Job delete failed:", error.message);
       toast.error(error.message || "Failed to delete job");
       throw error;
     }
