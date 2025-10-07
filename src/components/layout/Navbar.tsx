@@ -81,15 +81,16 @@ const Navbar = () => {
       navigation = [
         { name: "Freelancers", href: "/freelancers" },
         { name: "Insights", href: "/insights" },
-        { name: "Jobs", href: "/employer/jobs" }, // employer's posted jobs
-        { name: "Projects", href: "/employer/projects" }, // employer's projects
-        { name: "Boosting Services", href: "/employer/boosting-services" }, // boosting page
+        { name: "Jobs", href: "/employer/jobs" },
+        { name: "Projects", href: "/employer/projects" },
+        { name: "Boosting Services", href: "/employer/boosting-services" },
+        { name: "Profile", href: "/profile" },
       ];
     } else if (
       user.account_type === "job_seeker" ||
       user.account_type === "freelancer"
     ) {
-      // Job seekers/freelancers don’t see Freelancers or Insights
+      // Job seekers/freelancers don't see Freelancers or Insights
       navigation = baseNavigation.filter(
         (item) => item.name !== "Freelancers" && item.name !== "Insights"
       );

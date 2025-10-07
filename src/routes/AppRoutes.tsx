@@ -3,7 +3,6 @@ import { useEffect, lazy, Suspense } from "react";
 import { useLocation } from "react-router-dom";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import DashboardLayout from "@/components/admin/DashboardLayout";
-import Layout from "@/components/layout/Layout";
 
 // Lazy load major pages
 const Index = lazy(() => import("@/pages/Index"));
@@ -71,7 +70,7 @@ const CreateFreelancerProfile = lazy(
   () => import("@/pages/freelancer/CreateFreelancerProfile")
 );
 
-// Other
+// Other pages
 const About = lazy(() => import("@/pages/About"));
 const Blog = lazy(() => import("@/pages/Blog"));
 const Help = lazy(() => import("@/pages/Help"));
@@ -120,15 +119,8 @@ export const AppRoutes = () => {
     <>
       <ScrollToTop />
       <Routes>
-        {/* Public Routes with Layout (includes navbar) */}
-        <Route
-          path="/"
-          element={
-            <Layout>
-              <Outlet />
-            </Layout>
-          }
-        >
+        {/* Public Routes - NO Layout wrapper */}
+        <Route path="/" element={<Outlet />}>
           <Route
             index
             element={
@@ -307,7 +299,7 @@ export const AppRoutes = () => {
           />
         </Route>
 
-        {/* Auth routes */}
+        {/* Auth routes - NO Layout wrapper */}
         <Route
           path="/login"
           element={
@@ -341,17 +333,22 @@ export const AppRoutes = () => {
           }
         />
 
-        {/* Employer Routes */}
-        <Route
-          path="/employer"
-          element={
-            <Layout>
-              <Outlet />
-            </Layout>
-          }
-        >
+        {/* Employer Routes - NO Layout wrapper */}
+        <Route path="/employer" element={<Outlet />}>
           <Route
             index
+            element={
+              <ProtectedRoute requiredRole="employer">
+                <DashboardLayout title="Employer Dashboard" role="employer">
+                  <Suspense fallback={<PageLoader />}>
+                    <EmployerDashboard />
+                  </Suspense>
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="dashboard"
             element={
               <ProtectedRoute requiredRole="employer">
                 <DashboardLayout title="Employer Dashboard" role="employer">
@@ -448,19 +445,12 @@ export const AppRoutes = () => {
           />
         </Route>
 
-        {/* Jobseeker Routes */}
-        <Route
-          path="/jobseeker"
-          element={
-            <Layout>
-              <Outlet />
-            </Layout>
-          }
-        >
+        {/* Jobseeker Routes - NO Layout wrapper */}
+        <Route path="/jobseeker" element={<Outlet />}>
           <Route
             path="dashboard"
             element={
-              <ProtectedRoute requiredRole="jobseeker">
+              <ProtectedRoute requiredRole="job_seeker">
                 <Suspense fallback={<PageLoader />}>
                   <JobSeekerDashboard />
                 </Suspense>
@@ -470,7 +460,7 @@ export const AppRoutes = () => {
           <Route
             path="settings"
             element={
-              <ProtectedRoute requiredRole="jobseeker">
+              <ProtectedRoute requiredRole="job_seeker">
                 <Suspense fallback={<PageLoader />}>
                   <JobSeekerSettings />
                 </Suspense>
@@ -479,15 +469,8 @@ export const AppRoutes = () => {
           />
         </Route>
 
-        {/* Freelancer Routes */}
-        <Route
-          path="/freelancer"
-          element={
-            <Layout>
-              <Outlet />
-            </Layout>
-          }
-        >
+        {/* Freelancer Routes - NO Layout wrapper */}
+        <Route path="/freelancer" element={<Outlet />}>
           <Route
             path="dashboard"
             element={
@@ -510,41 +493,186 @@ export const AppRoutes = () => {
           />
         </Route>
 
-        {/* General Protected Routes */}
+        {/* General Protected Routes - NO Layout wrapper */}
         <Route
           path="/dashboard"
           element={
-            <Layout>
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader />}>
-                  <Dashboard />
-                </Suspense>
-              </ProtectedRoute>
-            </Layout>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <Layout>
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader />}>
-                  <Profile />
-                </Suspense>
-              </ProtectedRoute>
-            </Layout>
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <Dashboard />
+              </Suspense>
+            </ProtectedRoute>
           }
         />
 
-        {/* 404 */}
+        {/* Single Profile Route - NO Layout wrapper */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <Profile />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Routes - NO Layout wrapper */}
+        <Route
+          path="/admin"
+          element={
+            <DashboardLayout title="Admin Dashboard" role="admin">
+              <Outlet />
+            </DashboardLayout>
+          }
+        >
+          <Route
+            path="login"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <AdminLogin />
+              </Suspense>
+            }
+          />
+          <Route
+            index
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Suspense fallback={<PageLoader />}>
+                  <AdminDashboard />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="api"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Suspense fallback={<PageLoader />}>
+                  <AdminAPI />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="users"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Suspense fallback={<PageLoader />}>
+                  <AdminUsers />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="jobseekers"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Suspense fallback={<PageLoader />}>
+                  <AdminJobseekers />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="jobs"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Suspense fallback={<PageLoader />}>
+                  <AdminJobs />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="skills"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Suspense fallback={<PageLoader />}>
+                  <AdminSkills />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="career-paths"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Suspense fallback={<PageLoader />}>
+                  <AdminCareerPaths />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="partners"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Suspense fallback={<PageLoader />}>
+                  <AdminPartners />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="testimonials"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Suspense fallback={<PageLoader />}>
+                  <AdminTestimonials />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="content"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Suspense fallback={<PageLoader />}>
+                  <AdminContent />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="insights"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Suspense fallback={<PageLoader />}>
+                  <AdminInsights />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="settings"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Suspense fallback={<PageLoader />}>
+                  <AdminSettings />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="profiles"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Suspense fallback={<PageLoader />}>
+                  <AdminProfiles />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
+        {/* 404 - NO Layout wrapper */}
         <Route
           path="*"
           element={
-            <Layout>
-              <Suspense fallback={<PageLoader />}>
-                <NotFound />
-              </Suspense>
-            </Layout>
+            <Suspense fallback={<PageLoader />}>
+              <NotFound />
+            </Suspense>
           }
         />
       </Routes>

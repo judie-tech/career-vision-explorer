@@ -1,31 +1,46 @@
 import { apiClient } from "../lib/api-client";
-import { Profile, ProfileUpdate } from "../types/api";
+import { Profile, ProfileUpdate, CompanyData } from "../types/api";
 import { trackDbOperation } from "../utils/performance";
 
 class ProfileService {
-  async getProfile(): Promise<Profile> {
+  async getProfile(userId?: string): Promise<Profile> {
     return trackDbOperation("Load Profile", async () => {
       try {
-        return await apiClient.getFast<Profile>("/profile/");
+        const endpoint = userId ? `/profiles/${userId}` : "/profile/";
+        return await apiClient.getFast<Profile>(endpoint);
       } catch (error: any) {
         if (error.message?.includes("timed out")) {
-          return await apiClient.get<Profile>("/profile/", { timeout: 45000 });
+          const endpoint = userId ? `/profiles/${userId}` : "/profile/";
+          return await apiClient.get<Profile>(endpoint, { timeout: 45000 });
         }
         throw error;
       }
     });
   }
 
-  async updateProfile(profileData: ProfileUpdate): Promise<Profile> {
-    return await apiClient.put<Profile>("/profile/", profileData);
+  async updateProfile(
+    profileId: string,
+    profileData: ProfileUpdate
+  ): Promise<Profile> {
+    return await apiClient.put<Profile>(`/profiles/${profileId}`, profileData);
   }
 
-  async getPublicProfile(userId: string) {
-    return await apiClient.get(`/profile/${userId}`);
+  async updateCompanyProfile(
+    profileId: string,
+    companyData: Partial<CompanyData>
+  ): Promise<Profile> {
+    return await apiClient.put<Profile>(
+      `/profiles/${profileId}/company`,
+      companyData
+    );
   }
 
-  async updateCompanyProfile(companyData: any): Promise<void> {
-    await apiClient.put("/company/", companyData);
+  async getCompanyProfile(profileId: string): Promise<Profile> {
+    return await apiClient.get<Profile>(`/profiles/${profileId}/company`);
+  }
+
+  async getPublicProfile(userId: string): Promise<Profile> {
+    return await apiClient.get<Profile>(`/profiles/${userId}/public`);
   }
 
   async getProfileStats(): Promise<{
@@ -36,18 +51,16 @@ class ProfileService {
     return await apiClient.get("/profile/stats");
   }
 
-  async addSkill(skill: string) {
-    return await apiClient.post(`/profile/skills`, { skill });
+  async addSkill(skill: string): Promise<void> {
+    await apiClient.post("/profile/skills", { skill });
   }
 
-  async removeSkill(skill: string) {
-    return await apiClient.delete(
-      `/profile/skills/${encodeURIComponent(skill)}`
-    );
+  async removeSkill(skill: string): Promise<void> {
+    await apiClient.delete(`/profile/skills/${encodeURIComponent(skill)}`);
   }
 
-  async updateSkills(skills: string[]) {
-    return await apiClient.put("/profile/skills", { skills });
+  async updateSkills(skills: string[]): Promise<void> {
+    await apiClient.put("/profile/skills", { skills });
   }
 
   async searchProfiles(params: {
@@ -66,11 +79,11 @@ class ProfileService {
 
     const queryString = queryParams.toString();
     return await apiClient.get<Profile[]>(
-      `/profile/search/profiles${queryString ? `?${queryString}` : ""}`
+      `/profiles/search${queryString ? `?${queryString}` : ""}`
     );
   }
 
-  async parseResume(file: File) {
+  async parseResume(file: File): Promise<any> {
     const response = await apiClient.uploadFile<any>(
       "/ai/upload-and-parse-cv",
       file
