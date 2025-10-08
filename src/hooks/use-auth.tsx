@@ -228,7 +228,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       const payload = JSON.parse(atob(accessToken.split(".")[1]));
       const user: User = {
         user_id: payload.sub,
-        name: "",
+        name: "", // Will be loaded from profile
         email: payload.email,
         account_type: payload.account_type as
           | "job_seeker"
@@ -239,7 +239,10 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
       authService.setStoredUser(user);
       setUser(user);
-      loadUserProfile();
+
+      if (!isLoading) {
+        loadUserProfile();
+      }
     } catch (error) {
       console.error("Error decoding token:", error);
       toast.error("Failed to process authentication tokens");
@@ -270,7 +273,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
       const user: User = {
         user_id: tokenResponse.user_id,
-        name: "",
+        name: "", // Will be loaded from profile
         email: tokenResponse.email,
         account_type: tokenResponse.account_type as
           | "job_seeker"

@@ -1,23 +1,11 @@
-<<<<<<< HEAD
 import { apiClient } from "../lib/api-client";
+import { supabase, isSupabaseConfigured } from "../lib/supabase";
 import {
   User,
   UserLogin,
   UserRegister,
   TokenResponse,
-=======
-import { apiClient } from '../lib/api-client';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { 
-  User, 
-  UserLogin, 
-  UserRegister, 
-  TokenResponse, 
->>>>>>> 386844d (linkedin auth)
   RefreshTokenRequest,
-  PasswordChangeRequest,
-  PasswordResetRequest,
-  PasswordResetConfirm,
 } from "../types/auth";
 import { trackDbOperation } from "../utils/performance";
 
@@ -32,7 +20,7 @@ class AuthService {
       user_id: tokenResponse.user_id,
       name: tokenResponse.user?.name || "",
       email: tokenResponse.email,
-      account_type: tokenResponse.account_type,
+      account_type: tokenResponse.account_type as User["account_type"],
       skills: tokenResponse.user?.skills,
       resume_link: tokenResponse.user?.resume_link,
     };
@@ -87,6 +75,7 @@ class AuthService {
       email: string;
       account_type: string;
     }>("/auth/me");
+
     return {
       user_id: response.user_id,
       name: "",
@@ -112,54 +101,50 @@ class AuthService {
   }
 
   setStoredUser(user: User): void {
-<<<<<<< HEAD
     localStorage.setItem("user", JSON.stringify(user));
-=======
-    localStorage.setItem('user', JSON.stringify(user));
   }
 
   setStoredTokens(accessToken: string, refreshToken: string): void {
     apiClient.setToken(accessToken);
-    localStorage.setItem('refresh_token', refreshToken);
+    localStorage.setItem("refresh_token", refreshToken);
   }
 
-  hasRole(role: 'job_seeker' | 'employer' | 'admin' | 'freelancer'): boolean {
+  hasRole(role: "job_seeker" | "employer" | "admin" | "freelancer"): boolean {
     const user = this.getStoredUser();
     return user?.account_type === role;
   }
 
   isAdmin(): boolean {
-    return this.hasRole('admin');
+    return this.hasRole("admin");
   }
 
   isEmployer(): boolean {
-    return this.hasRole('employer');
+    return this.hasRole("employer");
   }
 
   isJobSeeker(): boolean {
-    return this.hasRole('job_seeker');
+    return this.hasRole("job_seeker");
   }
 
   isFreelancer(): boolean {
-    return this.hasRole('freelancer');
->>>>>>> 386844d (linkedin auth)
+    return this.hasRole("freelancer");
   }
 
-  // LinkedIn OAuth authentication using Supabase
-async signInWithLinkedIn(): Promise<void> {
-  if (!isSupabaseConfigured() || !supabase) {
-    throw new Error('Supabase is not configured. Please check your environment variables.');
-  }
+  /** 🔹 LinkedIn OAuth via Supabase */
+  async signInWithLinkedIn(): Promise<void> {
+    if (!isSupabaseConfigured() || !supabase) {
+      throw new Error(
+        "Supabase is not configured. Check environment variables."
+      );
+    }
 
-  try {
-    // Specify the callback URL to ensure proper redirect
     const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'linkedin_oidc',
+      provider: "linkedin_oidc",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
         queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
+          access_type: "offline",
+          prompt: "consent",
         },
       },
     });
@@ -168,80 +153,52 @@ async signInWithLinkedIn(): Promise<void> {
       throw new Error(`LinkedIn authentication failed: ${error.message}`);
     }
 
-    console.log('LinkedIn OAuth initiated:', data);
-  } catch (error: any) {
-    console.error('LinkedIn OAuth error:', error);
-    throw new Error(error.message || 'Failed to initiate LinkedIn authentication');
+    console.log("LinkedIn OAuth initiated:", data);
   }
-}
 
-  // Handle OAuth callback and exchange Supabase session for our backend tokens
   async handleOAuthCallback(): Promise<TokenResponse> {
     if (!isSupabaseConfigured() || !supabase) {
-      throw new Error('Supabase is not configured. Please check your environment variables.');
+      throw new Error(
+        "Supabase is not configured. Check environment variables."
+      );
     }
 
-    try {
-      // Get the session from Supabase
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        throw new Error(`Failed to get session: ${error.message}`);
-      }
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
 
-      if (!session) {
-        throw new Error('No active session found. Please try logging in again.');
-      }
+    if (error) throw new Error(`Failed to get session: ${error.message}`);
+    if (!session)
+      throw new Error("No active session found. Try logging in again.");
 
-      // Extract user information from Supabase session
-      const supabaseUser = session.user;
-      const linkedinProfile = supabaseUser.user_metadata;
+    const supabaseUser = session.user;
+    const linkedinProfile = supabaseUser.user_metadata;
 
-      // Create or get user in our backend system
-      const userData = {
-        email: supabaseUser.email!,
-        name: linkedinProfile?.full_name || linkedinProfile?.name || 'LinkedIn User',
-        linkedin_id: supabaseUser.id,
-        profile_image: linkedinProfile?.avatar_url || linkedinProfile?.picture,
-        account_type: 'job_seeker' as const, // Default to job_seeker, can be changed later
-      };
-
-      // Exchange Supabase session for our backend tokens
-      const response = await apiClient.post<TokenResponse>('/auth/oauth/linkedin', {
+    const response = await apiClient.post<TokenResponse>(
+      "/auth/oauth/linkedin",
+      {
         supabase_user_id: supabaseUser.id,
         email: supabaseUser.email,
-        name: userData.name,
-        profile_image: userData.profile_image,
+        name:
+          linkedinProfile?.full_name ||
+          linkedinProfile?.name ||
+          "LinkedIn User",
+        profile_image: linkedinProfile?.avatar_url || linkedinProfile?.picture,
         linkedin_data: linkedinProfile,
-      });
-
-      // Store tokens and user data
-      if (response.access_token) {
-        apiClient.setToken(response.access_token);
-        localStorage.setItem('refresh_token', response.refresh_token);
-        
-        const user: User = {
-          user_id: response.user_id,
-          name: userData.name,
-          email: response.email,
-          account_type: response.account_type as 'job_seeker' | 'employer' | 'admin' | 'freelancer'
-        };
-        localStorage.setItem('user', JSON.stringify(user));
       }
+    );
 
-      // Sign out from Supabase to clean up
-      await supabase.auth.signOut();
-
-      return response;
-    } catch (error: any) {
-      console.error('OAuth callback error:', error);
-      throw new Error(error.message || 'Failed to complete LinkedIn authentication');
+    if (response.access_token) {
+      this.setSession(response);
     }
+
+    await supabase.auth.signOut();
+    return response;
   }
 
-  // Check if we're in an OAuth callback flow
   isOAuthCallback(): boolean {
-    return window.location.pathname === '/auth/callback';
+    return window.location.pathname === "/auth/callback";
   }
 }
 

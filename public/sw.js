@@ -2,7 +2,6 @@
 const CACHE_NAME = 'career-vision-v1';
 const urlsToCache = [
   '/',
-  '/src/index.css',
   '/placeholder.svg',
   '/favicon.ico'
 ];
@@ -17,9 +16,16 @@ self.addEventListener('install', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
-  // Skip caching for API requests and handle CORS properly
-  if (event.request.url.includes('/api/') || event.request.url.includes('localhost:8000')) {
-    // Don't intercept API requests, let them go through normally
+  // Skip caching for API requests, auth requests, development URLs, and external services
+  if (event.request.url.includes('/api/') || 
+      event.request.url.includes('localhost:8000') ||
+      event.request.url.includes('localhost:8080') ||
+      event.request.url.includes('/auth/') ||
+      event.request.url.includes('/src/') ||
+      event.request.url.includes('linkedin.com') ||
+      event.request.url.includes('platform-telemetry') ||
+      event.request.url.includes('gpteng.co')) {
+    // Don't intercept these requests, let them go through normally
     return;
   }
   
@@ -30,7 +36,10 @@ self.addEventListener('fetch', function(event) {
         if (response) {
           return response;
         }
-        return fetch(event.request);
+        return fetch(event.request).catch(function() {
+          // If fetch fails, return a basic response
+          return new Response('Network error', { status: 408 });
+        });
       }
     )
   );
