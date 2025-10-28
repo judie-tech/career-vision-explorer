@@ -44,6 +44,22 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Helper function to determine the correct dashboard path
+const getDashboardPath = (accountType: string): string => {
+  switch (accountType) {
+    case "job_seeker":
+      return "/jobseeker/dashboard";
+    case "employer":
+      return "/employer/dashboard";
+    case "freelancer":
+      return "/freelancer/dashboard";
+    case "admin":
+      return "/admin/dashboard";
+    default:
+      return "/";
+  }
+};
+
 const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -105,7 +121,10 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         setTimeout(() => reject(new Error("Profile load timeout")), 30000)
       );
       const profilePromise = profileService.getProfile();
-      const userProfile = await Promise.race([profilePromise, timeoutPromise]) as Profile;
+      const userProfile = (await Promise.race([
+        profilePromise,
+        timeoutPromise,
+      ])) as Profile;
       setProfile(userProfile);
     } catch (err: any) {
       console.error("Error loading profile:", err);
@@ -136,6 +155,10 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(user);
       await loadUserProfile();
       toast.success("Login successful!");
+
+      // FIX: Redirect to appropriate dashboard based on user role
+      const redirectPath = getDashboardPath(user.account_type);
+      window.location.href = redirectPath;
     } catch (err: any) {
       toast.error(err.message || "Login failed.");
       throw err;
@@ -153,6 +176,10 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(user);
       await loadUserProfile();
       toast.success("Registration successful!");
+
+      // FIX: Redirect to appropriate dashboard based on user role
+      const redirectPath = getDashboardPath(user.account_type);
+      window.location.href = redirectPath;
     } catch (err: any) {
       toast.error(err.message || "Registration failed.");
       throw err;
@@ -223,27 +250,31 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const setTokens = (accessToken: string, refreshToken: string) => {
     // Store tokens
     authService.setStoredTokens(accessToken, refreshToken);
-    
+
     // Decode token to get user info
     try {
-      const payload = JSON.parse(atob(accessToken.split('.')[1]));
+      const payload = JSON.parse(atob(accessToken.split(".")[1]));
       const user: User = {
         user_id: payload.sub,
-        name: '',  // Will be loaded from profile
+        name: "", // Will be loaded from profile
         email: payload.email,
-        account_type: payload.account_type as 'job_seeker' | 'employer' | 'admin' | 'freelancer'
+        account_type: payload.account_type as
+          | "job_seeker"
+          | "employer"
+          | "admin"
+          | "freelancer",
       };
-      
+
       authService.setStoredUser(user);
       setUser(user);
-      
+
       // Load profile data only if not already loading
       if (!isLoading) {
         loadUserProfile();
       }
     } catch (error) {
-      console.error('Error decoding token:', error);
-      toast.error('Failed to process authentication tokens');
+      console.error("Error decoding token:", error);
+      toast.error("Failed to process authentication tokens");
     }
   };
 
@@ -253,9 +284,11 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       await authService.signInWithLinkedIn();
       // The OAuth flow will redirect the user, so we don't need to do anything else here
     } catch (error: any) {
-      console.error('LinkedIn sign-in error:', error);
-      toast.error('LinkedIn Authentication Failed', {
-        description: error.message || 'Failed to initiate LinkedIn authentication. Please try again.',
+      console.error("LinkedIn sign-in error:", error);
+      toast.error("LinkedIn Authentication Failed", {
+        description:
+          error.message ||
+          "Failed to initiate LinkedIn authentication. Please try again.",
       });
       throw error;
     } finally {
@@ -267,29 +300,36 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setIsLoading(true);
       const tokenResponse = await authService.handleOAuthCallback();
-      
+
       // Construct user object from token response
       const user: User = {
         user_id: tokenResponse.user_id,
-        name: '', // Will be loaded from profile
+        name: "", // Will be loaded from profile
         email: tokenResponse.email,
-        account_type: tokenResponse.account_type as 'job_seeker' | 'employer' | 'admin' | 'freelancer'
+        account_type: tokenResponse.account_type as
+          | "job_seeker"
+          | "employer"
+          | "admin"
+          | "freelancer",
       };
-      
+
       authService.setStoredUser(user);
       setUser(user);
       await loadUserProfile();
-      
-      toast.success('Welcome!', {
-        description: 'You have been successfully logged in with LinkedIn.',
+
+      toast.success("Welcome!", {
+        description: "You have been successfully logged in with LinkedIn.",
       });
-      
-      // Redirect to dashboard or intended page
-      window.location.href = '/';
+
+      // FIX: Redirect to appropriate dashboard based on user role
+      const redirectPath = getDashboardPath(user.account_type);
+      window.location.href = redirectPath;
     } catch (error: any) {
-      console.error('OAuth callback error:', error);
-      toast.error('Authentication Failed', {
-        description: error.message || 'Failed to complete LinkedIn authentication. Please try again.',
+      console.error("OAuth callback error:", error);
+      toast.error("Authentication Failed", {
+        description:
+          error.message ||
+          "Failed to complete LinkedIn authentication. Please try again.",
       });
       throw error;
     } finally {
