@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Shield, User, LogOut } from "lucide-react";
+import { Menu, X, Shield, User, LogOut, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/use-auth";
@@ -59,8 +59,20 @@ const Navbar = () => {
     };
   };
 
-  // Base navigation for everyone
-  const baseNavigation = [
+  // Profile dropdown items for job seekers
+  const jobSeekerProfileItems = [
+    { name: "Job Matching", href: "/job-matching" },
+    { name: "Career Paths", href: "/career-paths" },
+    { name: "Skills", href: "/skills" },
+    { name: "Skill Analysis", href: "/enhanced-skill-analysis" },
+    { name: "Interview Prep", href: "/interview-prep" },
+  ];
+
+  // Check if user is a job seeker (regardless of current route)
+  const isJobSeekerUser = user?.account_type === "job_seeker";
+
+  // Base navigation for everyone (full navigation)
+  const fullNavigation = [
     { name: "Home", href: "/" },
     { name: "Jobs", href: "/jobs" },
     { name: "Freelancers", href: "/freelancers" },
@@ -72,8 +84,14 @@ const Navbar = () => {
     { name: "Insights", href: "/insights" },
   ];
 
+  // Decluttered navigation for job seekers (moved to right side)
+  const declutteredNavigation = [
+    { name: "Home", href: "/" },
+    { name: "Jobs", href: "/jobs" },
+  ];
+
   // Role-based navigation filtering
-  let navigation = baseNavigation;
+  let navigation = fullNavigation;
 
   if (isAuthenticated && user) {
     if (user.account_type === "employer") {
@@ -81,22 +99,21 @@ const Navbar = () => {
       navigation = [
         { name: "Freelancers", href: "/freelancers" },
         { name: "Insights", href: "/insights" },
-        { name: "Jobs", href: "/employer/jobs" }, // employer's posted jobs
-        { name: "Projects", href: "/employer/projects" }, // employer's projects
-        { name: "Boosting Services", href: "/employer/boosting-services" }, // boosting page
+        { name: "Jobs", href: "/employer/jobs" },
+        { name: "Projects", href: "/employer/projects" },
+        { name: "Boosting Services", href: "/employer/boosting-services" },
       ];
-    } else if (
-      user.account_type === "job_seeker" ||
-      user.account_type === "freelancer"
-    ) {
-      // Job seekers/freelancers don’t see Freelancers or Insights
-      navigation = baseNavigation.filter(
+    } else if (isJobSeekerUser) {
+      // Job seekers always see decluttered navigation (empty center)
+      navigation = [];
+    } else if (user.account_type === "freelancer") {
+      // Freelancers see full navigation
+      navigation = fullNavigation.filter(
         (item) => item.name !== "Freelancers" && item.name !== "Insights"
       );
-      navigation = [...navigation, { name: "Profile", href: "/profile" }];
     } else {
-      // Admin or other accounts
-      navigation = [...baseNavigation, { name: "Profile", href: "/profile" }];
+      // Admin or other accounts see full navigation
+      navigation = [...fullNavigation];
     }
   }
 
@@ -115,8 +132,8 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Desktop menu */}
-          <div className="hidden md:ml-6 md:flex md:items-center md:space-x-1">
+          {/* Desktop menu - Centered navigation (empty for jobseekers) */}
+          <div className="hidden md:flex md:items-center md:space-x-1">
             {navigation.map((item) => (
               <Link
                 key={item.name}
@@ -134,6 +151,78 @@ const Navbar = () => {
 
           {/* Desktop right side */}
           <div className="hidden md:flex md:items-center md:space-x-2">
+            {/* Home and Jobs links for job seekers (always show for job seekers) */}
+            {isAuthenticated && isJobSeekerUser && (
+              <>
+                {declutteredNavigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive(item.href)
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </>
+            )}
+
+            {/* Profile dropdown for job seekers */}
+            {isAuthenticated && isJobSeekerUser && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      location.pathname.startsWith("/profile") ||
+                      jobSeekerProfileItems.some((item) =>
+                        location.pathname.startsWith(item.href)
+                      )
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    Profile
+                    <ChevronDown className="ml-1 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>My Profile</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="cursor-pointer">
+                      View Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {jobSeekerProfileItems.map((item) => (
+                    <DropdownMenuItem key={item.name} asChild>
+                      <Link to={item.href} className="cursor-pointer">
+                        {item.name}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            {/* Regular profile link for other users */}
+            {isAuthenticated && user && !isJobSeekerUser && (
+              <Link
+                to="/profile"
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  isActive("/profile")
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                }`}
+              >
+                Profile
+              </Link>
+            )}
+
             {/* Dashboard link */}
             {isAuthenticated &&
               user &&
@@ -226,20 +315,86 @@ const Navbar = () => {
       {isMenuOpen && isMobile && (
         <div className="md:hidden bg-background border-t border-border">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {navigation.map((item) => (
+            {/* Show appropriate navigation based on user type */}
+            {isJobSeekerUser
+              ? declutteredNavigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`block px-3 py-2 rounded-lg text-base font-medium transition-colors ${
+                      isActive(item.href)
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ))
+              : navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`block px-3 py-2 rounded-lg text-base font-medium transition-colors ${
+                      isActive(item.href)
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+
+            {/* Mobile profile section for job seekers */}
+            {isAuthenticated && isJobSeekerUser && (
+              <div className="pt-2 border-t border-border">
+                <div className="px-3 py-2 text-sm font-medium text-muted-foreground">
+                  Profile
+                </div>
+                <Link
+                  to="/profile"
+                  className={`block px-3 py-2 rounded-lg text-base font-medium transition-colors ${
+                    isActive("/profile")
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  View Profile
+                </Link>
+                {jobSeekerProfileItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`block px-3 py-2 rounded-lg text-base font-medium transition-colors ${
+                      isActive(item.href)
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* Mobile profile link for other users */}
+            {isAuthenticated && user && !isJobSeekerUser && (
               <Link
-                key={item.name}
-                to={item.href}
+                to="/profile"
                 className={`block px-3 py-2 rounded-lg text-base font-medium transition-colors ${
-                  isActive(item.href)
+                  isActive("/profile")
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
-                {item.name}
+                Profile
               </Link>
-            ))}
+            )}
+
             <div className="pt-4 pb-3 border-t border-border">
               {/* Dashboard Link */}
               {isAuthenticated &&
@@ -281,15 +436,6 @@ const Navbar = () => {
                     <div className="px-3 py-2 text-base font-medium text-muted-foreground">
                       Signed in as {user.name}
                     </div>
-                    {user.account_type !== "employer" && (
-                      <Link
-                        to="/profile"
-                        className="block px-3 py-2 rounded-lg text-base font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        Profile
-                      </Link>
-                    )}
                     <button
                       onClick={() => {
                         handleLogout();

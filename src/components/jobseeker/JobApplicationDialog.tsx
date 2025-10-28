@@ -1,5 +1,10 @@
-
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useState } from "react";
 import { useJobApplications } from "@/hooks/use-job-applications";
 import { useAuth } from "@/hooks/use-auth";
@@ -32,23 +37,27 @@ interface JobApplicationDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export const JobApplicationDialog = ({ job, open, onOpenChange }: JobApplicationDialogProps) => {
+export const JobApplicationDialog = ({
+  job,
+  open,
+  onOpenChange,
+}: JobApplicationDialogProps) => {
   const [coverLetter, setCoverLetter] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingCV, setIsUploadingCV] = useState(false);
   const [cvUploaded, setCvUploaded] = useState(false);
-  
+
   const { isJobSeeker, isFreelancer, isAuthenticated, user } = useAuth();
-  
+
   // Allow both job seekers and freelancers to view and apply for jobs
   const canApplyForJobs = isJobSeeker() || isFreelancer();
-  
+
   const { refetch: refetchApplications } = canApplyForJobs
     ? useJobApplications()
     : { refetch: () => {} };
 
-useEffect(() => {
+  useEffect(() => {
     async function checkCVStatus() {
       if (open && canApplyForJobs) {
         const isCVParsed = await aiService.checkIfCVParsed();
@@ -58,76 +67,89 @@ useEffect(() => {
     checkCVStatus();
   }, [open, canApplyForJobs]);
 
-const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!job) return;
 
-    // Check if user is authenticated
     if (!isAuthenticated || !user) {
       toast.error("Please log in to apply for jobs");
       onOpenChange(false);
-      // Redirect to login page
       setTimeout(() => {
-        window.location.href = '/login';
+        window.location.href = "/login";
       }, 1000);
       return;
     }
 
-    // Check if user has the right role
     if (!canApplyForJobs) {
       toast.error("Only job seekers and freelancers can apply for jobs");
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       // If resume file is provided and CV not already uploaded, parse it first
       if (resumeFile && !cvUploaded) {
         setIsUploadingCV(true);
         toast.info("Parsing your CV, please wait...");
-        
+
         try {
           const parseResult = await aiService.uploadAndParseCV(resumeFile);
-          console.log('CV parse result:', parseResult);
-          
-          if (parseResult.status === 'success') {
+          console.log("CV parse result:", parseResult);
+
+          if (parseResult.status === "success" || parseResult.success) {
             toast.success("CV parsed and profile updated successfully!");
             setCvUploaded(true);
           } else {
-            toast.error("Failed to parse CV. Please try again.");
+            toast.error(
+              parseResult.message || "Failed to parse CV. Please try again."
+            );
             return;
           }
-        } catch (error) {
-          console.error('CV parsing error:', error);
-          toast.error("Failed to upload CV. Please try again.");
+        } catch (error: any) {
+          console.error("CV parsing error:", error);
+
+          // More specific error messages
+          if (error.status === 413) {
+            toast.error(
+              "File too large. Please upload a file smaller than 10MB."
+            );
+          } else if (error.status === 400) {
+            toast.error(
+              "Invalid file type. Please upload PDF, DOCX, or TXT files."
+            );
+          } else if (error.status === 503) {
+            toast.error(
+              "CV parsing service is temporarily unavailable. Please try again later."
+            );
+          } else {
+            toast.error(
+              error.message || "Failed to upload CV. Please try again."
+            );
+          }
           return;
         } finally {
           setIsUploadingCV(false);
         }
       }
-      
-      console.log('Job object:', job);
-      console.log('Job ID being sent:', job.job_id);
-      
+
+      // Continue with application submission...
       const applicationData: ApplicationCreate = {
-        job_id: job.job_id, // Use job_id consistently
+        job_id: job.job_id,
         cover_letter: coverLetter,
       };
-      
-      console.log('Application data being sent:', applicationData);
-      
-      // Now submit without the resume file since it's already parsed
-      await applicationsService.createApplication(applicationData, null);
 
+      await applicationsService.createApplication(applicationData, null);
       toast.success("Application submitted successfully!");
       refetchApplications();
       onOpenChange(false);
       setCoverLetter("");
       setResumeFile(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Application submission error:", error);
-      toast.error("Failed to submit application. Please try again.");
+      toast.error(
+        error.message || "Failed to submit application. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -139,7 +161,9 @@ const handleSubmit = async (e: React.FormEvent) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="space-y-4">
-          <DialogTitle className="text-2xl font-bold">Apply for Position</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">
+            Apply for Position
+          </DialogTitle>
           <DialogDescription className="text-base">
             Submit your application for this exciting opportunity
           </DialogDescription>
@@ -148,18 +172,18 @@ const handleSubmit = async (e: React.FormEvent) => {
         <JobSummaryCard job={job} />
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <CoverLetterSection 
+          <CoverLetterSection
             coverLetter={coverLetter}
             setCoverLetter={setCoverLetter}
           />
 
-          <ResumeUploadSection 
+          <ResumeUploadSection
             resumeFile={resumeFile}
             setResumeFile={setResumeFile}
             cvAlreadyUploaded={cvUploaded}
           />
 
-          <ApplicationActions 
+          <ApplicationActions
             isSubmitting={isSubmitting || isUploadingCV}
             onCancel={() => onOpenChange(false)}
           />

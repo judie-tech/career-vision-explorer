@@ -5,7 +5,6 @@ import { useMobileOptimizations } from "@/hooks/use-mobile-optimizations";
 import { usePerformanceOptimizations } from "@/hooks/use-performance-optimizations";
 import { useAuth } from "@/hooks/use-auth";
 
-// Lazy load routes
 const AppRoutes = lazy(() =>
   import("@/routes/AppRoutes").then((m) => ({ default: m.AppRoutes }))
 );
@@ -63,6 +62,7 @@ function App() {
 
   return (
     <AppProviders>
+      {/*CRITICAL: NO Layout wrapper here */}
       <AppContent />
     </AppProviders>
   );

@@ -42,6 +42,22 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Helper function to determine the correct dashboard path
+const getDashboardPath = (accountType: string): string => {
+  switch (accountType) {
+    case "job_seeker":
+      return "/jobseeker/dashboard";
+    case "employer":
+      return "/employer/dashboard";
+    case "freelancer":
+      return "/freelancer/dashboard";
+    case "admin":
+      return "/admin/dashboard";
+    default:
+      return "/";
+  }
+};
+
 const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -137,6 +153,10 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(user);
       await loadUserProfile();
       toast.success("Login successful!");
+
+      // Redirect to appropriate dashboard
+      const redirectPath = getDashboardPath(user.account_type);
+      window.location.href = redirectPath;
     } catch (err: any) {
       toast.error(err.message || "Login failed.");
       throw err;
@@ -154,6 +174,10 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(user);
       await loadUserProfile();
       toast.success("Registration successful!");
+
+      // Redirect to appropriate dashboard
+      const redirectPath = getDashboardPath(user.account_type);
+      window.location.href = redirectPath;
     } catch (err: any) {
       toast.error(err.message || "Registration failed.");
       throw err;
@@ -224,11 +248,12 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const setTokens = (accessToken: string, refreshToken: string) => {
     authService.setStoredTokens(accessToken, refreshToken);
 
+    // Decode token to get user info
     try {
       const payload = JSON.parse(atob(accessToken.split(".")[1]));
       const user: User = {
         user_id: payload.sub,
-        name: "", // Will be loaded from profile
+        name: "",
         email: payload.email,
         account_type: payload.account_type as
           | "job_seeker"
@@ -240,6 +265,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       authService.setStoredUser(user);
       setUser(user);
 
+      // Load profile data only if not already loading
       if (!isLoading) {
         loadUserProfile();
       }
@@ -271,9 +297,10 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       setIsLoading(true);
       const tokenResponse = await authService.handleOAuthCallback();
 
+      // Construct user object from token response
       const user: User = {
         user_id: tokenResponse.user_id,
-        name: "", // Will be loaded from profile
+        name: "",
         email: tokenResponse.email,
         account_type: tokenResponse.account_type as
           | "job_seeker"
@@ -290,7 +317,9 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         description: "You have been successfully logged in with LinkedIn.",
       });
 
-      window.location.href = "/";
+      // Redirect to appropriate dashboard
+      const redirectPath = getDashboardPath(user.account_type);
+      window.location.href = redirectPath;
     } catch (error: any) {
       console.error("OAuth callback error:", error);
       toast.error("Authentication Failed", {
