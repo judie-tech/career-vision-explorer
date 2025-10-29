@@ -9,7 +9,6 @@ import {
   ChevronDown,
   Home,
   Briefcase,
-  LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -62,7 +61,7 @@ const Navbar = () => {
     return {
       name: dashboardName,
       href: dashboardUrl,
-      icon: user.account_type === "admin" ? Shield : LayoutDashboard,
+      icon: user.account_type === "admin" ? Shield : User,
     };
   };
 
@@ -70,24 +69,11 @@ const Navbar = () => {
   const isEmployerUser = user?.account_type === "employer";
   const isActive = (path: string) => location.pathname === path;
 
-  // Icons for job seeker navbar
+  // Icons for job seeker navbar - Removed Dashboard icon, Profile is now a direct icon
   const jobSeekerIcons = [
     { name: "Home", icon: Home, path: "/" },
     { name: "Jobs", icon: Briefcase, path: "/jobs" },
-    { name: "Dashboard", icon: LayoutDashboard, path: "/jobseeker/dashboard" },
-  ];
-
-  // Pre-login navigation items
-  const preLoginItems = [
-    { name: "Home", href: "/" },
-    { name: "Jobs", href: "/jobs" },
-    { name: "Freelancers", href: "/freelancers" },
-    { name: "Job Matching", href: "/job-matching" },
-    { name: "Career Paths", href: "/career-paths" },
-    { name: "Skills", href: "/skills" },
-    { name: "Skill Analysis", href: "/enhanced-skill-analysis" },
-    { name: "Interview Prep", href: "/interview-prep" },
-    { name: "Insights", href: "/insights" },
+    { name: "Profile", icon: User, path: "/jobseeker/dashboard" }, // Profile now goes directly to dashboard
   ];
 
   // Employer navigation items
@@ -117,40 +103,25 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Desktop center navigation - Pre-login & Employer items spread across */}
+          {/* Desktop center navigation - Only show for authenticated users */}
           <div className="hidden md:flex md:items-center md:justify-center flex-1">
             <div className="flex items-center space-x-4">
-              {!isAuthenticated
-                ? // Pre-login items - well spread
-                  preLoginItems.map((item) => (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                        isActive(item.href)
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                      }`}
-                    >
-                      {item.name}
-                    </Link>
-                  ))
-                : isEmployerUser
-                ? // Employer navigation items
-                  employerNavItems.map((item) => (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                        isActive(item.href)
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                      }`}
-                    >
-                      {item.name}
-                    </Link>
-                  ))
-                : null}
+              {isAuthenticated &&
+                isEmployerUser &&
+                // Employer navigation items
+                employerNavItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                      isActive(item.href)
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
             </div>
           </div>
 
@@ -193,56 +164,36 @@ const Navbar = () => {
                   </motion.div>
                 ))}
 
-                {/* Profile with dropdown */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <motion.div
-                      onMouseEnter={() => setHovered("Profile")}
-                      onMouseLeave={() => setHovered(null)}
-                      className={`relative flex items-center cursor-pointer rounded-lg transition-all duration-200 ${
-                        location.pathname.startsWith("/profile") ||
-                        hovered === "Profile"
-                          ? "bg-blue-600 text-white shadow-md"
-                          : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
-                      }`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <div className="flex items-center p-3">
-                        <User size={20} />
-                        <AnimatePresence>
-                          {hovered === "Profile" && (
-                            <motion.span
-                              className="ml-2 text-sm font-medium whitespace-nowrap"
-                              initial={{ opacity: 0, width: 0 }}
-                              animate={{ opacity: 1, width: "auto" }}
-                              exit={{ opacity: 0, width: 0 }}
-                              transition={{ duration: 0.2 }}
-                            >
-                              Profile
-                            </motion.span>
-                          )}
-                        </AnimatePresence>
-                        <ChevronDown className="h-4 w-4 ml-1" />
-                      </div>
-                    </motion.div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate("/profile")}>
-                      <User className="h-4 w-4 mr-2" />
-                      Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={handleLogout}
-                      className="text-red-600 focus:text-red-600"
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Log out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {/* Logout button - standalone without dropdown (changed to blue) */}
+                <motion.div
+                  onMouseEnter={() => setHovered("Logout")}
+                  onMouseLeave={() => setHovered(null)}
+                  onClick={handleLogout}
+                  className={`relative flex items-center cursor-pointer rounded-lg transition-all duration-200 ${
+                    hovered === "Logout"
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "text-muted-foreground hover:bg-blue-500/20 hover:text-blue-600"
+                  }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <div className="flex items-center p-3">
+                    <LogOut size={20} />
+                    <AnimatePresence>
+                      {hovered === "Logout" && (
+                        <motion.span
+                          className="ml-2 text-sm font-medium whitespace-nowrap"
+                          initial={{ opacity: 0, width: 0 }}
+                          animate={{ opacity: 1, width: "auto" }}
+                          exit={{ opacity: 0, width: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          Logout
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
               </div>
             </div>
           )}
@@ -296,7 +247,7 @@ const Navbar = () => {
             </div>
           )}
 
-          {/* Desktop right side - Non-authenticated Users */}
+          {/* Desktop right side - Non-authenticated Users (Only Login/Signup) */}
           {!isAuthenticated && (
             <div className="hidden md:flex md:items-center md:justify-end">
               <div className="flex items-center space-x-3">
