@@ -2,9 +2,9 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Job Listings CRUD Operations', () => {
   test.beforeEach(async ({ page }) => {
-    // Login as employer (aligned with global setup user)
+    // Login as employer
     await page.goto('/login');
-    await page.fill('[name="email"]', 'employer@test.com');
+    await page.fill('[name="email"]', 'employer@example.com');
     await page.fill('[name="password"]', 'password123');
     await page.click('button[type="submit"]');
     await page.waitForURL('/employer/dashboard');
@@ -108,7 +108,7 @@ test.describe('Job Listings CRUD Operations', () => {
     await page.click('text=Logout');
     
     await page.goto('/login');
-    await page.fill('[name="email"]', 'jobseeker@test.com');
+    await page.fill('[name="email"]', 'jobseeker@example.com');
     await page.fill('[name="password"]', 'password123');
     await page.click('button[type="submit"]');
     
@@ -137,7 +137,7 @@ test.describe('Job Listings CRUD Operations', () => {
   test('Job seeker can view job details', async ({ page }) => {
     // Login as job seeker
     await page.goto('/login');
-    await page.fill('[name="email"]', 'jobseeker@test.com');
+    await page.fill('[name="email"]', 'jobseeker@example.com');
     await page.fill('[name="password"]', 'password123');
     await page.click('button[type="submit"]');
     
