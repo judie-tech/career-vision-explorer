@@ -2,9 +2,9 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Application Management Features', () => {
   test.beforeEach(async ({ page }) => {
-    // Login as job seeker
+    // Login as job seeker (aligned with global setup user)
     await page.goto('/login');
-    await page.fill('[name="email"]', 'jobseeker@example.com');
+    await page.fill('[name="email"]', 'jobseeker@test.com');
     await page.fill('[name="password"]', 'password123');
     await page.click('button[type="submit"]');
     await page.waitForURL('/jobseeker/dashboard');
@@ -42,7 +42,7 @@ test.describe('Application Management Features', () => {
     await page.click('text=Logout');
 
     await page.goto('/login');
-    await page.fill('[name="email"]', 'employer@example.com');
+    await page.fill('[name="email"]', 'employer@test.com');
     await page.fill('[name="password"]', 'password123');
     await page.click('button[type="submit"]');
     await page.waitForURL('/employer/dashboard');
