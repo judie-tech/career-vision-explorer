@@ -8,7 +8,10 @@ import DashboardLayout from "@/components/admin/DashboardLayout";
 const Index = lazy(() => import("@/pages/Index"));
 const Login = lazy(() => import("@/pages/Login"));
 const Signup = lazy(() => import("@/pages/Signup"));
+const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const LinkedInCallback = lazy(() => import("@/pages/auth/LinkedInCallback"));
+const Notifications = lazy(() => import("@/pages/Notifications"));
 const Jobs = lazy(() => import("@/pages/Jobs"));
 const JobDetails = lazy(() => import("@/pages/JobDetails"));
 const PublicProfile = lazy(() => import("@/pages/PublicProfile"));
@@ -317,6 +320,22 @@ export const AppRoutes = () => {
           }
         />
         <Route
+          path="/forgot-password"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <ForgotPassword />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <ResetPassword />
+            </Suspense>
+          }
+        />
+        <Route
           path="/auth/callback"
           element={
             <Suspense fallback={<PageLoader />}>
@@ -476,6 +495,16 @@ export const AppRoutes = () => {
             <ProtectedRoute>
               <Suspense fallback={<PageLoader />}>
                 <Dashboard />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <Notifications />
               </Suspense>
             </ProtectedRoute>
           }
