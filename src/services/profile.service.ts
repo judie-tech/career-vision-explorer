@@ -6,11 +6,12 @@ class ProfileService {
   async getProfile(userId?: string): Promise<Profile> {
     return trackDbOperation("Load Profile", async () => {
       try {
-        const endpoint = userId ? `/profiles/${userId}` : "/profile/";
+        // If userId is provided, get public profile; otherwise get current user's profile
+        const endpoint = userId ? `/profile/${userId}` : "/profile/";
         return await apiClient.getFast<Profile>(endpoint);
       } catch (error: any) {
         if (error.message?.includes("timed out")) {
-          const endpoint = userId ? `/profiles/${userId}` : "/profile/";
+          const endpoint = userId ? `/profile/${userId}` : "/profile/";
           return await apiClient.get<Profile>(endpoint, { timeout: 45000 });
         }
         throw error;
@@ -19,28 +20,27 @@ class ProfileService {
   }
 
   async updateProfile(
-    profileId: string,
     profileData: ProfileUpdate
   ): Promise<Profile> {
-    return await apiClient.put<Profile>(`/profiles/${profileId}`, profileData);
+    // Update current user's profile 
+    return await apiClient.put<Profile>("/profile/", profileData);
   }
 
   async updateCompanyProfile(
-    profileId: string,
     companyData: Partial<CompanyData>
   ): Promise<Profile> {
-    return await apiClient.put<Profile>(
-      `/profiles/${profileId}/company`,
-      companyData
-    );
+    // Update current user's company profile data
+    return await apiClient.put<Profile>("/profile/", companyData);
   }
 
-  async getCompanyProfile(profileId: string): Promise<Profile> {
-    return await apiClient.get<Profile>(`/profiles/${profileId}/company`);
+  async getCompanyProfile(): Promise<Profile> {
+    // Get current user's company profile
+    return await apiClient.get<Profile>("/profile/");
   }
 
   async getPublicProfile(userId: string): Promise<Profile> {
-    return await apiClient.get<Profile>(`/profiles/${userId}/public`);
+    // Get another user's public profile using the backend's endpoint
+    return await apiClient.get<Profile>(`/profile/${userId}`);
   }
 
   async getProfileStats(): Promise<{
@@ -79,7 +79,7 @@ class ProfileService {
 
     const queryString = queryParams.toString();
     return await apiClient.get<Profile[]>(
-      `/profiles/search${queryString ? `?${queryString}` : ""}`
+      `/profile/search/profiles${queryString ? `?${queryString}` : ""}`
     );
   }
 
@@ -89,6 +89,11 @@ class ProfileService {
       file
     );
     return response?.data || response;
+  }
+
+  async deleteProfile(): Promise<{ message: string }> {
+    // Delete current user's profile (requires authentication)
+    return await apiClient.delete<{ message: string }>("/profile/");
   }
 }
 
