@@ -148,91 +148,40 @@ const JobSeekerDashboard = () => {
             {/* Left Column */}
             <div className="space-y-6">
               <ProfileCompletionCard />
-
               {/* Founder Matching Card */}
-              <Card className="border-purple-200 hover:shadow-lg transition-shadow">
+
+              <Card className="border-blue-200 hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-lg">
-                    <Users className="h-5 w-5 text-purple-600" />
-                    Co-Founder Matching
+                    <Users className="h-5 w-5 text-blue-600" />
+                    Find Co-Founders
                     <Badge
                       variant="outline"
-                      className="ml-auto bg-purple-50 text-purple-700 border-purple-200"
+                      className="ml-auto bg-blue-50 text-blue-700 border-blue-200"
                     >
                       New
                     </Badge>
                   </CardTitle>
                   <CardDescription>
-                    Find your perfect co-founder
+                    Connect with potential co-founders for your startup
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Stats Overview */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 border rounded-lg bg-gradient-to-r from-purple-50 to-white">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-xs text-muted-foreground">
-                            Match Score
-                          </div>
-                          <div className="text-xl font-bold text-purple-600">
-                            {founderStats.matchScore}%
-                          </div>
-                        </div>
-                        <Target className="h-5 w-5 text-purple-400" />
-                      </div>
-                    </div>
-
-                    <div className="p-3 border rounded-lg bg-gradient-to-r from-purple-50 to-white">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-xs text-muted-foreground">
-                            Mutual Matches
-                          </div>
-                          <div className="text-xl font-bold text-purple-600">
-                            {founderStats.mutualMatches}
-                          </div>
-                        </div>
-                        <TrendingUp className="h-5 w-5 text-purple-400" />
-                      </div>
-                    </div>
+                  <div className="p-3 border rounded-lg space-y-2 bg-gradient-to-r from-blue-50 to-white">
+                    <h4 className="font-medium text-sm">
+                      Build Your Dream Team
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Find technical, business, and marketing co-founders who
+                      match your skills and vision
+                    </p>
                   </div>
-
-                  {/* Profile Views */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Profile Views</span>
-                      <span className="font-medium">
-                        {founderStats.profileViews}
-                      </span>
-                    </div>
-                    <Progress
-                      value={(founderStats.profileViews / 20) * 100}
-                      className="h-2 bg-purple-100"
-                    />
-                  </div>
-
-                  {/* Quick Actions */}
-                  <div className="pt-2 space-y-2">
-                    <div className="text-sm text-muted-foreground">
-                      Profile Completeness: {founderStats.profileCompleteness}%
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
-                        onClick={() => navigate("/founder/dashboard")}
-                      >
-                        Explore Matching
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="flex-1 border-purple-200 text-purple-600 hover:bg-purple-50"
-                        onClick={() => navigate("/founder/matches")}
-                      >
-                        View Matches
-                      </Button>
-                    </div>
-                  </div>
+                  <Button
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={() => navigate("/founder/dashboard")}
+                  >
+                    Explore Co-Founder Matching
+                  </Button>
                 </CardContent>
               </Card>
             </div>

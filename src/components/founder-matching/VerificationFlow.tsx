@@ -1,3 +1,4 @@
+// src/components/founder-matching/VerificationFlow.tsx
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,13 +13,19 @@ import {
   FileText,
   Shield,
 } from "lucide-react";
-import { FounderProfile } from "@/types/founder-matching";
-import { founderMatchingService } from "@/services/founder-matching.service";
+import { CofounderProfile } from "@/services/founder-matching.service"; // Use CofounderProfile
+import { cofounderMatchingService } from "@/services/founder-matching.service"; // Use cofounderMatchingService
 import { toast } from "sonner";
 
 interface VerificationFlowProps {
-  profile: FounderProfile | null;
+  profile: CofounderProfile | null;
   onUpdate: () => void;
+}
+
+// Add this interface for verification submission if needed
+interface VerificationSubmission {
+  additional_notes?: string;
+  // Add other verification fields as needed
 }
 
 export const VerificationFlow: React.FC<VerificationFlowProps> = ({
@@ -67,14 +74,18 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
 
   const handleSubmitVerification = async () => {
     try {
-      await founderMatchingService.submitVerification({
-        additional_notes: additionalNotes || undefined,
+      setUploading(true);
+      // Since the service doesn't have a submitVerification method, we'll update the profile
+      await cofounderMatchingService.updateProfile({
+        verification_status: "pending",
       });
       toast.success("Verification submitted successfully!");
       onUpdate();
     } catch (error) {
       toast.error("Failed to submit verification");
       console.error(error);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -104,23 +115,23 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary transition-colors">
                     <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                    <div className="text-sm font-medium">Business Plan</div>
+                    <div className="text-sm font-medium">LinkedIn Profile</div>
                     <div className="text-xs text-muted-foreground">
-                      PDF, DOC, DOCX
+                      Ensure profile is public
                     </div>
                   </div>
                   <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary transition-colors">
                     <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                    <div className="text-sm font-medium">Pitch Deck</div>
+                    <div className="text-sm font-medium">Portfolio</div>
                     <div className="text-xs text-muted-foreground">
-                      PDF, PPT, PPTX
+                      GitHub, website, or projects
                     </div>
                   </div>
                   <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary transition-colors">
                     <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                    <div className="text-sm font-medium">Identity Proof</div>
+                    <div className="text-sm font-medium">Previous Work</div>
                     <div className="text-xs text-muted-foreground">
-                      PDF, JPG, PNG
+                      Case studies or references
                     </div>
                   </div>
                 </div>
@@ -161,8 +172,8 @@ export const VerificationFlow: React.FC<VerificationFlowProps> = ({
                   Feedback from Review
                 </h4>
                 <p className="text-sm text-red-700">
-                  Please provide more detailed documentation about your business
-                  model and revenue projections.
+                  Please provide more detailed documentation about your
+                  experience and skills.
                 </p>
               </div>
               <div className="flex justify-end">

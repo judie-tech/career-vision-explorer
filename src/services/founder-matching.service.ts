@@ -1,150 +1,281 @@
+// src/services/founder-matching.service.ts
 import { apiClient } from "../lib/api-client";
 import { trackDbOperation } from "../utils/performance";
 
-export interface FounderProfile {
+export interface CofounderProfile {
   profile_id?: string;
-  user_id: string;
-  business_vision: string;
-  problem_statement: string;
-  required_skills: string[];
-  location?: string;
-  time_commitment?: "Part-time" | "Full-time" | "Flexible";
-  funding_status?:
-    | "Bootstrapped"
-    | "Seed"
-    | "Series A"
-    | "Series B+"
-    | "Seeking";
-  industry?: string;
-  stage?: "Idea" | "Prototype" | "MVP" | "Revenue" | "Scaling";
-  verification_status?: "unverified" | "pending" | "verified" | "rejected";
+  user_id: string; // Change from optional to required
+  current_role: string;
+  years_experience: number;
+  technical_skills: string[];
+  soft_skills: string[];
+  seeking_roles: string[];
+  industries: string[];
+  commitment_level: "Full-time" | "Part-time" | "Flexible" | "Contract";
+  location_preference: "Remote" | "Hybrid" | "On-site";
+  preferred_locations: string[];
+  achievements: string[];
+  education: string[];
+  certifications: string[];
+  linkedin_url?: string;
+  portfolio_url?: string;
+  bio: string;
+  is_active?: boolean;
   created_at?: string;
-  updated_at?: string;
+  views_count?: number;
+  matches_count?: number;
+  interested_count?: number;
+  mutual_interest_count?: number;
+  // Verification properties
+  business_vision?: string;
+  problem_statement?: string;
+  required_skills?: string[];
+  verification_status?: "verified" | "pending" | "rejected" | "unverified";
+  verification_documents?: Array<{
+    type: string;
+    url: string;
+    status: string;
+  }>;
+  verification_submitted_at?: string;
+  verification_reviewed_at?: string;
 }
 
-export interface MatchProfile extends FounderProfile {
-  match_score: number;
-  vision_similarity: number;
-  skills_compatibility: number;
-  is_viewed?: boolean;
-  match_status?: "pending" | "interest" | "declined" | "mutual_interest";
+export interface MatchProfile {
+  match_id: string;
+  matched_profile: {
+    profile_id: string;
+    current_role: string;
+    years_experience: number;
+    technical_skills: string[];
+    seeking_roles: string[];
+    education: string[];
+    bio: string;
+    linkedin_url?: string;
+    portfolio_url?: string;
+    achievements?: string[];
+    soft_skills?: string[];
+    industries?: string[];
+    commitment_level?: string;
+    location_preference?: string;
+  };
+  overall_score: number;
+  score_breakdown: {
+    skill_compatibility: number;
+    experience_match: number;
+    role_alignment: number;
+  };
+  status:
+    | "suggested"
+    | "interested"
+    | "declined"
+    | "mutual_interest"
+    | "skipped";
+  mutual_interest_at?: string;
+}
+
+export interface DiscoverMatchesRequest {
+  limit?: number;
+  min_score?: number;
+  filters?: {
+    industries?: string[];
+    location_preferences?: string[];
+    commitment_level?: string[];
+    min_experience?: number;
+    max_experience?: number;
+  };
 }
 
 export interface MatchActionRequest {
-  target_user_id: string;
-  action: "view" | "interest" | "decline";
+  action: "interested" | "declined" | "skipped";
 }
 
 export interface MatchActionResponse {
-  is_mutual: boolean;
-  match_status: "pending" | "interest" | "declined" | "mutual_interest";
+  match_id: string;
+  status: string;
+  user_action: string;
+  mutual_interest: boolean;
   message: string;
 }
 
-export interface MatchActionRequest {
-  target_user_id: string;
-  action: "view" | "interest" | "decline";
+export interface MatchingPreferences {
+  preferred_industries: string[];
+  preferred_roles: string[];
+  min_experience: number;
+  max_experience: number;
+  preferred_locations: string[];
+  min_match_score: number;
+  notification_frequency: "realtime" | "daily" | "weekly";
+  auto_match: boolean;
 }
 
-export interface FindMatchesRequest {
-  min_score?: number;
-  location_preference?: string;
-  time_commitment?: string;
-  funding_status?: string;
-  limit?: number;
-  offset?: number;
+export interface Statistics {
+  total_matches: number;
+  mutual_interests: number;
+  profile_views: number;
+  average_match_score: number;
+  top_matching_industries: Array<{ industry: string; count: number }>;
+  engagement_score: number;
 }
 
-export interface VerificationRequest {
-  additional_notes?: string;
-  documents?: string[];
-}
-
-export interface VerificationResponse {
-  status: "unverified" | "pending" | "verified" | "rejected";
-  notes?: string;
-  reviewed_at?: string;
-}
-
-class FounderMatchingService {
+class CofounderMatchingService {
   // Profile Management
   async createProfile(
-    profileData: Omit<FounderProfile, "user_id" | "profile_id">
-  ): Promise<FounderProfile> {
-    return trackDbOperation("Create Founder Profile", async () => {
-      return await apiClient.post<FounderProfile>(
-        "/founder-matching/profile",
+    profileData: Omit<CofounderProfile, "profile_id" | "user_id">
+  ): Promise<CofounderProfile> {
+    return trackDbOperation("Create Cofounder Profile", async () => {
+      return await apiClient.post<CofounderProfile>(
+        "/api/v1/cofounder-matching/profile",
         profileData
       );
     });
   }
 
-  async getProfile(): Promise<FounderProfile> {
-    return trackDbOperation("Get Founder Profile", async () => {
-      return await apiClient.get<FounderProfile>("/founder-matching/profile");
-    });
-  }
-
-  async updateProfile(
-    profileData: Partial<FounderProfile>
-  ): Promise<FounderProfile> {
-    return await apiClient.put<FounderProfile>(
-      "/founder-matching/profile",
-      profileData
-    );
-  }
-
-  // Match Discovery
-  async findMatches(filters?: FindMatchesRequest): Promise<MatchProfile[]> {
-    return trackDbOperation("Find Matches", async () => {
-      return await apiClient.post<MatchProfile[]>(
-        "/founder-matching/find-matches",
-        filters || {}
+  async getProfile(): Promise<CofounderProfile> {
+    return trackDbOperation("Get Cofounder Profile", async () => {
+      return await apiClient.get<CofounderProfile>(
+        "/api/v1/cofounder-matching/profile"
       );
     });
   }
 
-  async getMutualMatches(): Promise<MatchProfile[]> {
-    return await apiClient.get<MatchProfile[]>(
-      "/founder-matching/matches/mutual"
+  async updateProfile(
+    profileData: Partial<CofounderProfile>
+  ): Promise<CofounderProfile> {
+    return await apiClient.put<CofounderProfile>(
+      "/api/v1/cofounder-matching/profile",
+      profileData
+    );
+  }
+
+  async deleteProfile(): Promise<void> {
+    return await apiClient.delete("/api/v1/cofounder-matching/profile");
+  }
+
+  // Match Discovery
+  async discoverMatches(
+    request: DiscoverMatchesRequest
+  ): Promise<{ matches_found: number; matches: MatchProfile[] }> {
+    return trackDbOperation("Discover Matches", async () => {
+      return await apiClient.post<{
+        matches_found: number;
+        matches: MatchProfile[];
+      }>("/api/v1/cofounder-matching/discover", request);
+    });
+  }
+
+  async getAllMatches(
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<{ matches: MatchProfile[]; total: number }> {
+    return await apiClient.get<{ matches: MatchProfile[]; total: number }>(
+      `/api/v1/cofounder-matching/matches?limit=${limit}&offset=${offset}`
+    );
+  }
+
+  async getMatchDetails(matchId: string): Promise<MatchProfile> {
+    return await apiClient.get<MatchProfile>(
+      `/api/v1/cofounder-matching/matches/${matchId}`
+    );
+  }
+
+  async getMutualMatches(): Promise<{ mutual_matches: MatchProfile[] }> {
+    return await apiClient.get<{ mutual_matches: MatchProfile[] }>(
+      "/api/v1/cofounder-matching/matches/mutual"
     );
   }
 
   // Match Actions
   async handleMatchAction(
-    request: MatchActionRequest
+    matchId: string,
+    action: MatchActionRequest
   ): Promise<MatchActionResponse> {
     return await apiClient.post<MatchActionResponse>(
-      "/founder-matching/matches/action",
-      request
+      `/api/v1/cofounder-matching/matches/${matchId}/action`,
+      { action: action.action }
     );
   }
 
-  // Verification
-  async submitVerification(
-    request?: VerificationRequest
-  ): Promise<VerificationResponse> {
-    return await apiClient.post<VerificationResponse>(
-      "/founder-matching/verification/submit",
-      request || {}
+  // Preferences Management
+  async setPreferences(
+    preferences: MatchingPreferences
+  ): Promise<MatchingPreferences> {
+    return await apiClient.post<MatchingPreferences>(
+      "/api/v1/cofounder-matching/preferences",
+      preferences
     );
   }
 
-  async getVerificationStatus(): Promise<VerificationResponse> {
-    return await apiClient.get<VerificationResponse>(
-      "/founder-matching/verification/status"
+  async getPreferences(): Promise<MatchingPreferences> {
+    return await apiClient.get<MatchingPreferences>(
+      "/api/v1/cofounder-matching/preferences"
     );
   }
 
-  // Stats
-  async getMatchStats(): Promise<{
-    total_views: number;
+  async updatePreferences(
+    preferences: Partial<MatchingPreferences>
+  ): Promise<MatchingPreferences> {
+    return await apiClient.put<MatchingPreferences>(
+      "/api/v1/cofounder-matching/preferences",
+      preferences
+    );
+  }
+
+  // Statistics
+  async getStatistics(): Promise<Statistics> {
+    return await apiClient.get<Statistics>(
+      "/api/v1/cofounder-matching/statistics"
+    );
+  }
+
+  // Quick stats for dashboard
+  async getQuickStats(): Promise<{
     total_matches: number;
     mutual_interests: number;
+    profile_views: number;
     profile_completeness: number;
   }> {
-    return await apiClient.get("/founder-matching/stats");
+    const stats = await this.getStatistics();
+    const profile = await this.getProfile().catch(() => null);
+
+    // Calculate profile completeness
+    let profileCompleteness = 0;
+    if (profile) {
+      const requiredFields: (keyof CofounderProfile)[] = [
+        "current_role",
+        "years_experience",
+        "technical_skills",
+        "soft_skills",
+        "seeking_roles",
+        "industries",
+        "commitment_level",
+        "location_preference",
+        "preferred_locations",
+        "bio",
+      ];
+
+      const filledFields = requiredFields.filter((field) => {
+        const value = profile[field];
+        return (
+          value !== undefined &&
+          value !== null &&
+          (Array.isArray(value)
+            ? value.length > 0
+            : value.toString().trim().length > 0)
+        );
+      }).length;
+
+      profileCompleteness = Math.round(
+        (filledFields / requiredFields.length) * 100
+      );
+    }
+
+    return {
+      total_matches: stats.total_matches,
+      mutual_interests: stats.mutual_interests,
+      profile_views: stats.profile_views,
+      profile_completeness: profileCompleteness,
+    };
   }
 }
 
-export const founderMatchingService = new FounderMatchingService();
+export const cofounderMatchingService = new CofounderMatchingService();
