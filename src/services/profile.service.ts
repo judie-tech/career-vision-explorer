@@ -6,11 +6,11 @@ class ProfileService {
   async getProfile(userId?: string): Promise<Profile> {
     return trackDbOperation("Load Profile", async () => {
       try {
-        const endpoint = userId ? `/profiles/${userId}` : "/profile/";
+        const endpoint = userId ? `/profile/${userId}` : "/profile/";
         return await apiClient.getFast<Profile>(endpoint);
       } catch (error: any) {
         if (error.message?.includes("timed out")) {
-          const endpoint = userId ? `/profiles/${userId}` : "/profile/";
+          const endpoint = userId ? `/profile/${userId}` : "/profile/";
           return await apiClient.get<Profile>(endpoint, { timeout: 45000 });
         }
         throw error;
@@ -22,7 +22,7 @@ class ProfileService {
     profileId: string,
     profileData: ProfileUpdate
   ): Promise<Profile> {
-    return await apiClient.put<Profile>(`/profiles/${profileId}`, profileData);
+    return await apiClient.put<Profile>("/profile/", profileData);
   }
 
   async updateCompanyProfile(
@@ -30,17 +30,17 @@ class ProfileService {
     companyData: Partial<CompanyData>
   ): Promise<Profile> {
     return await apiClient.put<Profile>(
-      `/profiles/${profileId}/company`,
+      "/profile/company",
       companyData
     );
   }
 
   async getCompanyProfile(profileId: string): Promise<Profile> {
-    return await apiClient.get<Profile>(`/profiles/${profileId}/company`);
+    return await apiClient.get<Profile>("/profile/company");
   }
 
   async getPublicProfile(userId: string): Promise<Profile> {
-    return await apiClient.get<Profile>(`/profiles/${userId}/public`);
+    return await apiClient.get<Profile>(`/profile/${userId}`);
   }
 
   async getProfileStats(): Promise<{
@@ -79,7 +79,7 @@ class ProfileService {
 
     const queryString = queryParams.toString();
     return await apiClient.get<Profile[]>(
-      `/profiles/search${queryString ? `?${queryString}` : ""}`
+      `/profile/search/profiles${queryString ? `?${queryString}` : ""}`
     );
   }
 

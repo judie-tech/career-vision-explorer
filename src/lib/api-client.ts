@@ -61,12 +61,10 @@ class ApiClient {
       }
     }
 
-    // Detailed logging
-    console.group(`🌐 API Request: ${options.method || "GET"} ${url}`);
-    console.log("Headers:", headers);
-    console.log("Body:", options.body);
-    console.log("Token:", token ? `${token.substring(0, 20)}...` : "None");
-    console.groupEnd();
+    // Reduced logging - only log in development
+    if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_API === "true") {
+      console.log(`🌐 ${options.method || "GET"} ${endpoint}`);
+    }
 
     let controller: AbortController | null = null;
     let timeoutId: NodeJS.Timeout | null = null;
@@ -89,11 +87,12 @@ class ApiClient {
       const response = await fetch(url, requestConfig);
       const endTime = performance.now();
 
-      console.group(
-        `📡 API Response: ${url} (${Math.round(endTime - startTime)}ms)`
-      );
-      console.log("Status:", response.status, response.statusText);
-      console.log("Headers:", Object.fromEntries(response.headers.entries()));
+      // Reduced logging
+      if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_API === "true") {
+        console.log(
+          `📡 ${response.status} ${endpoint} (${Math.round(endTime - startTime)}ms)`
+        );
+      }
 
       if (timeoutId) clearTimeout(timeoutId);
 
@@ -103,7 +102,10 @@ class ApiClient {
 
         try {
           const text = await response.text();
-          console.log("Error Response Body:", text);
+          
+          if (import.meta.env.DEV) {
+            console.error(`❌ ${response.status} ${endpoint}:`, text);
+          }
 
           if (text) {
             try {
@@ -114,38 +116,38 @@ class ApiClient {
             }
           }
         } catch (e) {
-          console.error("Failed to read error response:", e);
+          if (import.meta.env.DEV) {
+            console.error("Failed to read error response:", e);
+          }
         }
 
         const error = new Error(errorMessage);
         (error as any).status = response.status;
         (error as any).response = errorData;
-        console.error("❌ API Error:", error);
-        console.groupEnd();
         throw error;
       }
 
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
         const data = await response.json();
-        console.log("Response Data:", data);
-        console.groupEnd();
         return data;
       }
 
       const text = await response.text();
-      console.log("Response Text:", text);
-      console.groupEnd();
       return text as unknown as T;
     } catch (error: any) {
       if (timeoutId) clearTimeout(timeoutId);
 
       if (error.name === "AbortError") {
-        console.error(`⏰ API Timeout: ${url} (${timeoutMs}ms)`);
+        if (import.meta.env.DEV) {
+          console.error(`⏰ Timeout: ${endpoint} (${timeoutMs}ms)`);
+        }
         throw new Error(`Request timed out after ${timeoutMs / 1000} seconds`);
       }
 
-      console.error(`❌ API request failed: ${url}`, error);
+      if (import.meta.env.DEV) {
+        console.error(`❌ ${endpoint}`, error.message);
+      }
       throw error;
     }
   }

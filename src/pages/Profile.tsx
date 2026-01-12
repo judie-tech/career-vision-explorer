@@ -2212,24 +2212,16 @@ const Profile: React.FC = () => {
                     <Textarea
                       ref={educationInputRef}
                       value={
-                        editForm.education
-                          ? JSON.stringify(editForm.education, null, 2)
+                        typeof editForm.education === 'string'
+                          ? editForm.education
+                          : Array.isArray(editForm.education)
+                          ? editForm.education.map(e => `${e.degree} - ${e.institution} (${e.start_year}-${e.end_year})`).join('\n')
                           : ""
                       }
                       onChange={(e) => {
-                        try {
-                          const education = JSON.parse(e.target.value);
-                          setEditForm({ ...editForm, education });
-                        } catch {}
+                        setEditForm({ ...editForm, education: e.target.value });
                       }}
-                      placeholder={`[
-  {
-    "institution": "University Name",
-    "degree": "BSc in Computer Science",
-    "start_year": 2020,
-    "end_year": 2024
-  }
-]`}
+                      placeholder="e.g., BSc in Computer Science - MIT (2020-2024)"
                       rows={6}
                     />
                   ) : profile?.education?.length ? (
@@ -2432,18 +2424,19 @@ const Profile: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     {editing ? (
-                      <Textarea
+                      <Input
                         value={editForm.languages?.join(", ") || ""}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const value = e.target.value;
                           setEditForm({
                             ...editForm,
-                            languages: e.target.value
+                            languages: value
                               .split(",")
                               .map((lang) => lang.trim())
                               .filter((lang) => lang),
-                          })
-                        }
-                        placeholder="Languages (comma-separated)"
+                          });
+                        }}
+                        placeholder="e.g., English, Spanish, French"
                       />
                     ) : (
                       <div className="flex flex-wrap gap-2">
@@ -2469,18 +2462,19 @@ const Profile: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     {editing ? (
-                      <Textarea
-                        value={editForm.certifications?.join("\n") || ""}
-                        onChange={(e) =>
+                      <Input
+                        value={editForm.certifications?.join(", ") || ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
                           setEditForm({
                             ...editForm,
-                            certifications: e.target.value
-                              .split("\n")
+                            certifications: value
+                              .split(",")
                               .map((cert) => cert.trim())
                               .filter((cert) => cert),
-                          })
-                        }
-                        placeholder="Certifications (one per line)"
+                          });
+                        }}
+                        placeholder="e.g., AWS Certified, PMP, CISSP"
                       />
                     ) : (
                       <div className="space-y-2">

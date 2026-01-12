@@ -5,6 +5,7 @@ import { trackDbOperation } from "../utils/performance";
 export interface CofounderProfile {
   profile_id?: string;
   user_id: string; // Change from optional to required
+  name?: string;
   current_role: string;
   years_experience: number;
   technical_skills: string[];
@@ -44,6 +45,8 @@ export interface MatchProfile {
   match_id: string;
   matched_profile: {
     profile_id: string;
+    user_id?: string;
+    name?: string;
     current_role: string;
     years_experience: number;
     technical_skills: string[];
@@ -124,7 +127,7 @@ class CofounderMatchingService {
   ): Promise<CofounderProfile> {
     return trackDbOperation("Create Cofounder Profile", async () => {
       return await apiClient.post<CofounderProfile>(
-        "/api/v1/cofounder-matching/profile",
+        "/cofounder-matching/profile",
         profileData
       );
     });
@@ -133,7 +136,7 @@ class CofounderMatchingService {
   async getProfile(): Promise<CofounderProfile> {
     return trackDbOperation("Get Cofounder Profile", async () => {
       return await apiClient.get<CofounderProfile>(
-        "/api/v1/cofounder-matching/profile"
+        "/cofounder-matching/profile"
       );
     });
   }
@@ -142,13 +145,13 @@ class CofounderMatchingService {
     profileData: Partial<CofounderProfile>
   ): Promise<CofounderProfile> {
     return await apiClient.put<CofounderProfile>(
-      "/api/v1/cofounder-matching/profile",
+      "/cofounder-matching/profile",
       profileData
     );
   }
 
   async deleteProfile(): Promise<void> {
-    return await apiClient.delete("/api/v1/cofounder-matching/profile");
+    return await apiClient.delete("/cofounder-matching/profile");
   }
 
   // Match Discovery
@@ -159,7 +162,7 @@ class CofounderMatchingService {
       return await apiClient.post<{
         matches_found: number;
         matches: MatchProfile[];
-      }>("/api/v1/cofounder-matching/discover", request);
+      }>("/cofounder-matching/discover", request);
     });
   }
 
@@ -168,19 +171,19 @@ class CofounderMatchingService {
     offset: number = 0
   ): Promise<{ matches: MatchProfile[]; total: number }> {
     return await apiClient.get<{ matches: MatchProfile[]; total: number }>(
-      `/api/v1/cofounder-matching/matches?limit=${limit}&offset=${offset}`
+      `/cofounder-matching/matches?limit=${limit}&offset=${offset}`
     );
   }
 
   async getMatchDetails(matchId: string): Promise<MatchProfile> {
     return await apiClient.get<MatchProfile>(
-      `/api/v1/cofounder-matching/matches/${matchId}`
+      `/cofounder-matching/matches/${matchId}`
     );
   }
 
   async getMutualMatches(): Promise<{ mutual_matches: MatchProfile[] }> {
     return await apiClient.get<{ mutual_matches: MatchProfile[] }>(
-      "/api/v1/cofounder-matching/matches/mutual"
+      "/cofounder-matching/matches/mutual"
     );
   }
 
@@ -190,7 +193,7 @@ class CofounderMatchingService {
     action: MatchActionRequest
   ): Promise<MatchActionResponse> {
     return await apiClient.post<MatchActionResponse>(
-      `/api/v1/cofounder-matching/matches/${matchId}/action`,
+      `/cofounder-matching/matches/${matchId}/action`,
       { action: action.action }
     );
   }
@@ -200,14 +203,14 @@ class CofounderMatchingService {
     preferences: MatchingPreferences
   ): Promise<MatchingPreferences> {
     return await apiClient.post<MatchingPreferences>(
-      "/api/v1/cofounder-matching/preferences",
+      "/cofounder-matching/preferences",
       preferences
     );
   }
 
   async getPreferences(): Promise<MatchingPreferences> {
     return await apiClient.get<MatchingPreferences>(
-      "/api/v1/cofounder-matching/preferences"
+      "/cofounder-matching/preferences"
     );
   }
 
@@ -215,7 +218,7 @@ class CofounderMatchingService {
     preferences: Partial<MatchingPreferences>
   ): Promise<MatchingPreferences> {
     return await apiClient.put<MatchingPreferences>(
-      "/api/v1/cofounder-matching/preferences",
+      "/cofounder-matching/preferences",
       preferences
     );
   }
@@ -223,7 +226,7 @@ class CofounderMatchingService {
   // Statistics
   async getStatistics(): Promise<Statistics> {
     return await apiClient.get<Statistics>(
-      "/api/v1/cofounder-matching/statistics"
+      "/cofounder-matching/statistics"
     );
   }
 
@@ -275,6 +278,117 @@ class CofounderMatchingService {
       profile_views: stats.profile_views,
       profile_completeness: profileCompleteness,
     };
+  }
+
+  // Connect with a match (alias for interested action)
+  async connect(matchId: string): Promise<MatchActionResponse> {
+    return await apiClient.post<MatchActionResponse>(
+      `/cofounder-matching/matches/${matchId}/connect`,
+      {}
+    );
+  }
+
+  // Follow/Unfollow Profile
+  async followProfile(profileId: string): Promise<void> {
+    return await apiClient.post(
+      `/cofounder-matching/profiles/${profileId}/follow`,
+      {}
+    );
+  }
+
+  async unfollowProfile(profileId: string): Promise<void> {
+    return await apiClient.delete(
+      `/cofounder-matching/profiles/${profileId}/follow`
+    );
+  }
+
+  async getFollowStats(profileId: string): Promise<{
+    follower_count: number;
+    following_count: number;
+    is_following: boolean;
+  }> {
+    return await apiClient.get(
+      `/cofounder-matching/profiles/${profileId}/follow-stats`
+    );
+  }
+
+  async getMatchProfile(profileId: string): Promise<CofounderProfile> {
+    return await apiClient.get(
+      `/cofounder-matching/profiles/${profileId}`
+    );
+  }
+
+  async getFollowing(): Promise<CofounderProfile[]> {
+    return await apiClient.get(`/cofounder-matching/profiles/following`);
+  }
+
+  // Messaging
+  async getConversations(
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<{
+    conversations: Array<{
+      conversation_id: string;
+      match_id: string;
+      last_message_at: string;
+      unread_count: number;
+      messages: Array<{
+        message_id: string;
+        sender_profile_id: string;
+        message_text: string;
+        is_read: boolean;
+        created_at: string;
+      }>;
+      other_profile: CofounderProfile;
+    }>;
+    total: number;
+    total_unread: number;
+  }> {
+    return await apiClient.get(
+      `/cofounder-matching/conversations?limit=${limit}&offset=${offset}`
+    );
+  }
+
+  async sendMessage(
+    matchId: string,
+    messageText: string
+  ): Promise<{
+    message_id: string;
+    conversation_id: string;
+    message_text: string;
+    created_at: string;
+  }> {
+    return await apiClient.post(
+      `/cofounder-matching/conversations/${matchId}/messages`,
+      { message_text: messageText }
+    );
+  }
+
+  async getMessages(
+    conversationId: string,
+    limit: number = 50,
+    beforeId?: string
+  ): Promise<
+    Array<{
+      message_id: string;
+      sender_profile_id: string;
+      message_text: string;
+      is_read: boolean;
+      created_at: string;
+    }>
+  > {
+    let url = `/cofounder-matching/conversations/${conversationId}/messages?limit=${limit}`;
+    if (beforeId) {
+      url += `&before_id=${beforeId}`;
+    }
+    return await apiClient.get(url);
+  }
+
+  async markMessagesAsRead(conversationId: string): Promise<void> {
+    return await apiClient.put(
+      `/cofounder-matching/conversations/${conversationId}/read`,
+      {}
+    );
   }
 }
 

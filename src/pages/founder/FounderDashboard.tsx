@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { MatchesFeed } from "@/components/founder-matching/MatchesFeed";
 import { ConnectionsList } from "@/components/founder-matching/ConnectionsList";
+import { FollowingList } from "@/components/founder-matching/FollowingList";
 import { cofounderMatchingService } from "@/services/founder-matching.service";
 import { toast } from "sonner";
 
@@ -145,13 +146,7 @@ const CofounderDashboard = () => {
               </TabsContent>
 
               <TabsContent value="following">
-                <div className="text-center py-12">
-                  <UserPlus className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Following</h3>
-                  <p className="text-muted-foreground">
-                    People you follow will appear here
-                  </p>
-                </div>
+                <FollowingList />
               </TabsContent>
             </div>
           </Tabs>

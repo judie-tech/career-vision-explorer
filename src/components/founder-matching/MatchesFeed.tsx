@@ -1,5 +1,6 @@
 // src/components/cofounder-matching/MatchesFeed.tsx
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ export const MatchesFeed: React.FC = () => {
   const [matches, setMatches] = useState<MatchProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [following, setFollowing] = useState<Set<string>>(new Set());
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadMatches();
@@ -39,6 +41,26 @@ export const MatchesFeed: React.FC = () => {
         min_score: 0.6, // Accept reasonable matches
       });
       setMatches(response.matches);
+
+      // Hydrate following state for returned profiles
+      const followStates = await Promise.all(
+        response.matches.map(async (match) => {
+          try {
+            const stats = await cofounderMatchingService.getFollowStats(
+              match.matched_profile.profile_id
+            );
+            return stats.is_following
+              ? match.matched_profile.profile_id
+              : null;
+          } catch {
+            return null;
+          }
+        })
+      );
+
+      setFollowing(
+        new Set(followStates.filter((id): id is string => Boolean(id)))
+      );
     } catch (error) {
       toast.error("Failed to load matches");
       console.error(error);
@@ -139,7 +161,8 @@ export const MatchesFeed: React.FC = () => {
     <div className="space-y-4">
       {matches.map((match) => {
         const profile = match.matched_profile;
-        const initials = getInitials(profile.current_role);
+        const displayName = profile.name || profile.current_role;
+        const initials = getInitials(displayName);
         const isFollowing = following.has(profile.profile_id);
         const isConnected =
           match.status === "mutual_interest" || match.status === "interested";
@@ -147,9 +170,23 @@ export const MatchesFeed: React.FC = () => {
         return (
           <Card
             key={match.match_id}
-            className="overflow-hidden hover:shadow-sm transition-shadow"
+            className="overflow-hidden hover:shadow-sm transition-shadow cursor-pointer"
+            onClick={() => navigate(`/founder/profile/${profile.profile_id}`)}
           >
-            <CardContent className="p-4">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex justify-between">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="px-2 text-primary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/founder/profile/${profile.profile_id}`);
+                  }}
+                >
+                  View profile
+                </Button>
+              </div>
               <div className="flex items-start justify-between gap-4">
                 {/* Left: Profile info */}
                 <div className="flex items-start gap-4 flex-1 min-w-0">
@@ -174,8 +211,11 @@ export const MatchesFeed: React.FC = () => {
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="font-semibold text-lg leading-tight">
-                          {profile.current_role}
+                          {displayName}
                         </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {profile.current_role}
+                        </p>
                         <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
                           <div className="flex items-center gap-1">
                             <Briefcase className="h-3 w-3" />
@@ -195,7 +235,10 @@ export const MatchesFeed: React.FC = () => {
                         variant={isFollowing ? "outline" : "default"}
                         size="sm"
                         className="h-8 px-3 rounded-full"
-                        onClick={() => handleFollow(profile.profile_id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFollow(profile.profile_id);
+                        }}
                       >
                         {isFollowing ? (
                           <>
@@ -218,7 +261,7 @@ export const MatchesFeed: React.FC = () => {
 
                     {/* Skills/Interests - LinkedIn chips style */}
                     <div className="flex flex-wrap gap-1 mt-3">
-                      {profile.technical_skills.slice(0, 3).map((skill) => (
+                      {(profile.technical_skills || []).slice(0, 3).map((skill) => (
                         <Badge
                           key={skill}
                           variant="outline"
@@ -227,7 +270,7 @@ export const MatchesFeed: React.FC = () => {
                           {skill}
                         </Badge>
                       ))}
-                      {profile.industries.slice(0, 2).map((industry) => (
+                      {(profile.industries || []).slice(0, 2).map((industry) => (
                         <Badge
                           key={industry}
                           variant="secondary"
@@ -257,7 +300,10 @@ export const MatchesFeed: React.FC = () => {
                     variant={isConnected ? "outline" : "default"}
                     size="sm"
                     className="whitespace-nowrap"
-                    onClick={() => handleConnect(match.match_id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleConnect(match.match_id);
+                    }}
                     disabled={isConnected}
                   >
                     <Heart
