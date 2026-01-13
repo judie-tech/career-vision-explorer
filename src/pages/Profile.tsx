@@ -139,8 +139,6 @@ const Profile: React.FC = () => {
         return;
       }
 
-      const profileId = profile?.id || user!.user_id;
-
       // Clean the payload - remove undefined values
       const cleanPayload: ProfileUpdate = Object.fromEntries(
         Object.entries(payload).filter(
@@ -149,7 +147,6 @@ const Profile: React.FC = () => {
       ) as ProfileUpdate;
 
       console.log("🔄 Profile update starting...", {
-        profileId,
         userAccountType: user?.account_type,
         cleanPayload,
       });
@@ -157,8 +154,8 @@ const Profile: React.FC = () => {
       let updatedProfile;
 
       if (user?.account_type === "employer") {
-        // For employers, prepare company data properly
-        const companyData = {
+        // For employers, update profile with top-level company fields
+        const employerProfileData = {
           company_name:
             cleanPayload.company_name ||
             cleanPayload.company_data?.company_name,
@@ -167,19 +164,20 @@ const Profile: React.FC = () => {
           company_website:
             cleanPayload.company_website ||
             cleanPayload.company_data?.company_website,
-          company_size: cleanPayload.company_data?.company_size || "1-10",
-          company_description: cleanPayload.company_data?.company_description,
-          company_culture: cleanPayload.company_data?.company_culture,
-          contact_email: cleanPayload.company_data?.contact_email,
-          contact_phone: cleanPayload.company_data?.contact_phone,
+          company_size: 
+            cleanPayload.company_size ||
+            cleanPayload.company_data?.company_size,
+          name: cleanPayload.name,
+          bio: cleanPayload.bio,
+          phone: cleanPayload.phone,
+          location: cleanPayload.location,
         };
 
-        console.log("🏢 Sending company data:", companyData);
+        console.log("🏢 Sending employer profile data:", employerProfileData);
 
-        // Use the direct company profile update method
-        updatedProfile = await profileService.updateCompanyProfile(
-          profileId,
-          companyData
+        // Update the profile with employer-specific fields (no profileId needed)
+        updatedProfile = await profileService.updateProfile(
+          employerProfileData
         );
       } else {
         // For regular users, remove company data
@@ -188,11 +186,12 @@ const Profile: React.FC = () => {
           company_name,
           industry,
           company_website,
+          company_size,
           ...userData
         } = cleanPayload;
         console.log("👤 Sending user data:", userData);
+        // Update profile without profileId 
         updatedProfile = await profileService.updateProfile(
-          profileId,
           userData
         );
       }
@@ -402,13 +401,13 @@ const Profile: React.FC = () => {
     }
   };
 
-  // Get company data with fallbacks
+  // Get company data with fallbacks from both company_data and top-level profile fields
   const getCompanyData = () => {
     return {
-      company_name: profile?.company_data?.company_name || "",
-      industry: profile?.company_data?.industry || "",
-      company_website: profile?.company_data?.company_website || "",
-      company_size: profile?.company_data?.company_size || "",
+      company_name: profile?.company_name || profile?.company_data?.company_name || "",
+      industry: profile?.industry || profile?.company_data?.industry || "",
+      company_website: profile?.company_website || profile?.company_data?.company_website || "",
+      company_size: profile?.company_size || profile?.company_data?.company_size || "",
       founded_year: profile?.company_data?.founded_year || undefined,
       company_description: profile?.company_data?.company_description || "",
       company_culture: profile?.company_data?.company_culture || "",

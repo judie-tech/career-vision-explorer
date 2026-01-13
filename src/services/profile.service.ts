@@ -11,6 +11,7 @@ class ProfileService {
       } catch (error: any) {
         if (error.message?.includes("timed out")) {
           const endpoint = userId ? `/profile/${userId}` : "/profile/";
+          const endpoint = userId ? `/profile/${userId}` : "/profile/";
           return await apiClient.get<Profile>(endpoint, { timeout: 45000 });
         }
         throw error;
@@ -19,20 +20,16 @@ class ProfileService {
   }
 
   async updateProfile(
-    profileId: string,
     profileData: ProfileUpdate
   ): Promise<Profile> {
     return await apiClient.put<Profile>("/profile/", profileData);
   }
 
   async updateCompanyProfile(
-    profileId: string,
     companyData: Partial<CompanyData>
   ): Promise<Profile> {
-    return await apiClient.put<Profile>(
-      "/profile/company",
-      companyData
-    );
+    // Update current user's company profile data
+    return await apiClient.put<Profile>("/profile/", companyData);
   }
 
   async getCompanyProfile(profileId: string): Promise<Profile> {
@@ -89,6 +86,11 @@ class ProfileService {
       file
     );
     return response?.data || response;
+  }
+
+  async deleteProfile(): Promise<{ message: string }> {
+    // Delete current user's profile (requires authentication)
+    return await apiClient.delete<{ message: string }>("/profile/");
   }
 }
 
