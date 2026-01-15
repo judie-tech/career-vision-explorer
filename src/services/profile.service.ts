@@ -10,9 +10,8 @@ class ProfileService {
         return await apiClient.getFast<Profile>(endpoint);
       } catch (error: any) {
         if (error.message?.includes("timed out")) {
-          const endpoint = userId ? `/profile/${userId}` : "/profile/";
-          const endpoint = userId ? `/profile/${userId}` : "/profile/";
-          return await apiClient.get<Profile>(endpoint, { timeout: 45000 });
+          const fallbackEndpoint = userId ? `/profile/${userId}` : "/profile/";
+          return await apiClient.get<Profile>(fallbackEndpoint, { timeout: 45000 });
         }
         throw error;
       }
@@ -46,6 +45,12 @@ class ProfileService {
     recommendations_count: number;
   }> {
     return await apiClient.get("/profile/stats");
+  }
+
+  async uploadProfileImage(file: File): Promise<any> {
+    // Use apiClient.uploadFile for consistent header/token handling
+    // The backend expects the field name to be 'image'
+    return await apiClient.uploadFile<any>("/profile/image", file, "image");
   }
 
   async addSkill(skill: string): Promise<void> {
@@ -86,6 +91,10 @@ class ProfileService {
       file
     );
     return response?.data || response;
+  }
+
+  async uploadProfileImage(file: File): Promise<any> {
+    return await apiClient.uploadFile("/profile/image", file, "image");
   }
 
   async deleteProfile(): Promise<{ message: string }> {

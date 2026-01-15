@@ -22,6 +22,8 @@ export interface CofounderProfile {
   portfolio_url?: string;
   bio: string;
   is_active?: boolean;
+  can_match?: boolean;
+  photo_urls?: string[];
   created_at?: string;
   views_count?: number;
   matches_count?: number;
@@ -41,33 +43,58 @@ export interface CofounderProfile {
   verification_reviewed_at?: string;
 }
 
+export interface PhotoUploadStatus {
+  photo_count: number;
+  max_photos: number;
+  min_required: number;
+  can_match: boolean;
+  photos_needed: number;
+  can_upload_more: boolean;
+  photos: string[];
+}
+
+export interface PhotoUploadResponse {
+  status: string;
+  image_url: string;
+  filename: string;
+  photo_count: number;
+  can_match: boolean;
+  photos_needed: number;
+  message: string;
+}
+
 export interface MatchProfile {
   match_id: string;
   matched_profile: {
     profile_id: string;
     user_id?: string;
     name?: string;
-    current_role: string;
-    years_experience: number;
-    technical_skills: string[];
-    seeking_roles: string[];
-    education: string[];
-    bio: string;
-    linkedin_url?: string;
-    portfolio_url?: string;
-    achievements?: string[];
-    soft_skills?: string[];
+    current_role?: string;
+    years_experience?: number;
     industries?: string[];
+    technical_skills?: string[];
+    soft_skills?: string[];
+    seeking_roles?: string[];
     commitment_level?: string;
     location_preference?: string;
+    preferred_locations?: string[];
+    achievements?: string[];
+    education?: string[];
+    certifications?: string[];
+    linkedin_url?: string;
+    portfolio_url?: string;
+    bio?: string;
+    photo_urls?: string[];
+    is_active?: boolean;
+    can_match?: boolean;
   };
   overall_score: number;
-  score_breakdown: {
+  score_breakdown?: {
     skill_compatibility: number;
     experience_match: number;
     role_alignment: number;
   };
-  status:
+  status?:
     | "suggested"
     | "interested"
     | "declined"
@@ -94,10 +121,13 @@ export interface MatchActionRequest {
 
 export interface MatchActionResponse {
   match_id: string;
-  status: string;
-  user_action: string;
-  mutual_interest: boolean;
+  new_status: string;
+  is_mutual: boolean;
   message: string;
+  // Alias for compatibility
+  mutual_interest?: boolean;
+  status?: string;
+  user_action?: string;
 }
 
 export interface MatchingPreferences {
@@ -118,6 +148,35 @@ export interface Statistics {
   average_match_score: number;
   top_matching_industries: Array<{ industry: string; count: number }>;
   engagement_score: number;
+}
+
+export interface Message {
+  message_id: string;
+  conversation_id: string;
+  sender_profile_id: string;
+  message_text: string;
+  is_read: boolean;
+  read_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Conversation {
+  conversation_id: string;
+  match_id: string;
+  profile_1_id: string;
+  profile_2_id: string;
+  last_message_at: string;
+  unread_count: number;
+  created_at: string;
+  messages: Message[];
+  other_profile: CofounderProfile;
+}
+
+export interface ConversationListResponse {
+  conversations: Conversation[];
+  total: number;
+  total_unread: number;
 }
 
 class CofounderMatchingService {
@@ -152,6 +211,28 @@ class CofounderMatchingService {
 
   async deleteProfile(): Promise<void> {
     return await apiClient.delete("/cofounder-matching/profile");
+  }
+
+  // Photo Management
+  async uploadPhoto(file: File): Promise<PhotoUploadResponse> {
+    return trackDbOperation("Upload Cofounder Photo", async () => {
+      return await apiClient.uploadFile<PhotoUploadResponse>(
+        "/cofounder-matching/profile/photos",
+        file
+      );
+    });
+  }
+
+  async getPhotoStatus(): Promise<PhotoUploadStatus> {
+    return await apiClient.get<PhotoUploadStatus>(
+      "/cofounder-matching/profile/photos"
+    );
+  }
+
+  async deletePhoto(photoUrl: string): Promise<PhotoUploadStatus> {
+    return await apiClient.delete<PhotoUploadStatus>(
+      `/cofounder-matching/profile/photos?photo_url=${encodeURIComponent(photoUrl)}`
+    );
   }
 
   // Match Discovery
@@ -389,6 +470,116 @@ class CofounderMatchingService {
       `/cofounder-matching/conversations/${conversationId}/read`,
       {}
     );
+  }
+
+  // Photo Management
+  async uploadPhoto(file: File): Promise<PhotoUploadResponse> {
+    const formData = new FormData();
+    formData.append("photo", file);
+    return await apiClient.uploadFile<PhotoUploadResponse>(
+      "/cofounder-matching/profile/photos",
+      file,
+      "photo"
+    );
+  }
+
+  async getPhotoStatus(): Promise<PhotoUploadStatus> {
+    return await apiClient.get<PhotoUploadStatus>(
+      "/cofounder-matching/profile/photos"
+    );
+  }
+
+  async deletePhoto(photoUrl: string): Promise<{
+    status: string;
+    photo_count: number;
+    can_match: boolean;
+    photos_needed: number;
+    message: string;
+  }> {
+    return await apiClient.delete(
+      `/cofounder-matching/profile/photos?photo_url=${encodeURIComponent(photoUrl)}`
+    );
+  }
+
+  async reorderPhotos(photoUrls: string[]): Promise<{
+    status: string;
+    photo_urls: string[];
+    message: string;
+  }> {
+    return await apiClient.put(
+      "/cofounder-matching/profile/photos/reorder",
+      photoUrls
+    );
+  }
+
+  // Get pending interests (people who expressed interest in you)
+  async getPendingInterests(): Promise<{
+    pending_matches: MatchProfile[];
+    total: number;
+  }> {
+    return await apiClient.get<{ pending_matches: MatchProfile[]; total: number }>(
+      "/cofounder-matching/matches/pending-interests"
+    );
+  }
+
+  // Swipe right (express interest)
+  async swipeRight(matchId: string): Promise<MatchActionResponse> {
+    return await apiClient.post<MatchActionResponse>(
+      `/cofounder-matching/matches/${matchId}/action`,
+      { action: "interested" }
+    );
+  }
+
+  // Swipe left (decline)
+  async swipeLeft(matchId: string): Promise<MatchActionResponse> {
+    return await apiClient.post<MatchActionResponse>(
+      `/cofounder-matching/matches/${matchId}/action`,
+      { action: "declined" }
+    );
+  }
+
+  // Swipe (skip)
+  async swipeSkip(matchId: string): Promise<MatchActionResponse> {
+    return await apiClient.post<MatchActionResponse>(
+      `/cofounder-matching/matches/${matchId}/action`,
+      { action: "skipped" }
+    );
+  }
+
+  // Messaging Methods
+
+  async getConversations(limit = 20, offset = 0): Promise<ConversationListResponse> {
+    const params = new URLSearchParams({
+      limit: limit.toString(),
+      offset: offset.toString()
+    });
+    return await apiClient.get<ConversationListResponse>(
+      `/cofounder-matching/conversations?${params.toString()}`
+    );
+  }
+
+  async getMessages(
+    conversationId: string, 
+    limit = 50, 
+    beforeId?: string
+  ): Promise<Message[]> {
+    const params = new URLSearchParams({ limit: limit.toString() });
+    if (beforeId) params.append('before_id', beforeId);
+    
+    return await apiClient.get<Message[]>(
+      `/cofounder-matching/conversations/${conversationId}/messages?${params.toString()}`
+    );
+  }
+
+  async sendMessage(matchId: string, messageText: string): Promise<Message> {
+    return await apiClient.post<Message>(
+      `/cofounder-matching/conversations/${matchId}/messages`,
+      { message_text: messageText }
+    );
+  }
+
+  async markConversationRead(conversationId: string): Promise<void> {
+    await apiClient.put(`/cofounder-matching/conversations/${conversationId}/read`);
   }
 }
 

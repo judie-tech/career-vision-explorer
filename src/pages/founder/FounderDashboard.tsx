@@ -26,91 +26,71 @@ import {
 } from "lucide-react";
 import { NotificationsFeed } from "@/components/founder-matching/NotificationsFeed";
 import { ConnectionsList } from "@/components/founder-matching/ConnectionsList";
+import { CofounderPhotos } from "@/components/founder-matching/CofounderPhotos";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-
-// Mock potential cofounder matches
-const mockPotentialCofounders = [
-  {
-    id: "match-1",
-    overall_score: 0.94,
-    matched_profile: {
-      profile_id: "profile-2",
-      name: "Sarah Johnson",
-      current_role: "Growth & Marketing Lead",
-      years_experience: 6,
-      technical_skills: ["Analytics", "SEO", "Automation", "Digital Marketing"],
-      soft_skills: [
-        "Marketing Strategy",
-        "Growth Hacking",
-        "Brand Building",
-        "Leadership",
-      ],
-      seeking_roles: ["CTO", "Technical Co-Founder", "AI Engineer"],
-      industries: ["Marketing Tech", "SaaS", "AI"],
-      commitment_level: "Full-time",
-      location_preference: "Hybrid",
-      preferred_locations: ["New York", "Remote"],
-      achievements: [
-        "Grew startup to $5M ARR",
-        "Built marketing team from 1 to 20",
-      ],
-      education: ["Harvard Business School"],
-      certifications: ["Google Analytics Expert"],
-      bio: "Seeking a technical co-founder to build an AI-powered marketing automation tool. I handle customers, marketing, and growth while you build the product.",
-      profile_image_url: "",
-      location: "New York, NY",
-      experience_years: 6,
-      active_role: "marketing_lead",
-    },
-  },
-  {
-    id: "match-2",
-    overall_score: 0.88,
-    matched_profile: {
-      profile_id: "profile-3",
-      name: "Marcus Rivera",
-      current_role: "Product Design Lead",
-      years_experience: 10,
-      technical_skills: [
-        "Figma",
-        "Sketch",
-        "Prototyping",
-        "Design Systems",
-        "UI/UX",
-      ],
-      soft_skills: ["User Research", "Design Thinking", "Product Strategy"],
-      seeking_roles: ["CEO", "Business Co-Founder", "Product Manager"],
-      industries: ["Design Tools", "SaaS", "Developer Tools"],
-      commitment_level: "Part-time",
-      location_preference: "Remote",
-      preferred_locations: ["Austin", "Remote"],
-      achievements: [
-        "Ex-Apple designer",
-        "Built design system for 100K+ users",
-      ],
-      education: ["Rhode Island School of Design"],
-      certifications: [],
-      bio: "I'm passionate about creating clean interfaces that solve real user problems. Looking for a business co-founder to build the next great design tool.",
-      profile_image_url: "",
-      location: "Austin, TX",
-      experience_years: 10,
-      active_role: "product_designer",
-    },
-  },
-];
+import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  cofounderMatchingService,
+  MatchProfile,
+} from "@/services/founder-matching.service";
+import { MessagingInterface } from "@/components/founder-matching/MessagingInterface";
 
 const FounderDashboard = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("discover");
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "discover";
+  const initialMatchId = searchParams.get("match_id") || undefined;
+  
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Sync tab with URL
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
-  const [potentialCofounders] = useState(mockPotentialCofounders);
-  const [pendingCount] = useState(3);
+  const [potentialCofounders, setPotentialCofounders] = useState<MatchProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [pendingCount, setPendingCount] = useState(0);
 
   const currentMatch = potentialCofounders[currentProfileIndex];
   const matchedProfile = currentMatch?.matched_profile;
+
+  // Load potential cofounders from API
+  useEffect(() => {
+    loadDiscoverMatches();
+    loadPendingCount();
+  }, []);
+
+  const loadDiscoverMatches = async () => {
+    try {
+      setLoading(true);
+      const response = await cofounderMatchingService.discoverMatches({
+        limit: 20,
+        min_score: 0.5,
+      });
+      setPotentialCofounders(response.matches);
+    } catch (error) {
+      console.error("Failed to load matches:", error);
+      toast.error("Failed to load matches");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadPendingCount = async () => {
+    try {
+      const response = await cofounderMatchingService.getPendingInterests();
+      setPendingCount(response.total || response.pending_matches?.length || 0);
+    } catch {
+      // Silently handle - endpoint might not have data yet
+    }
+  };
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -124,58 +104,101 @@ const FounderDashboard = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentProfileIndex, activeTab, currentMatch]);
 
-  const handleSwipeLeft = useCallback(() => {
-    toast.info("Passed", {
-      description: `You passed on ${matchedProfile?.name}`,
-    });
+  const handleSwipeLeft = useCallback(async () => {
+    if (!currentMatch) return;
+    
+    try {
+      await cofounderMatchingService.swipeLeft(currentMatch.match_id);
+      toast.info("Passed", {
+        description: `You passed on ${matchedProfile?.name || matchedProfile?.current_role}`,
+      });
+    } catch {
+      toast.error("Failed to record action");
+    }
 
     if (currentProfileIndex < potentialCofounders.length - 1) {
       setCurrentProfileIndex(currentProfileIndex + 1);
     } else {
+      loadDiscoverMatches();
       setCurrentProfileIndex(0);
-      toast("✨ Back to first profile!");
+      toast("✨ Loading more profiles!");
     }
-  }, [currentProfileIndex, matchedProfile, potentialCofounders.length]);
+  }, [currentProfileIndex, matchedProfile, potentialCofounders.length, currentMatch]);
 
-  const handleSwipeRight = useCallback(() => {
-    toast.success("Interest sent!", {
-      description: `${matchedProfile?.name} will be notified of your interest`,
-    });
+  const handleSwipeRight = useCallback(async () => {
+    if (!currentMatch) return;
+    
+    try {
+      const response = await cofounderMatchingService.swipeRight(currentMatch.match_id);
+      if (response.is_mutual) {
+        toast.success("🎉 It's a match!", {
+          description: `You and ${matchedProfile?.name || matchedProfile?.current_role} are now connected!`,
+        });
+      } else {
+        toast.success("Interest sent!", {
+          description: `${matchedProfile?.name || matchedProfile?.current_role} will be notified`,
+        });
+      }
+    } catch {
+      toast.error("Failed to send interest");
+    }
 
     if (currentProfileIndex < potentialCofounders.length - 1) {
       setCurrentProfileIndex(currentProfileIndex + 1);
     } else {
+      loadDiscoverMatches();
       setCurrentProfileIndex(0);
-      toast("✨ Back to first profile!");
+      toast("✨ Loading more profiles!");
     }
-  }, [currentProfileIndex, matchedProfile, potentialCofounders.length]);
+  }, [currentProfileIndex, matchedProfile, potentialCofounders.length, currentMatch]);
 
-  const handleSuperLike = useCallback(() => {
-    toast.success("Super Like!", {
-      description: `${matchedProfile?.name} will get a special notification`,
-    });
+  const handleSuperLike = useCallback(async () => {
+    if (!currentMatch) return;
+    
+    try {
+      const response = await cofounderMatchingService.swipeRight(currentMatch.match_id);
+      if (response.is_mutual) {
+        toast.success("🎉 Super match!", {
+          description: `You and ${matchedProfile?.name || matchedProfile?.current_role} are connected!`,
+        });
+      } else {
+        toast.success("⭐ Super Like sent!", {
+          description: `${matchedProfile?.name || matchedProfile?.current_role} will get a special notification`,
+        });
+      }
+    } catch {
+      toast.error("Failed to send super like");
+    }
 
     if (currentProfileIndex < potentialCofounders.length - 1) {
       setCurrentProfileIndex(currentProfileIndex + 1);
     } else {
+      loadDiscoverMatches();
       setCurrentProfileIndex(0);
-      toast("✨ Back to first profile!");
+      toast("✨ Loading more profiles!");
     }
-  }, [currentProfileIndex, matchedProfile, potentialCofounders.length]);
-
-  const handleViewProfile = () => {
-    toast.info("Viewing profile", {
-      description: "Full profile view would open here",
-    });
-  };
+  }, [currentProfileIndex, matchedProfile, potentialCofounders.length, currentMatch]);
 
   const handleEditProfile = () => {
     navigate("/profile");
   };
 
   const renderMainProfileView = () => {
+    if (loading) {
+      return (
+        <div className="text-center py-12">
+          <div className="mx-auto w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mb-4 animate-pulse">
+            <Users className="h-12 w-12 text-blue-500" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Finding co-founders...</h3>
+          <p className="text-slate-600">Our algorithm is discovering matches for you</p>
+        </div>
+      );
+    }
+
     if (!currentMatch || !matchedProfile) {
       return (
         <div className="text-center py-12">
@@ -193,15 +216,19 @@ const FounderDashboard = () => {
       );
     }
 
+    // Get display name from profile
+    const displayName = matchedProfile.name || matchedProfile.current_role;
+    const profilePhoto = matchedProfile.photo_urls?.[0] || "";
+
     return (
       <div className="space-y-6">
         {/* Main Profile Card */}
         <Card className="overflow-hidden border border-slate-200 shadow-lg">
           <div className="relative h-80 bg-gradient-to-br from-blue-50 to-indigo-50">
             {/* Profile photo or placeholder */}
-            {matchedProfile.profile_image_url ? (
+            {profilePhoto ? (
               <img
-                src={matchedProfile.profile_image_url}
+                src={profilePhoto}
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
@@ -211,9 +238,6 @@ const FounderDashboard = () => {
                   <div className="h-40 w-40 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center mx-auto mb-4">
                     <Users className="h-20 w-20 text-blue-400" />
                   </div>
-                  <p className="text-blue-600 font-medium text-lg">
-                    Profile photo not available
-                  </p>
                 </div>
               </div>
             )}
@@ -228,19 +252,21 @@ const FounderDashboard = () => {
             {/* Name and Role */}
             <div className="mb-6">
               <h2 className="text-3xl font-bold text-slate-900">
-                {matchedProfile.name},{" "}
-                <span className="text-slate-600">
-                  {matchedProfile.experience_years ||
-                    matchedProfile.years_experience}{" "}
-                  years
-                </span>
+                {displayName}
+                {matchedProfile.years_experience !== undefined && matchedProfile.years_experience > 0 && (
+                  <span className="text-slate-600">
+                    , {matchedProfile.years_experience} years
+                  </span>
+                )}
               </h2>
-              <div className="flex items-center gap-2 mt-2">
-                <Briefcase className="h-6 w-6 text-blue-500" />
-                <span className="text-xl font-medium text-slate-700">
-                  {matchedProfile.current_role}
-                </span>
-              </div>
+              {matchedProfile.current_role && (
+                <div className="flex items-center gap-2 mt-2">
+                  <Briefcase className="h-6 w-6 text-blue-500" />
+                  <span className="text-xl font-medium text-slate-700">
+                    {matchedProfile.current_role}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Key Achievement */}
@@ -256,67 +282,66 @@ const FounderDashboard = () => {
                 </div>
               )}
 
-            {/* Key Details Grid */}
+            {/* Key Details Grid - only show sections with data */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50">
-                  <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                    <MapPin className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Location</p>
-                    <p className="font-medium text-slate-900">
-                      {matchedProfile.location ||
-                        matchedProfile.location_preference}
-                    </p>
-                    {matchedProfile.preferred_locations && (
-                      <p className="text-xs text-slate-500 mt-1">
-                        Prefers: {matchedProfile.preferred_locations.join(", ")}
+                {(matchedProfile.location_preference || (matchedProfile.preferred_locations && matchedProfile.preferred_locations.length > 0)) && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50">
+                    <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                      <MapPin className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-500">Location</p>
+                      <p className="font-medium text-slate-900">
+                        {matchedProfile.location_preference || matchedProfile.preferred_locations?.join(", ") || "Flexible"}
                       </p>
-                    )}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50">
-                  <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
-                    <Building className="h-6 w-6 text-indigo-600" />
+                {matchedProfile.industries && matchedProfile.industries.length > 0 && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50">
+                    <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                      <Building className="h-6 w-6 text-indigo-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-500">Industry</p>
+                      <p className="font-medium text-slate-900">
+                        {matchedProfile.industries.slice(0, 2).join(", ")}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Industry</p>
-                    <p className="font-medium text-slate-900">
-                      {matchedProfile.industries?.slice(0, 2).join(", ") ||
-                        "Not specified"}
-                    </p>
-                  </div>
-                </div>
+                )}
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50">
-                  <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Award className="h-6 w-6 text-blue-600" />
+                {matchedProfile.commitment_level && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50">
+                    <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                      <Award className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-500">Commitment</p>
+                      <p className="font-medium text-slate-900">
+                        {matchedProfile.commitment_level}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Commitment</p>
-                    <p className="font-medium text-slate-900">
-                      {matchedProfile.commitment_level || "Flexible"}
-                    </p>
-                  </div>
-                </div>
+                )}
 
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50">
-                  <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
-                    <Clock className="h-6 w-6 text-indigo-600" />
+                {matchedProfile.years_experience !== undefined && matchedProfile.years_experience > 0 && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50">
+                    <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                      <Clock className="h-6 w-6 text-indigo-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-500">Experience</p>
+                      <p className="font-medium text-slate-900">
+                        {matchedProfile.years_experience} years
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Experience</p>
-                    <p className="font-medium text-slate-900">
-                      {matchedProfile.experience_years ||
-                        matchedProfile.years_experience}{" "}
-                      years
-                    </p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -377,27 +402,8 @@ const FounderDashboard = () => {
                 </div>
               )}
 
-            {/* Seeking */}
-            {matchedProfile.seeking_roles &&
-              matchedProfile.seeking_roles.length > 0 && (
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-3">
-                    Looking for a co-founder who is
-                  </h3>
-                  <div className="flex flex-wrap gap-3">
-                    {matchedProfile.seeking_roles.map(
-                      (role: string, index: number) => (
-                        <Badge
-                          key={index}
-                          className="px-4 py-2 text-base bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
-                        >
-                          {role}
-                        </Badge>
-                      )
-                    )}
-                  </div>
-                </div>
-              )}
+            {/* Seeking - REMOVED per request */}
+            {/* {matchedProfile.seeking_roles && ... } */ }
 
             {/* Education */}
             {matchedProfile.education &&
@@ -507,7 +513,7 @@ const FounderDashboard = () => {
           >
             {/* Desktop/Mobile Navigation */}
             <div className="md:mb-6">
-              <TabsList className="w-full md:w-auto grid grid-cols-3 md:grid-cols-3 md:inline-flex">
+              <TabsList className="w-full md:w-auto grid grid-cols-4 md:grid-cols-4 md:inline-flex">
                 <TabsTrigger
                   value="discover"
                   className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-2 data-[state=active]:text-blue-600"
@@ -516,21 +522,35 @@ const FounderDashboard = () => {
                   <span className="text-xs md:text-sm">Discover</span>
                 </TabsTrigger>
                 <TabsTrigger
+                  value="connections"
+                  className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-2 data-[state=active]:text-blue-600"
+                >
+                  <Users className="h-4 w-4 md:h-5 md:w-5" />
+                  <span className="text-xs md:text-sm">Matches</span>
+                </TabsTrigger>
+                <TabsTrigger
                   value="notifications"
                   className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-2 relative data-[state=active]:text-blue-600"
                 >
                   <Bell className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="text-xs md:text-sm">Matches</span>
+                  <span className="text-xs md:text-sm">Pending</span>
                   {pendingCount > 0 && (
                     <span className="absolute top-2 md:top-1 right-8 md:right-1 h-2 w-2 rounded-full bg-blue-600" />
                   )}
                 </TabsTrigger>
                 <TabsTrigger
-                  value="connections"
+                  value="messages"
                   className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-2 data-[state=active]:text-blue-600"
                 >
                   <MessageCircle className="h-4 w-4 md:h-5 md:w-5" />
                   <span className="text-xs md:text-sm">Messages</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="photos"
+                  className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-2 data-[state=active]:text-blue-600"
+                >
+                  <Eye className="h-4 w-4 md:h-5 md:w-5" />
+                  <span className="text-xs md:text-sm">My Photos</span>
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -547,6 +567,14 @@ const FounderDashboard = () => {
 
               <TabsContent value="connections" className="mt-0">
                 <ConnectionsList />
+              </TabsContent>
+
+              <TabsContent value="messages" className="mt-0">
+                 <MessagingInterface initialMatchId={initialMatchId} />
+              </TabsContent>
+
+              <TabsContent value="photos" className="mt-0">
+                <CofounderPhotos />
               </TabsContent>
             </div>
           </Tabs>

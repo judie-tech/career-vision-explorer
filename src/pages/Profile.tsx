@@ -78,6 +78,7 @@ const Profile: React.FC = () => {
   const jobInputRef = useRef<HTMLInputElement>(null);
   const experience_yearsInputRef = useRef<HTMLInputElement>(null);
   const twitterInputRef = useRef<HTMLTextAreaElement>(null);
+  const profileImageInputRef = useRef<HTMLInputElement>(null);
   const resumeInputRef = useRef<HTMLTextAreaElement>(null);
   const stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
   const projectsInputRef = useRef<HTMLDivElement>(null);
@@ -207,6 +208,23 @@ const Profile: React.FC = () => {
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Failed to update profile");
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      await profileService.uploadProfileImage(file);
+      await loadProfile();
+      toast.success("Profile image updated successfully");
+    } catch (error) {
+      console.error("Image upload failed", error);
+      toast.error("Failed to upload image. Max size 10MB.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1125,16 +1143,38 @@ const Profile: React.FC = () => {
               <Card>
                 <CardContent className="p-6">
                   <div className="text-center">
-                    <Avatar className="h-24 w-24 mx-auto mb-4">
-                      <AvatarImage src={profile?.profile_image_url} />
-                      <AvatarFallback className="text-2xl">
-                        {profile?.name
-                          ?.split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative inline-block">
+                      <Avatar className="h-24 w-24 mx-auto mb-4">
+                        <AvatarImage src={profile?.profile_image_url} />
+                        <AvatarFallback className="text-2xl">
+                          {profile?.name
+                            ?.split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      {editing && (
+                        <div className="absolute bottom-4 right-0">
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            className="h-8 w-8 rounded-full shadow-md"
+                            onClick={() => profileImageInputRef.current?.click()}
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </Button>
+                          <input
+                            ref={profileImageInputRef}
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                          />
+                        </div>
+                      )}
+                    </div>
 
                     {editing ? (
                       <div className="space-y-3">
