@@ -6,6 +6,7 @@ import { RecentActivityCard } from "@/components/jobseeker/dashboard/RecentActiv
 import { QuickStatsCards } from "@/components/jobseeker/dashboard/QuickStatsCards";
 import { InterviewScheduleDialog } from "@/components/jobseeker/InterviewScheduleDialog";
 import EditProfileDialog from "@/components/profile/EditProfileDialog";
+import NotificationDropdown from "@/components/shared/NotificationDropdown";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Bell,
@@ -22,6 +23,7 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -58,6 +60,13 @@ const JobSeekerDashboard = () => {
 
   const handleEditProfile = () => {
     navigate("/profile");
+  };
+
+  const handleMessagesClick = () => {
+    // TODO: Implement messaging feature
+    toast.info("Messages", {
+      description: "Messaging feature coming soon!",
+    });
   };
 
   const getTypeIcon = (type: string) => {
@@ -126,10 +135,12 @@ const JobSeekerDashboard = () => {
                     </Button>
 
                     {/* Notification Icons - Enlarged and next to button */}
-                    <button className="p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors">
-                      <Bell className="h-6 w-6" />
-                    </button>
-                    <button className="p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors">
+                    <NotificationDropdown />
+                    <button 
+                      onClick={handleMessagesClick}
+                      className="p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
+                      title="Messages"
+                    >
                       <MessageSquare className="h-6 w-6" />
                     </button>
                   </div>

@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/use-auth";
+import NotificationDropdown from "@/components/shared/NotificationDropdown";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -127,7 +128,10 @@ const Navbar = () => {
 
           {/* Desktop right side - Job Seeker Navigation */}
           {isAuthenticated && isJobSeekerUser && (
-            <div className="hidden md:flex md:items-center md:justify-end">
+            <div className="hidden md:flex md:items-center md:justify-end space-x-2">
+              {/* Notification Dropdown */}
+              <NotificationDropdown />
+              
               <div className="flex items-center space-x-2 bg-muted/50 rounded-xl p-1 border border-border/40">
                 {jobSeekerIcons.map(({ name, icon: Icon, path }) => (
                   <motion.div
@@ -201,6 +205,9 @@ const Navbar = () => {
           {/* Desktop right side - Employer & Other Users */}
           {isAuthenticated && !isJobSeekerUser && (
             <div className="hidden md:flex md:items-center md:justify-end space-x-4">
+              {/* Notification Dropdown */}
+              <NotificationDropdown />
+              
               {/* Dashboard link for employers and other users */}
               {getDashboardLink() && (
                 <Link

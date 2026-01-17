@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Heart, X, CheckCircle, Clock, MessageCircle } from "lucide-react";
-import { cofounderMatchingService } from "@/services/founder-matching.service";
+import { cofounderMatchingService, MatchProfile } from "@/services/founder-matching.service";
 import { toast } from "sonner";
 
 export const NotificationsFeed: React.FC = () => {
-  const [pendingMatches, setPendingMatches] = useState<any[]>([]);
+  const [pendingMatches, setPendingMatches] = useState<MatchProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,23 +22,8 @@ export const NotificationsFeed: React.FC = () => {
       const response = await cofounderMatchingService.getPendingInterests();
       setPendingMatches(response.pending_matches || []);
     } catch (error) {
-      console.error("No pending interests or endpoint not implemented:", error);
-      // Mock data for demo
-      setPendingMatches([
-        {
-          match_id: "mock-1",
-          matched_profile: {
-            profile_id: "mock-profile-1",
-            current_role: "Product Manager",
-            years_experience: 5,
-            bio: "Looking to build the next big thing in EdTech",
-            photos: [
-              "https://images.unsplash.com/photo-1494790108755-2616b612b786",
-            ],
-          },
-          overall_score: 0.85,
-        },
-      ]);
+      console.error("Failed to load pending interests:", error);
+      setPendingMatches([]);
     } finally {
       setLoading(false);
     }
@@ -47,15 +32,17 @@ export const NotificationsFeed: React.FC = () => {
   const handleAccept = async (matchId: string) => {
     try {
       const response = await cofounderMatchingService.swipeRight(matchId);
-      if (response.mutual_interest) {
+      if (response.is_mutual) {
         toast.success("🎉 New connection!", {
           description: "You can now message each other",
         });
-        // Remove from pending list
-        setPendingMatches(
-          pendingMatches.filter((match) => match.match_id !== matchId)
-        );
+      } else {
+        toast.success("Interest sent!");
       }
+      // Remove from pending list
+      setPendingMatches(
+        pendingMatches.filter((match) => match.match_id !== matchId)
+      );
     } catch (error) {
       toast.error("Failed to accept interest");
     }
@@ -128,7 +115,8 @@ export const NotificationsFeed: React.FC = () => {
 
       {pendingMatches.map((match) => {
         const profile = match.matched_profile;
-        const initials = getInitials(profile.current_role);
+        const displayName = profile.name || profile.current_role;
+        const initials = getInitials(displayName);
 
         return (
           <Card key={match.match_id} className="border-2 border-blue-200">
@@ -138,7 +126,7 @@ export const NotificationsFeed: React.FC = () => {
                 <div className="flex items-start gap-4 flex-1">
                   <div className="relative">
                     <Avatar className="h-16 w-16 border-2 border-blue-100">
-                      <AvatarImage src={profile.photos?.[0]} />
+                      <AvatarImage src={profile.photo_urls?.[0] || ""} />
                       <AvatarFallback className="bg-blue-50 text-blue-700">
                         {initials}
                       </AvatarFallback>
@@ -153,8 +141,11 @@ export const NotificationsFeed: React.FC = () => {
 
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg">
-                      {profile.current_role}
+                      {displayName}
                     </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {profile.current_role} • {profile.years_experience} years
+                    </p>
                     <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                       {profile.bio}
                     </p>

@@ -9,6 +9,7 @@ const Index = lazy(() => import("@/pages/Index"));
 const Login = lazy(() => import("@/pages/Login"));
 const Signup = lazy(() => import("@/pages/Signup"));
 const LinkedInCallback = lazy(() => import("@/pages/auth/LinkedInCallback"));
+const Notifications = lazy(() => import("@/pages/Notifications"));
 const Jobs = lazy(() => import("@/pages/Jobs"));
 const JobDetails = lazy(() => import("@/pages/JobDetails"));
 const PublicProfile = lazy(() => import("@/pages/PublicProfile"));
@@ -63,6 +64,7 @@ const JobSeekerSettings = lazy(
 // Founder Matching
 const FounderDashboard = lazy(() => import("@/pages/founder/FounderDashboard"));
 const FounderMatches = lazy(() => import("@/pages/founder/FounderMatches"));
+const FounderProfile = lazy(() => import("@/pages/founder/FounderProfile"));
 
 // Freelancer
 const Freelancers = lazy(() => import("@/pages/Freelancers"));
@@ -320,6 +322,7 @@ export const AppRoutes = () => {
             </Suspense>
           }
         />
+        {/* Forgot/reset password temporarily disabled (missing pages) */}
         <Route
           path="/auth/callback"
           element={
@@ -471,6 +474,16 @@ export const AppRoutes = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="profile/:profileId"
+            element={
+              <ProtectedRoute requiredRole="job_seeker">
+                <Suspense fallback={<PageLoader />}>
+                  <FounderProfile />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
         </Route>
 
         {/* Freelancer Routes */}
@@ -504,6 +517,16 @@ export const AppRoutes = () => {
             <ProtectedRoute>
               <Suspense fallback={<PageLoader />}>
                 <Dashboard />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <Notifications />
               </Suspense>
             </ProtectedRoute>
           }

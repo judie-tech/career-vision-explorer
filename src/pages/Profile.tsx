@@ -78,6 +78,7 @@ const Profile: React.FC = () => {
   const jobInputRef = useRef<HTMLInputElement>(null);
   const experience_yearsInputRef = useRef<HTMLInputElement>(null);
   const twitterInputRef = useRef<HTMLTextAreaElement>(null);
+  const profileImageInputRef = useRef<HTMLInputElement>(null);
   const resumeInputRef = useRef<HTMLTextAreaElement>(null);
   const stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
   const projectsInputRef = useRef<HTMLDivElement>(null);
@@ -139,8 +140,6 @@ const Profile: React.FC = () => {
         return;
       }
 
-      const profileId = profile?.id || user!.user_id;
-
       // Clean the payload - remove undefined values
       const cleanPayload: ProfileUpdate = Object.fromEntries(
         Object.entries(payload).filter(
@@ -149,7 +148,6 @@ const Profile: React.FC = () => {
       ) as ProfileUpdate;
 
       console.log("🔄 Profile update starting...", {
-        profileId,
         userAccountType: user?.account_type,
         cleanPayload,
       });
@@ -157,8 +155,8 @@ const Profile: React.FC = () => {
       let updatedProfile;
 
       if (user?.account_type === "employer") {
-        // For employers, prepare company data properly
-        const companyData = {
+        // For employers, update profile with top-level company fields
+        const employerProfileData = {
           company_name:
             cleanPayload.company_name ||
             cleanPayload.company_data?.company_name,
@@ -167,19 +165,20 @@ const Profile: React.FC = () => {
           company_website:
             cleanPayload.company_website ||
             cleanPayload.company_data?.company_website,
-          company_size: cleanPayload.company_data?.company_size || "1-10",
-          company_description: cleanPayload.company_data?.company_description,
-          company_culture: cleanPayload.company_data?.company_culture,
-          contact_email: cleanPayload.company_data?.contact_email,
-          contact_phone: cleanPayload.company_data?.contact_phone,
+          company_size: 
+            cleanPayload.company_size ||
+            cleanPayload.company_data?.company_size,
+          name: cleanPayload.name,
+          bio: cleanPayload.bio,
+          phone: cleanPayload.phone,
+          location: cleanPayload.location,
         };
 
-        console.log("🏢 Sending company data:", companyData);
+        console.log("🏢 Sending employer profile data:", employerProfileData);
 
-        // Use the direct company profile update method
-        updatedProfile = await profileService.updateCompanyProfile(
-          profileId,
-          companyData
+        // Update the profile with employer-specific fields (no profileId needed)
+        updatedProfile = await profileService.updateProfile(
+          employerProfileData
         );
       } else {
         // For regular users, remove company data
@@ -188,11 +187,12 @@ const Profile: React.FC = () => {
           company_name,
           industry,
           company_website,
+          company_size,
           ...userData
         } = cleanPayload;
         console.log("👤 Sending user data:", userData);
+        // Update profile without profileId 
         updatedProfile = await profileService.updateProfile(
-          profileId,
           userData
         );
       }
@@ -208,6 +208,23 @@ const Profile: React.FC = () => {
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Failed to update profile");
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      await profileService.uploadProfileImage(file);
+      await loadProfile();
+      toast.success("Profile image updated successfully");
+    } catch (error) {
+      console.error("Image upload failed", error);
+      toast.error("Failed to upload image. Max size 10MB.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -402,13 +419,13 @@ const Profile: React.FC = () => {
     }
   };
 
-  // Get company data with fallbacks
+  // Get company data with fallbacks from both company_data and top-level profile fields
   const getCompanyData = () => {
     return {
-      company_name: profile?.company_data?.company_name || "",
-      industry: profile?.company_data?.industry || "",
-      company_website: profile?.company_data?.company_website || "",
-      company_size: profile?.company_data?.company_size || "",
+      company_name: profile?.company_name || profile?.company_data?.company_name || "",
+      industry: profile?.industry || profile?.company_data?.industry || "",
+      company_website: profile?.company_website || profile?.company_data?.company_website || "",
+      company_size: profile?.company_size || profile?.company_data?.company_size || "",
       founded_year: profile?.company_data?.founded_year || undefined,
       company_description: profile?.company_data?.company_description || "",
       company_culture: profile?.company_data?.company_culture || "",
@@ -1126,16 +1143,38 @@ const Profile: React.FC = () => {
               <Card>
                 <CardContent className="p-6">
                   <div className="text-center">
-                    <Avatar className="h-24 w-24 mx-auto mb-4">
-                      <AvatarImage src={profile?.profile_image_url} />
-                      <AvatarFallback className="text-2xl">
-                        {profile?.name
-                          ?.split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative inline-block">
+                      <Avatar className="h-24 w-24 mx-auto mb-4">
+                        <AvatarImage src={profile?.profile_image_url} />
+                        <AvatarFallback className="text-2xl">
+                          {profile?.name
+                            ?.split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      {editing && (
+                        <div className="absolute bottom-4 right-0">
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            className="h-8 w-8 rounded-full shadow-md"
+                            onClick={() => profileImageInputRef.current?.click()}
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </Button>
+                          <input
+                            ref={profileImageInputRef}
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                          />
+                        </div>
+                      )}
+                    </div>
 
                     {editing ? (
                       <div className="space-y-3">
@@ -2212,24 +2251,16 @@ const Profile: React.FC = () => {
                     <Textarea
                       ref={educationInputRef}
                       value={
-                        editForm.education
-                          ? JSON.stringify(editForm.education, null, 2)
+                        typeof editForm.education === 'string'
+                          ? editForm.education
+                          : Array.isArray(editForm.education)
+                          ? editForm.education.map(e => `${e.degree} - ${e.institution} (${e.start_year}-${e.end_year})`).join('\n')
                           : ""
                       }
                       onChange={(e) => {
-                        try {
-                          const education = JSON.parse(e.target.value);
-                          setEditForm({ ...editForm, education });
-                        } catch {}
+                        setEditForm({ ...editForm, education: e.target.value });
                       }}
-                      placeholder={`[
-  {
-    "institution": "University Name",
-    "degree": "BSc in Computer Science",
-    "start_year": 2020,
-    "end_year": 2024
-  }
-]`}
+                      placeholder="e.g., BSc in Computer Science - MIT (2020-2024)"
                       rows={6}
                     />
                   ) : profile?.education?.length ? (
@@ -2432,18 +2463,19 @@ const Profile: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     {editing ? (
-                      <Textarea
+                      <Input
                         value={editForm.languages?.join(", ") || ""}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const value = e.target.value;
                           setEditForm({
                             ...editForm,
-                            languages: e.target.value
+                            languages: value
                               .split(",")
                               .map((lang) => lang.trim())
                               .filter((lang) => lang),
-                          })
-                        }
-                        placeholder="Languages (comma-separated)"
+                          });
+                        }}
+                        placeholder="e.g., English, Spanish, French"
                       />
                     ) : (
                       <div className="flex flex-wrap gap-2">
@@ -2469,18 +2501,19 @@ const Profile: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     {editing ? (
-                      <Textarea
-                        value={editForm.certifications?.join("\n") || ""}
-                        onChange={(e) =>
+                      <Input
+                        value={editForm.certifications?.join(", ") || ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
                           setEditForm({
                             ...editForm,
-                            certifications: e.target.value
-                              .split("\n")
+                            certifications: value
+                              .split(",")
                               .map((cert) => cert.trim())
                               .filter((cert) => cert),
-                          })
-                        }
-                        placeholder="Certifications (one per line)"
+                          });
+                        }}
+                        placeholder="e.g., AWS Certified, PMP, CISSP"
                       />
                     ) : (
                       <div className="space-y-2">

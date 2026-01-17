@@ -76,7 +76,7 @@ export const SwipeFeed: React.FC = () => {
         x: 500,
         rotate: 20,
         onRest: () => {
-          if (response.mutual_interest) {
+          if (response.is_mutual) {
             toast.success("🎉 It's a match!", {
               description: "You can now message each other",
             });
