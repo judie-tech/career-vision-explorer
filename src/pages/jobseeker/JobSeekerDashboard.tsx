@@ -136,7 +136,7 @@ const JobSeekerDashboard = () => {
 
                     {/* Notification Icons - Enlarged and next to button */}
                     <NotificationDropdown />
-                    <button 
+                    <button
                       onClick={handleMessagesClick}
                       className="p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
                       title="Messages"
@@ -189,7 +189,7 @@ const JobSeekerDashboard = () => {
                   </div>
                   <Button
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                    onClick={() => navigate("/founder/dashboard")}
+                    onClick={() => navigate("/founder/onboarding")}
                   >
                     Explore Co-Founder Matching
                   </Button>

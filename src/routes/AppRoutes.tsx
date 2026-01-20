@@ -61,10 +61,12 @@ const JobSeekerSettings = lazy(
   () => import("@/pages/jobseeker/JobSeekerSettings")
 );
 
-// Founder Matching
 const FounderDashboard = lazy(() => import("@/pages/founder/FounderDashboard"));
-const FounderMatches = lazy(() => import("@/pages/founder/FounderMatches"));
+const FounderOnboarding = lazy(
+  () => import("@/pages/founder/CofounderOnboarding")
+);
 const FounderProfile = lazy(() => import("@/pages/founder/FounderProfile"));
+const FounderMatches = lazy(() => import("@/pages/founder/FounderMatches"));
 
 // Freelancer
 const Freelancers = lazy(() => import("@/pages/Freelancers"));
@@ -464,6 +466,17 @@ export const AppRoutes = () => {
               </ProtectedRoute>
             }
           />
+          {/* Add this route for onboarding */}
+          <Route
+            path="onboarding"
+            element={
+              <ProtectedRoute requiredRole="job_seeker">
+                <Suspense fallback={<PageLoader />}>
+                  <FounderOnboarding />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="matches"
             element={
@@ -474,6 +487,18 @@ export const AppRoutes = () => {
               </ProtectedRoute>
             }
           />
+          {/* ADD THIS ROUTE - Current user's founder profile */}
+          <Route
+            path="profile"
+            element={
+              <ProtectedRoute requiredRole="job_seeker">
+                <Suspense fallback={<PageLoader />}>
+                  <FounderProfile />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          {/* Keep this route for viewing other users' founder profiles */}
           <Route
             path="profile/:profileId"
             element={
