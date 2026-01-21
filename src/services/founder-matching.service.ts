@@ -474,12 +474,10 @@ class CofounderMatchingService {
 
   // Photo Management
   async uploadPhoto(file: File): Promise<PhotoUploadResponse> {
-    const formData = new FormData();
-    formData.append("photo", file);
     return await apiClient.uploadFile<PhotoUploadResponse>(
       "/cofounder-matching/profile/photos",
       file,
-      "photo"
+      "file"
     );
   }
 
@@ -580,6 +578,28 @@ class CofounderMatchingService {
 
   async markConversationRead(conversationId: string): Promise<void> {
     await apiClient.put(`/cofounder-matching/conversations/${conversationId}/read`);
+  }
+
+  // Onboarding Methods
+  async getOnboardingStatus(): Promise<{
+    is_complete: boolean;
+    missing_requirements: string[];
+    can_match: boolean;
+  }> {
+    return await apiClient.get('/cofounder-matching/onboarding/status');
+  }
+
+  async completeOnboarding(): Promise<{
+    status: string;
+    onboarding_completed: boolean;
+    can_match: boolean;
+    message: string;
+  }> {
+    return await apiClient.post('/cofounder-matching/onboarding/complete');
+  }
+
+  async updateOnboardingProfile(profileData: Partial<CofounderProfile>): Promise<CofounderProfile> {
+    return await apiClient.put('/cofounder-matching/onboarding/profile', profileData);
   }
 }
 

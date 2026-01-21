@@ -89,6 +89,7 @@ const Profile: React.FC = () => {
     if (isAuthenticated && authProfile) {
       setProfile(authProfile);
       setEditForm(authProfile);
+      // Use backend value if available, otherwise calculate locally
       setLocalCompletionPercentage(
         authProfile.profile_completion_percentage ||
           calculateProfileCompletion(authProfile)
@@ -113,6 +114,7 @@ const Profile: React.FC = () => {
 
       setProfile(profileData);
       setEditForm(profileData);
+      // Use backend value if available, otherwise calculate locally
       setLocalCompletionPercentage(
         profileData.profile_completion_percentage ||
           calculateProfileCompletion(profileData)
@@ -199,6 +201,7 @@ const Profile: React.FC = () => {
 
       setProfile(updatedProfile);
       setEditForm(updatedProfile);
+      // Use backend value if available, otherwise calculate locally
       setLocalCompletionPercentage(
         updatedProfile.profile_completion_percentage ||
           calculateProfileCompletion(updatedProfile)
@@ -230,6 +233,7 @@ const Profile: React.FC = () => {
 
   const handleCancel = () => {
     setEditForm(profile as ProfileType);
+    // Use backend value if available, otherwise calculate locally
     setLocalCompletionPercentage(
       profile?.profile_completion_percentage ||
         calculateProfileCompletion(profile)
@@ -320,7 +324,7 @@ const Profile: React.FC = () => {
     return Math.min(100, Math.round(score));
   };
 
-  // update local completion percentage when editing form
+  // Update local completion percentage when editing form
   useEffect(() => {
     setLocalCompletionPercentage(calculateProfileCompletion(editForm));
   }, [editForm]);
@@ -2466,6 +2470,15 @@ const Profile: React.FC = () => {
                       <Input
                         value={editForm.languages?.join(", ") || ""}
                         onChange={(e) => {
+                          // Don't split immediately - just store the raw string
+                          const value = e.target.value;
+                          setEditForm({
+                            ...editForm,
+                            languages: [value], // Store as single item temporarily
+                          });
+                        }}
+                        onBlur={(e) => {
+                          // Split only on blur to allow typing commas
                           const value = e.target.value;
                           setEditForm({
                             ...editForm,
@@ -2504,6 +2517,15 @@ const Profile: React.FC = () => {
                       <Input
                         value={editForm.certifications?.join(", ") || ""}
                         onChange={(e) => {
+                          // Don't split immediately - just store the raw string
+                          const value = e.target.value;
+                          setEditForm({
+                            ...editForm,
+                            certifications: [value], // Store as single item temporarily
+                          });
+                        }}
+                        onBlur={(e) => {
+                          // Split only on blur to allow typing commas
                           const value = e.target.value;
                           setEditForm({
                             ...editForm,

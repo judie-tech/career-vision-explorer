@@ -22,11 +22,16 @@ import {
   ArrowLeft,
   Save,
   Loader2,
+  Camera,
+  X,
+  Plus,
+  Upload,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { apiClient } from "@/lib/api-client";
+import { cofounderMatchingService } from "@/services/founder-matching.service";
 
 // Define the profile type
 interface FounderProfileData {
@@ -47,6 +52,13 @@ interface FounderProfileData {
   bio: string;
   linkedin_url: string;
   portfolio_url: string;
+    intent_type?: string;
+    looking_for?: string;
+    looking_for_description?: string;
+    idea_description?: string;
+    problem_statement?: string;
+    projects?: any[];
+  photo_urls: string[];
   created_at: string;
   updated_at: string;
   views_count: number;
@@ -55,9 +67,20 @@ interface FounderProfileData {
   is_public: boolean;
 }
 
+interface PhotoUploadResponse {
+  status: string;
+  image_url: string;
+  photo_count: number;
+  can_match: boolean;
+  photos_needed: number;
+  message: string;
+}
+
 const FounderProfile = () => {
   const navigate = useNavigate();
   const { profileId } = useParams(); // Get profileId from URL if present
+  const [searchParams] = useSearchParams();
+  const matchId = searchParams.get("match_id");
   const { user } = useAuth(); // Get current user
 
   const [isEditing, setIsEditing] = useState(false);
@@ -70,7 +93,23 @@ const FounderProfile = () => {
   const [editFormData, setEditFormData] = useState<Partial<FounderProfileData>>(
     {}
   );
+  const [projects, setProjects] = useState<any[]>([]);
+  const [showProjectForm, setShowProjectForm] = useState(false);
+  const [projectForm, setProjectForm] = useState({
+    title: "",
+    description: "",
+    roles_needed: "",
+    tech_stack: "",
+  });
+  const [joiningProjectId, setJoiningProjectId] = useState<string | null>(null);
+  const [stats, setStats] = useState({
+    profile_views: 0,
+    total_matches: 0,
+    pending_actions: 0,
+  });
   const [apiError, setApiError] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoDeleting, setPhotoDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -83,7 +122,7 @@ const FounderProfile = () => {
 
         if (profileId) {
           // Fetch another user's profile by ID
-          endpoint = `/api/founder/profiles/${profileId}`;
+          endpoint = `/cofounder-matching/profiles/${profileId}`;
           console.log(`Fetching profile by ID: ${endpoint}`);
           data = await apiClient.get<FounderProfileData>(endpoint);
 
@@ -98,7 +137,7 @@ const FounderProfile = () => {
           setIsOwnProfile(data.user_id === currentUserId);
         } else {
           // Fetch current user's own profile
-          endpoint = "/api/founder/profiles/me";
+          endpoint = "/cofounder-matching/profile";
           console.log(`Fetching current user's profile: ${endpoint}`);
           data = await apiClient.get<FounderProfileData>(endpoint);
           setIsOwnProfile(true);
@@ -107,6 +146,43 @@ const FounderProfile = () => {
         console.log("Profile data received:", data);
         setProfileData(data);
         setEditFormData(data);
+        
+        // Fetch projects from idea_projects table if founder_with_idea
+        let projectsList = data.projects || [];
+        if (data.intent_type === "founder_with_idea") {
+          try {
+            const ideaProject = await apiClient.get("/cofounder-matching/idea-project");
+            if (ideaProject) {
+              projectsList = [{
+                id: ideaProject.id,
+                title: ideaProject.title || "My Startup Idea",
+                description: ideaProject.idea_description || "",
+                problem_statement: ideaProject.problem_statement || "",
+                roles_needed: ideaProject.looking_for_description ? [ideaProject.looking_for_description] : [],
+                tech_stack: ideaProject.tech_stack || [],
+                is_idea: true // flag to indicate this is from onboarding
+              }];
+            }
+          } catch (ideaErr) {
+            console.log("No idea project found or error fetching:", ideaErr);
+          }
+        }
+        setProjects(projectsList);
+
+        try {
+          const statsResponse = await apiClient.get<{
+            profile_views: number;
+            total_matches: number;
+            pending_actions: number;
+          }>("/cofounder-matching/statistics");
+          setStats({
+            profile_views: statsResponse.profile_views || 0,
+            total_matches: statsResponse.total_matches || 0,
+            pending_actions: statsResponse.pending_actions || 0,
+          });
+        } catch (statsError) {
+          console.warn("Failed to fetch match statistics", statsError);
+        }
       } catch (error: any) {
         console.error("Failed to fetch profile:", error);
 
@@ -147,8 +223,8 @@ const FounderProfile = () => {
     setLoading(true);
     try {
       const endpoint = isOwnProfile
-        ? `/api/founder/profiles/${profileData.id}`
-        : `/api/founder/profiles/${profileId}`;
+        ? `/cofounder-matching/profile`
+        : `/cofounder-matching/profiles/${profileId}`;
 
       console.log("Saving profile to:", endpoint, editFormData);
       const response = await apiClient.put<FounderProfileData>(
@@ -157,6 +233,22 @@ const FounderProfile = () => {
       );
 
       setProfileData(response);
+      
+      // Initialize projects same way as on load
+      let projectsList = response.projects || [];
+      if (projectsList.length === 0 && response.intent_type === "founder_with_idea" && response.idea_description) {
+        projectsList = [{
+          id: "idea-project",
+          title: "My Startup Idea",
+          description: response.idea_description || "",
+          problem_statement: response.problem_statement || "",
+          roles_needed: response.looking_for_description ? [response.looking_for_description] : [],
+          tech_stack: [],
+          is_idea: true
+        }];
+      }
+      setProjects(projectsList);
+      
       setIsEditing(false);
       toast.success("Profile updated successfully!");
     } catch (error) {
@@ -274,6 +366,59 @@ const FounderProfile = () => {
     handleEditFieldChange(field, currentSkills);
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image must be less than 10MB');
+      return;
+    }
+
+    setPhotoUploading(true);
+    try {
+      const response = await cofounderMatchingService.uploadPhoto(file);
+      
+      toast.success(response.message || 'Photo uploaded successfully!');
+      
+      // Refresh profile data
+      await fetchProfileData();
+    } catch (error: any) {
+      console.error('Photo upload failed:', error);
+      toast.error(error.message || 'Failed to upload photo');
+    } finally {
+      setPhotoUploading(false);
+      // Reset file input
+      e.target.value = '';
+    }
+  };
+
+  const handlePhotoDelete = async (photoUrl: string) => {
+    if (!confirm('Are you sure you want to delete this photo?')) return;
+
+    setPhotoDeleting(photoUrl);
+    try {
+      const response = await cofounderMatchingService.deletePhoto(photoUrl);
+      
+      toast.success(response.message || 'Photo deleted successfully');
+      
+      // Refresh profile data
+      await fetchProfileData();
+    } catch (error: any) {
+      console.error('Photo delete failed:', error);
+      toast.error(error.message || 'Failed to delete photo');
+    } finally {
+      setPhotoDeleting(null);
+    }
+  };
+
   const displayData = isEditing ? editFormData : profileData!;
 
   return (
@@ -343,19 +488,19 @@ const FounderProfile = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    {profileData!.views_count || 0}
+                    {stats.profile_views || profileData!.views_count || 0}
                   </div>
                   <div className="text-sm text-slate-600">Profile Views</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-indigo-600">
-                    {profileData!.matches_count || 0}
+                    {stats.total_matches || profileData!.matches_count || 0}
                   </div>
                   <div className="text-sm text-slate-600">Matches</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-purple-600">
-                    {profileData!.interested_count || 0}
+                    {stats.pending_actions || profileData!.interested_count || 0}
                   </div>
                   <div className="text-sm text-slate-600">Interests</div>
                 </div>
@@ -372,6 +517,88 @@ const FounderProfile = () => {
           <div className="grid md:grid-cols-3 gap-6">
             {/* Left Column - Basic Info */}
             <div className="md:col-span-2 space-y-6">
+              {/* Photo Gallery - Only show for own profile */}
+              {isOwnProfile && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Camera className="h-5 w-5 text-blue-600" />
+                        Profile Photos ({displayData.photo_urls?.length || 0}/10)
+                      </div>
+                      {(displayData.photo_urls?.length || 0) < 3 && (
+                        <Badge variant="destructive" className="text-xs">
+                          {3 - (displayData.photo_urls?.length || 0)} more needed
+                        </Badge>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-4">
+                      {displayData.photo_urls?.map((photoUrl, index) => (
+                        <div key={index} className="relative group aspect-square">
+                          <img
+                            src={photoUrl}
+                            alt={`Profile ${index + 1}`}
+                            className="w-full h-full object-cover rounded-lg border-2 border-slate-200"
+                          />
+                          {photoDeleting === photoUrl && (
+                            <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                              <Loader2 className="h-6 w-6 text-white animate-spin" />
+                            </div>
+                          )}
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => handlePhotoDelete(photoUrl)}
+                            disabled={photoDeleting === photoUrl}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                          {index === 0 && (
+                            <Badge className="absolute bottom-2 left-2 text-xs bg-blue-600">
+                              Primary
+                            </Badge>
+                          )}
+                        </div>
+                      ))}
+                      
+                      {/* Upload button */}
+                      {(displayData.photo_urls?.length || 0) < 10 && (
+                        <label className="aspect-square border-2 border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-all group">
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handlePhotoUpload}
+                            disabled={photoUploading}
+                          />
+                          {photoUploading ? (
+                            <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+                          ) : (
+                            <>
+                              <Plus className="h-8 w-8 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                              <span className="text-xs text-slate-500 mt-2 group-hover:text-blue-600">
+                                Add Photo
+                              </span>
+                            </>
+                          )}
+                        </label>
+                      )}
+                    </div>
+                    
+                    {(displayData.photo_urls?.length || 0) < 3 && (
+                      <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-sm text-amber-800">
+                          <strong>Note:</strong> You need at least 3 photos to start matching with other founders.
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Role & Bio */}
               <Card>
                 <CardHeader>
@@ -793,6 +1020,243 @@ const FounderProfile = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Projects Section - Shown for own profile OR when viewing others */}
+              {(projects.length > 0 || isOwnProfile) && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span className="flex items-center gap-2 text-lg font-semibold">
+                        <Briefcase className="h-5 w-5 text-blue-600" />
+                        {isOwnProfile ? "Active Projects" : "Projects"}
+                      </span>
+                      {isOwnProfile && !showProjectForm && !projects.some((p: any) => p.is_idea) && (
+                        <Button
+                          size="sm"
+                          onClick={() => setShowProjectForm(true)}
+                          variant="outline"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          New Project
+                        </Button>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {showProjectForm && (
+                      <div className="p-4 border-2 border-dashed rounded-lg space-y-3 bg-blue-50/30">
+                        <input
+                          type="text"
+                          placeholder="Project Title"
+                          value={projectForm.title}
+                          onChange={(e) =>
+                            setProjectForm({ ...projectForm, title: e.target.value })
+                          }
+                          className="w-full p-2 border rounded text-sm"
+                        />
+                        <textarea
+                          placeholder="Brief description of the project"
+                          value={projectForm.description}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              description: e.target.value,
+                            })
+                          }
+                          className="w-full p-2 border rounded min-h-[80px] text-sm"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Roles Needed (comma-separated)"
+                          value={projectForm.roles_needed}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              roles_needed: e.target.value,
+                            })
+                          }
+                          className="w-full p-2 border rounded text-sm"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Tech Stack (comma-separated)"
+                          value={projectForm.tech_stack}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              tech_stack: e.target.value,
+                            })
+                          }
+                          className="w-full p-2 border rounded text-sm"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={async () => {
+                              try {
+                                const payload = {
+                                  ...projectForm,
+                                  roles_needed: projectForm.roles_needed
+                                    .split(",")
+                                    .map((r) => r.trim())
+                                    .filter(Boolean),
+                                  tech_stack: projectForm.tech_stack
+                                    .split(",")
+                                    .map((t) => t.trim())
+                                    .filter(Boolean),
+                                };
+                                await apiClient.post(
+                                  "/cofounder-matching/projects",
+                                  payload
+                                );
+                                toast.success("Project added!");
+                                setShowProjectForm(false);
+                                setProjectForm({
+                                  title: "",
+                                  description: "",
+                                  roles_needed: "",
+                                  tech_stack: "",
+                                });
+                                // Refresh profile
+                                const updated = await apiClient.get<FounderProfileData>(
+                                  "/cofounder-matching/profile"
+                                );
+                                setProfileData(updated);
+                                setProjects(updated.projects || []);
+                              } catch (error) {
+                                console.error("Failed to add project:", error);
+                                toast.error("Failed to add project");
+                              }
+                            }}
+                            size="sm"
+                          >
+                            Save
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            onClick={() => {
+                              setShowProjectForm(false);
+                              setProjectForm({
+                                title: "",
+                                description: "",
+                                roles_needed: "",
+                                tech_stack: "",
+                              });
+                            }}
+                            size="sm"
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {projects.length === 0 && !showProjectForm ? (
+                      <div className="text-center py-8 text-slate-400">
+                        <Briefcase className="h-10 w-10 mx-auto mb-2 opacity-30" />
+                        <p className="text-sm">No active projects yet</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {projects.map((project: any, idx: number) => (
+                          <div
+                            key={project.id || idx}
+                            className="p-4 border rounded-lg hover:border-blue-300 transition-colors bg-gradient-to-br from-white to-blue-50/20"
+                          >
+                            <div className="flex items-start justify-between mb-2">
+                              <h4 className="font-semibold text-slate-900 text-base">
+                                {project.title}
+                              </h4>
+                              {!isOwnProfile && matchId && (
+                                <Button
+                                  size="sm"
+                                  onClick={async () => {
+                                    setJoiningProjectId(project.id);
+                                    try {
+                                      await apiClient.post(
+                                        "/cofounder-matching/projects/join",
+                                        {
+                                          match_id: matchId,
+                                          project_id: project.id,
+                                        }
+                                      );
+                                      toast.success("Join request sent!");
+                                    } catch (error) {
+                                      console.error("Failed to join:", error);
+                                      toast.error("Failed to send request");
+                                    } finally {
+                                      setJoiningProjectId(null);
+                                    }
+                                  }}
+                                  disabled={joiningProjectId === project.id}
+                                  className="ml-2 shrink-0"
+                                  variant="outline"
+                                >
+                                  {joiningProjectId === project.id ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                      Sending...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Users className="h-4 w-4 mr-1" />
+                                      Join
+                                    </>
+                                  )}
+                                </Button>
+                              )}
+                            </div>
+                            
+                            <p className="text-sm text-slate-600 mb-3 leading-relaxed">
+                              {project.description}
+                            </p>
+                            
+                            {project.problem_statement && (
+                              <div className="mb-3 pb-3 border-b">
+                                <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                  Problem
+                                </span>
+                                <p className="text-sm text-slate-600 mt-1">
+                                  {project.problem_statement}
+                                </p>
+                              </div>
+                            )}
+                            
+                            {project.roles_needed && project.roles_needed.length > 0 && (
+                              <div className="mb-2">
+                                <span className="text-xs font-medium text-slate-500 uppercase tracking-wide block mb-1.5">
+                                  Looking For
+                                </span>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {(Array.isArray(project.roles_needed) ? project.roles_needed : [project.roles_needed]).map((role: string, idx: number) => (
+                                    <Badge key={idx} variant="outline" className="text-xs bg-purple-50 border-purple-200 text-purple-700">
+                                      {role}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {project.tech_stack && project.tech_stack.length > 0 && (
+                              <div>
+                                <span className="text-xs font-medium text-slate-500 uppercase tracking-wide block mb-1.5">
+                                  Tech Stack
+                                </span>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {project.tech_stack.map((tech: string, idx: number) => (
+                                    <Badge key={idx} className="text-xs bg-blue-100 text-blue-700 border-0">
+                                      {tech}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         </div>

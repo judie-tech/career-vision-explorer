@@ -10,6 +10,7 @@ import {
   MessageCircle,
   Bell,
   Sparkles,
+  Heart,
   X,
   MapPin,
   Briefcase,
@@ -22,16 +23,26 @@ import {
   Settings,
   Plus,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { NotificationsFeed } from "@/components/founder-matching/NotificationsFeed";
 import { ConnectionsList } from "@/components/founder-matching/ConnectionsList";
+import { MessagingInterface } from "@/components/founder-matching/MessagingInterface";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { apiClient } from "@/lib/api-client";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Types
 interface FounderProfile {
+  profile_id: string;
   id: string;
   user_id: string;
   name: string;
@@ -51,16 +62,23 @@ interface FounderProfile {
   linkedin_url: string;
   portfolio_url: string;
   profile_image_url?: string;
+  photo_urls?: string[]; // Array of photo URLs
   views_count: number;
   matches_count: number;
   interested_count: number;
   created_at: string;
   updated_at: string;
+  profile_completion_percentage?: number;
 }
 
 interface Match {
-  id: string;
+  match_id: string; // Changed from 'id' to 'match_id' to match backend
   overall_score: number;
+  skill_compatibility_score?: number;
+  experience_match_score?: number;
+  role_alignment_score?: number;
+  location_compatibility_score?: number;
+  profile_similarity_score?: number;
   matched_profile: FounderProfile;
   created_at: string;
   status: "pending" | "accepted" | "rejected" | "connected";
@@ -74,8 +92,11 @@ const FounderDashboard = () => {
   const [potentialMatches, setPotentialMatches] = useState<Match[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
   const [hasCofounderProfile, setHasCofounderProfile] = useState(false);
+  const [myProfile, setMyProfile] = useState<FounderProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [swiping, setSwiping] = useState(false);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [showScoreModal, setShowScoreModal] = useState(false);
   const [stats, setStats] = useState({
     total_views: 0,
     total_matches: 0,
@@ -87,23 +108,38 @@ const FounderDashboard = () => {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        // Check if user has a founder profile
+        // Check if user has a cofounder profile
         const profileCheck = await apiClient
-          .get("/api/founder/profiles/me")
+          .get<FounderProfile>("/cofounder-matching/profile")
           .catch(() => null);
         setHasCofounderProfile(!!profileCheck);
-
+        
         if (profileCheck) {
-          // Fetch potential matches
-          const matches = await apiClient.get<Match[]>(
-            "/api/founder/matches/potential"
+          setMyProfile(profileCheck);
+          console.log("Founder profile loaded:", profileCheck);
+          console.log("Intent type:", profileCheck.intent_type);
+          console.log("Onboarding completed:", profileCheck.onboarding_completed);
+          
+          // Fetch potential matches using discover endpoint (no min_score to get all users)
+          const matchesResponse = await apiClient.post<{ matches: Match[] }>(
+            "/cofounder-matching/discover",
+            { limit: 50 }
           );
-          setPotentialMatches(matches || []);
+          console.log("Discover matches response:", matchesResponse);
+          setPotentialMatches(matchesResponse?.matches || []);
 
-          // Fetch notifications/stats
-          const statsData = await apiClient.get("/api/founder/stats");
-          setStats(statsData);
-          setPendingCount(statsData.pending_matches || 0);
+          // Fetch pending interests count (not total profiles)
+          const pendingInterestsResponse = await apiClient.get<{ pending_matches: Match[] }>("/cofounder-matching/matches/pending-interests");
+          const pendingInterests = pendingInterestsResponse?.pending_matches || [];
+          setPendingCount(pendingInterests.length);
+
+          // Fetch cofounder matching statistics
+          const statsData = await apiClient.get<{ profile_views: number; total_matches: number; pending_actions: number }>("/cofounder-matching/statistics");
+          setStats({
+            total_views: statsData.profile_views || 0,
+            total_matches: statsData.total_matches || 0,
+            pending_matches: pendingInterests.length
+          });
         }
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
@@ -119,27 +155,15 @@ const FounderDashboard = () => {
   const currentMatch = potentialMatches[currentProfileIndex];
   const matchedProfile = currentMatch?.matched_profile;
 
-  // Handle keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (activeTab !== "discover" || !currentMatch || swiping) return;
-
-      if (e.key === "ArrowLeft") handleSwipeLeft();
-      if (e.key === "ArrowRight") handleSwipeRight();
-      if (e.key === " ") handleSuperLike();
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentProfileIndex, activeTab, currentMatch, swiping]);
-
   const handleSwipeLeft = useCallback(async () => {
     if (!currentMatch || swiping) return;
 
     setSwiping(true);
     try {
-      // Send rejection to API
-      await apiClient.post(`/api/founder/matches/${currentMatch.id}/reject`);
+      // Send rejection to API using action endpoint
+      await apiClient.post(`/cofounder-matching/matches/${currentMatch.match_id}/action`, {
+        action: "declined"
+      });
 
       toast.info("Passed", {
         description: `You passed on ${matchedProfile?.name}`,
@@ -171,8 +195,10 @@ const FounderDashboard = () => {
 
     setSwiping(true);
     try {
-      // Send interest to API
-      await apiClient.post(`/api/founder/matches/${currentMatch.id}/like`);
+      // Send interest to API using action endpoint
+      await apiClient.post(`/cofounder-matching/matches/${currentMatch.match_id}/action`, {
+        action: "interested"
+      });
 
       toast.success("Interest sent!", {
         description: `${matchedProfile?.name} will be notified of your interest`,
@@ -204,9 +230,10 @@ const FounderDashboard = () => {
 
     setSwiping(true);
     try {
-      // Send super like to API
+      // Send super like to API (same as interested action for now)
       await apiClient.post(
-        `/api/founder/matches/${currentMatch.id}/super-like`
+        `/cofounder-matching/matches/${currentMatch.match_id}/action`,
+        { action: "interested" }
       );
 
       toast.success("Super Like!", {
@@ -234,9 +261,28 @@ const FounderDashboard = () => {
     swiping,
   ]);
 
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (activeTab !== "discover" || !currentMatch || swiping) return;
+
+      if (e.key === "ArrowLeft") handleSwipeLeft();
+      if (e.key === "ArrowRight") handleSwipeRight();
+      if (e.key === " ") handleSuperLike();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeTab, currentMatch, swiping, handleSwipeLeft, handleSwipeRight, handleSuperLike]);
+
   const handleCreateProfile = () => {
     navigate("/founder/onboarding");
   };
+
+  // Reset photo index when card changes
+  useEffect(() => {
+    setCurrentPhotoIndex(0);
+  }, [currentProfileIndex]);
 
   const handleEditProfile = () => {
     navigate("/founder/profile");
@@ -249,10 +295,11 @@ const FounderDashboard = () => {
   const refreshMatches = async () => {
     setLoading(true);
     try {
-      const matches = await apiClient.get<Match[]>(
-        "/api/founder/matches/potential"
+      const matchesResponse = await apiClient.post<{ matches: Match[] }>(
+        "/cofounder-matching/discover",
+        { limit: 50 }
       );
-      setPotentialMatches(matches || []);
+      setPotentialMatches(matchesResponse?.matches || []);
       setCurrentProfileIndex(0);
       toast.success("Matches refreshed!");
     } catch (error) {
@@ -362,25 +409,86 @@ const FounderDashboard = () => {
         {/* Main Profile Card */}
         <Card className="overflow-hidden border border-slate-200 shadow-lg hover:shadow-xl transition-shadow">
           <div className="relative h-80 bg-gradient-to-br from-blue-50 to-indigo-50">
-            {/* Profile photo or placeholder */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              {matchedProfile.profile_image_url ? (
-                <img
-                  src={matchedProfile.profile_image_url}
-                  alt={matchedProfile.name}
-                  className="h-40 w-40 rounded-full object-cover border-4 border-white shadow-lg"
-                />
+            {/* Profile photo carousel or placeholder */}
+            <div className="absolute inset-0">
+              {matchedProfile.photo_urls && matchedProfile.photo_urls.length > 0 ? (
+                <div className="relative w-full h-full">
+                  <img
+                    src={matchedProfile.photo_urls[currentPhotoIndex]}
+                    alt={`${matchedProfile.name} - Photo ${currentPhotoIndex + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  
+                  {/* Photo navigation dots */}
+                  {matchedProfile.photo_urls.length > 1 && (
+                    <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+                      {matchedProfile.photo_urls.map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCurrentPhotoIndex(idx);
+                          }}
+                          className={`h-2 rounded-full transition-all ${
+                            idx === currentPhotoIndex 
+                              ? 'bg-white w-6' 
+                              : 'bg-white/50 w-2'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Left/Right nav arrows */}
+                  {matchedProfile.photo_urls.length > 1 && (
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentPhotoIndex((prev) => 
+                            prev > 0 ? prev - 1 : matchedProfile.photo_urls!.length - 1
+                          );
+                        }}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 rounded-full p-2 transition-colors z-10"
+                      >
+                        <ChevronLeft className="h-6 w-6 text-white" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentPhotoIndex((prev) => 
+                            (prev + 1) % matchedProfile.photo_urls!.length
+                          );
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 rounded-full p-2 transition-colors z-10"
+                      >
+                        <ChevronRight className="h-6 w-6 text-white" />
+                      </button>
+                    </>
+                  )}
+                </div>
+              ) : matchedProfile.profile_image_url ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <img
+                    src={matchedProfile.profile_image_url}
+                    alt={matchedProfile.name}
+                    className="h-40 w-40 rounded-full object-cover border-4 border-white shadow-lg"
+                  />
+                </div>
               ) : (
-                <div className="text-center">
-                  <div className="h-40 w-40 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center mx-auto mb-4">
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="h-40 w-40 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
                     <Users className="h-20 w-20 text-blue-400" />
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Match Score Badge */}
-            <Badge className="absolute top-4 right-4 px-4 py-2 font-semibold shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-base">
+            {/* Match Score Badge - Clickable */}
+            <Badge 
+              className="absolute top-4 right-4 px-4 py-2 font-semibold shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-base cursor-pointer hover:scale-105 transition-transform z-10"
+              onClick={() => setShowScoreModal(true)}
+            >
               {Math.round(currentMatch.overall_score * 100)}% Match
             </Badge>
 
@@ -389,7 +497,7 @@ const FounderDashboard = () => {
               variant="ghost"
               size="sm"
               className="absolute top-4 left-4 bg-white/80 hover:bg-white"
-              onClick={() => handleViewProfile(matchedProfile.id)}
+              onClick={() => handleViewProfile(matchedProfile.profile_id || matchedProfile.id)}
             >
               View Full Profile
             </Button>
@@ -543,19 +651,6 @@ const FounderDashboard = () => {
 
           <Button
             size="lg"
-            className="h-16 w-16 rounded-full shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-            onClick={handleSuperLike}
-            disabled={swiping}
-          >
-            {swiping ? (
-              <Loader2 className="h-8 w-8 animate-spin" />
-            ) : (
-              <Star className="h-8 w-8" />
-            )}
-          </Button>
-
-          <Button
-            size="lg"
             className="h-16 w-16 rounded-full shadow-lg bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
             onClick={handleSwipeRight}
             disabled={swiping}
@@ -572,12 +667,11 @@ const FounderDashboard = () => {
         <div className="text-center pt-4 space-y-2">
           <p className="text-sm text-slate-500">
             <span className="font-medium text-red-600">← Pass</span> •{" "}
-            <span className="font-medium text-indigo-600">⭐ Super Like</span> •{" "}
             <span className="font-medium text-emerald-600">✓ Connect</span>
           </p>
           <p className="text-xs text-slate-400">
             Profile {currentProfileIndex + 1} of {potentialMatches.length} •
-            Press arrow keys • Space for Super Like
+            Press arrow keys
           </p>
         </div>
       </div>
@@ -605,11 +699,24 @@ const FounderDashboard = () => {
           <div className="flex items-center justify-between mb-6 md:mb-8">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
-                Founder Match
+                {myProfile?.name ? `Welcome, ${myProfile.name}` : "Founder Match"}
               </h1>
               <p className="text-sm md:text-lg text-slate-600">
                 Find your perfect co-founder
               </p>
+              {myProfile?.profile_completion_percentage !== undefined && (
+                <div className="mt-2 flex items-center gap-2">
+                  <div className="flex-1 max-w-xs h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-500"
+                      style={{ width: `${myProfile.profile_completion_percentage}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium text-slate-600">
+                    {myProfile.profile_completion_percentage}%
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -641,7 +748,7 @@ const FounderDashboard = () => {
                 variant="ghost"
                 size="icon"
                 className="relative"
-                onClick={() => setActiveTab("notifications")}
+                onClick={() => setActiveTab("interests")}
               >
                 <Bell className="h-5 w-5 md:h-6 md:w-6 text-slate-700" />
                 {pendingCount > 0 && (
@@ -661,7 +768,7 @@ const FounderDashboard = () => {
           >
             {/* Navigation */}
             <div className="md:mb-6">
-              <TabsList className="w-full md:w-auto grid grid-cols-3 md:grid-cols-3 md:inline-flex">
+              <TabsList className="w-full md:w-auto grid grid-cols-4 md:grid-cols-4 md:inline-flex">
                 <TabsTrigger
                   value="discover"
                   className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-2 data-[state=active]:text-blue-600"
@@ -670,17 +777,24 @@ const FounderDashboard = () => {
                   <span className="text-xs md:text-sm">Discover</span>
                 </TabsTrigger>
                 <TabsTrigger
-                  value="notifications"
+                  value="interests"
                   className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-2 relative data-[state=active]:text-blue-600"
                 >
-                  <Bell className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="text-xs md:text-sm">Matches</span>
+                  <Heart className="h-4 w-4 md:h-5 md:w-5" />
+                  <span className="text-xs md:text-sm">Interests</span>
                   {pendingCount > 0 && (
-                    <span className="absolute top-2 md:top-1 right-8 md:right-1 h-2 w-2 rounded-full bg-blue-600" />
+                    <span className="absolute top-2 md:top-1 right-8 md:right-1 h-2 w-2 rounded-full bg-pink-600" />
                   )}
                 </TabsTrigger>
                 <TabsTrigger
-                  value="connections"
+                  value="matches"
+                  className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-2 data-[state=active]:text-blue-600"
+                >
+                  <Users className="h-4 w-4 md:h-5 md:w-5" />
+                  <span className="text-xs md:text-sm">Matches</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="messages"
                   className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-2 data-[state=active]:text-blue-600"
                 >
                   <MessageCircle className="h-4 w-4 md:h-5 md:w-5" />
@@ -695,17 +809,80 @@ const FounderDashboard = () => {
                 {renderMainProfileView()}
               </TabsContent>
 
-              <TabsContent value="notifications" className="mt-0">
+              <TabsContent value="interests" className="mt-0">
                 <NotificationsFeed />
               </TabsContent>
 
-              <TabsContent value="connections" className="mt-0">
+              <TabsContent value="matches" className="mt-0">
                 <ConnectionsList />
+              </TabsContent>
+
+              <TabsContent value="messages" className="mt-0">
+                <MessagingInterface />
               </TabsContent>
             </div>
           </Tabs>
         </div>
       </div>
+
+      {/* Match Score Modal */}
+      {currentMatch && (
+        <Dialog open={showScoreModal} onOpenChange={setShowScoreModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Match Score Breakdown</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6 pt-4">
+              {/* Overall Score */}
+              <div className="text-center pb-4 border-b">
+                <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  {Math.round(currentMatch.overall_score * 100)}%
+                </div>
+                <p className="text-sm text-slate-500 mt-2">Overall Match Score</p>
+              </div>
+              
+              {/* Score breakdown bars */}
+              <div className="space-y-4">
+                {[
+                  { label: 'Skills Compatibility', score: currentMatch.skill_compatibility_score, icon: '🎯' },
+                  { label: 'Experience Match', score: currentMatch.experience_match_score, icon: '💼' },
+                  { label: 'Role Alignment', score: currentMatch.role_alignment_score, icon: '🎭' },
+                  { label: 'Location Match', score: currentMatch.location_compatibility_score, icon: '📍' },
+                  { label: 'Profile Similarity', score: currentMatch.profile_similarity_score, icon: '👥' },
+                ].map((item) => {
+                  const score = item.score;
+                  if (score === undefined || score === null) return null;
+                  
+                  return (
+                    <div key={item.label} className="space-y-2">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-700 flex items-center gap-2">
+                          <span>{item.icon}</span>
+                          <span>{item.label}</span>
+                        </span>
+                        <span className="font-semibold text-blue-600">
+                          {Math.round(score * 100)}%
+                        </span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500"
+                          style={{ width: `${score * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Info text */}
+              <p className="text-xs text-slate-400 text-center pt-4">
+                Match scores are calculated based on profile compatibility across multiple factors
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Layout>
   );
 };

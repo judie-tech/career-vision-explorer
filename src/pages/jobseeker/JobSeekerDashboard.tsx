@@ -110,7 +110,11 @@ const JobSeekerDashboard = () => {
                 <Avatar className="h-20 w-20 flex-shrink-0">
                   <AvatarImage src={profile?.profile_image_url} />
                   <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold text-lg">
-                    {user?.name
+                    {profile?.name
+                      ?.split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase() || user?.name
                       ?.split(" ")
                       .map((n) => n[0])
                       .join("")
@@ -121,7 +125,7 @@ const JobSeekerDashboard = () => {
                 {/* Name and Actions - Takes remaining space */}
                 <div className="flex flex-col gap-4 flex-1">
                   <h1 className="text-2xl font-bold text-gray-900">
-                    {user?.name || "Profile Name"}
+                    {profile?.name || user?.name || "Profile Name"}
                   </h1>
 
                   {/* Edit Profile Button and Notification Icons - Now in same row */}

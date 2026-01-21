@@ -1,5 +1,5 @@
 // src/pages/founder/CofounderOnboarding.tsx
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,40 +36,54 @@ import {
   X,
   ArrowRight,
   ChevronRight,
+  Lightbulb,
+  Rocket,
+  Upload,
+  Image as ImageIcon,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { MultiSelect } from "@/components/ui/multi-select";
+import { cofounderMatchingService } from "@/services/founder-matching.service";
 
 const CofounderOnboarding = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const [profileData, setProfileData] = useState({
-    // Step 1: Basic Info
+    // NEW: Step 1 - Intent Selection
+    intent_type: "" as "founder_with_idea" | "cofounder" | "jobseeker" | "",
+    
+    // NEW: Step 2 - Photos
+    uploadedPhotos: [] as string[],
+    
+    // Step 3: Basic Info (previously Step 1)
     current_role: "",
     years_experience: "",
 
-    // Step 2: Skills
+    // Step 4: Skills (previously Step 2)
     technical_skills: [] as string[],
     soft_skills: [] as string[],
     newTechnicalSkill: "",
     newSoftSkill: "",
 
-    // Step 3: Seeking
+    // Step 5: Seeking (previously Step 3)
     seeking_roles: [] as string[],
     industries: [] as string[],
     newSeekingRole: "",
     newIndustry: "",
 
-    // Step 4: Details
+    // Step 6: Details (previously Step 4)
     commitment_level: "",
     location_preference: "",
     preferred_locations: [] as string[],
     newLocation: "",
 
-    // Step 5: Achievements
+    // Step 7: Achievements (previously Step 5)
     achievements: [] as string[],
     education: [] as string[],
     certifications: [] as string[],
@@ -77,11 +91,127 @@ const CofounderOnboarding = () => {
     newEducation: "",
     newCertification: "",
 
-    // Step 6: Bio & Links
+    // Step 8: Bio & Links + Conditional Founder Project (previously Step 6)
     bio: "",
     linkedin_url: "",
     portfolio_url: "",
+    
+    // NEW: Conditional Founder Project Fields (only if intent_type === "founder_with_idea")
+    idea_description: "",
+    problem_statement: "",
+    looking_for_description: "",
   });
+
+  const totalSteps = 8;
+
+  // Check if user already has a profile and load it
+  useEffect(() => {
+    const loadExistingProfile = async () => {
+      try {
+        const profile = await cofounderMatchingService.getProfile();
+        
+        // If profile exists and onboarding is complete, redirect to dashboard
+        if (profile && profile.onboarding_completed) {
+          toast.info("You've already completed onboarding!");
+          navigate("/founder/dashboard");
+          return;
+        }
+        
+        // Load existing profile data if available (incomplete onboarding)
+        if (profile) {
+          setProfileData(prev => ({
+            ...prev,
+            intent_type: profile.intent_type || "",
+            uploadedPhotos: profile.photo_urls || [],
+            current_role: profile.current_role || "",
+            years_experience: profile.years_experience?.toString() || "",
+            technical_skills: profile.technical_skills || [],
+            soft_skills: profile.soft_skills || [],
+            seeking_roles: profile.seeking_roles || [],
+            industries: profile.industries || [],
+            commitment_level: profile.commitment_level || "",
+            location_preference: profile.location_preference || "",
+            preferred_locations: profile.preferred_locations || [],
+            achievements: profile.achievements || [],
+            education: profile.education || [],
+            certifications: profile.certifications || [],
+            bio: profile.bio || "",
+            linkedin_url: profile.linkedin_url || "",
+            portfolio_url: profile.portfolio_url || "",
+            idea_description: profile.idea_description || "",
+            problem_statement: profile.problem_statement || "",
+            looking_for_description: profile.looking_for_description || "",
+          }));
+        }
+      } catch (error: any) {
+        // Profile doesn't exist - auto-create from jobseeker profile
+        if (error?.response?.status === 404) {
+          console.log("No cofounder profile found, will auto-create on first save");
+          // Profile will be auto-created when user completes onboarding
+        } else {
+          console.error("Error loading profile:", error);
+          toast.error("Failed to load profile. Please try again.");
+        }
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+    
+    loadExistingProfile();
+  }, [navigate]);
+
+  // Handle photo upload
+  const handlePhotoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    
+    // Validate file type
+    const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Invalid file type. Please upload PNG, JPEG, or WebP images.");
+      return;
+    }
+    
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File too large. Maximum size is 10MB.");
+      return;
+    }
+    
+    if (profileData.uploadedPhotos.length >= 10) {
+      toast.error("Maximum 10 photos allowed.");
+      return;
+    }
+    
+    try {
+      const response = await cofounderMatchingService.uploadPhoto(file);
+      setProfileData(prev => ({
+        ...prev,
+        uploadedPhotos: [...prev.uploadedPhotos, response.image_url]
+      }));
+      toast.success(`Photo uploaded! ${response.photo_count}/10`);
+    } catch (error) {
+      console.error("Photo upload failed:", error);
+      toast.error("Failed to upload photo");
+    }
+  }, [profileData.uploadedPhotos.length]);
+
+  // Handle photo deletion
+  const handlePhotoDelete = useCallback(async (photoUrl: string) => {
+    try {
+      await cofounderMatchingService.deletePhoto(photoUrl);
+      setProfileData(prev => ({
+        ...prev,
+        uploadedPhotos: prev.uploadedPhotos.filter(url => url !== photoUrl)
+      }));
+      toast.success("Photo deleted");
+    } catch (error) {
+      console.error("Photo deletion failed:", error);
+      toast.error("Failed to delete photo");
+    }
+  }, []);
 
   const commitmentOptions = [
     { value: "Full-time", label: "Full-time" },
@@ -175,27 +305,46 @@ const CofounderOnboarding = () => {
   };
 
   const handleNext = () => {
+    // Step 1: Intent Selection validation
+    if (step === 1 && !profileData.intent_type) {
+      toast.error("Please select your intent");
+      return;
+    }
+    
+    // Step 2: Photo Upload validation (minimum 3 photos)
+    if (step === 2 && profileData.uploadedPhotos.length < 3) {
+      toast.error("Please upload at least 3 photos");
+      return;
+    }
+    
+    // Step 3: Basic Info validation (previously Step 1)
     if (
-      step === 1 &&
+      step === 3 &&
       (!profileData.current_role || !profileData.years_experience)
     ) {
       toast.error("Please fill in all required fields");
       return;
     }
-    if (step === 2 && profileData.technical_skills.length === 0) {
+    
+    // Step 4: Skills validation (previously Step 2)
+    if (step === 4 && profileData.technical_skills.length === 0) {
       toast.error("Please add at least one technical skill");
       return;
     }
+    
+    // Step 5: Seeking validation (previously Step 3)
     if (
-      step === 3 &&
+      step === 5 &&
       (profileData.seeking_roles.length === 0 ||
         profileData.industries.length === 0)
     ) {
       toast.error("Please specify what you're looking for");
       return;
     }
+    
+    // Step 6: Commitment/Location validation (previously Step 4)
     if (
-      step === 4 &&
+      step === 6 &&
       (!profileData.commitment_level || !profileData.location_preference)
     ) {
       toast.error("Please fill in all required fields");
@@ -217,8 +366,10 @@ const CofounderOnboarding = () => {
 
     setLoading(true);
     try {
-      // TODO: Save to your backend
-      const finalData = {
+      // Prepare the final data including new fields
+      const finalData: any = {
+        intent_type: profileData.intent_type,
+        photo_urls: profileData.uploadedPhotos,
         current_role: profileData.current_role,
         years_experience: parseInt(profileData.years_experience),
         technical_skills: profileData.technical_skills,
@@ -226,6 +377,8 @@ const CofounderOnboarding = () => {
         seeking_roles: profileData.seeking_roles,
         industries: profileData.industries,
         commitment_level: profileData.commitment_level,
+        availability: profileData.commitment_level, // Backend expects 'availability'
+        looking_for: profileData.seeking_roles.join(", ") || "Seeking cofounders and team members", // Backend expects 'looking_for' string
         location_preference: profileData.location_preference,
         preferred_locations: profileData.preferred_locations,
         achievements: profileData.achievements,
@@ -236,14 +389,29 @@ const CofounderOnboarding = () => {
         portfolio_url: profileData.portfolio_url,
       };
 
+      // Add conditional founder project fields if intent_type is "founder_with_idea"
+      if (profileData.intent_type === "founder_with_idea") {
+        finalData.idea_description = profileData.idea_description;
+        finalData.problem_statement = profileData.problem_statement;
+        finalData.looking_for_description = profileData.looking_for_description;
+        // Override looking_for with the detailed description for founders with ideas
+        if (profileData.looking_for_description) {
+          finalData.looking_for = profileData.looking_for_description;
+        }
+      }
+
       console.log("Submitting cofounder profile:", finalData);
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Update the onboarding profile with all collected data
+      await cofounderMatchingService.updateOnboardingProfile(finalData);
+      
+      // Mark onboarding as complete
+      await cofounderMatchingService.completeOnboarding();
 
       toast.success("Cofounder profile created!");
       navigate("/founder/dashboard");
     } catch (error) {
+      console.error("Onboarding submission failed:", error);
       toast.error("Failed to create profile");
     } finally {
       setLoading(false);
@@ -252,7 +420,207 @@ const CofounderOnboarding = () => {
 
   const renderStep = () => {
     switch (step) {
+      // NEW STEP 1: Intent Selection
       case 1:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <div className="h-16 w-16 mx-auto bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mb-4">
+                <Target className="h-8 w-8 text-blue-600" />
+              </div>
+              <h2 className="text-2xl font-bold">What brings you here?</h2>
+              <p className="text-slate-600 mt-2">
+                Tell us your current situation
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <Card
+                className={`cursor-pointer transition-all border-2 hover:shadow-lg ${
+                  profileData.intent_type === "founder_with_idea"
+                    ? "border-blue-600 bg-blue-50/50 shadow-md"
+                    : "border-slate-200 hover:border-blue-300"
+                }`}
+                onClick={() =>
+                  setProfileData({ ...profileData, intent_type: "founder_with_idea" })
+                }
+              >
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-blue-100 rounded-lg">
+                      <Lightbulb className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg mb-1">
+                        I have an Idea
+                      </h3>
+                      <p className="text-slate-600 text-sm">
+                        You have a startup idea and are looking for the right technical or business partner
+                      </p>
+                    </div>
+                    {profileData.intent_type === "founder_with_idea" && (
+                      <CheckCircle2 className="h-6 w-6 text-blue-600 flex-shrink-0" />
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card
+                className={`cursor-pointer transition-all border-2 hover:shadow-lg ${
+                  profileData.intent_type === "cofounder"
+                    ? "border-blue-600 bg-blue-50/50 shadow-md"
+                    : "border-slate-200 hover:border-blue-300"
+                }`}
+                onClick={() =>
+                  setProfileData({ ...profileData, intent_type: "cofounder" })
+                }
+              >
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-indigo-100 rounded-lg">
+                      <Users className="h-6 w-6 text-indigo-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg mb-1">
+                        I want to join as a cofounder
+                      </h3>
+                      <p className="text-slate-600 text-sm">
+                        You're ready to join someone else's startup as a founding team member
+                      </p>
+                    </div>
+                    {profileData.intent_type === "cofounder" && (
+                      <CheckCircle2 className="h-6 w-6 text-blue-600 flex-shrink-0" />
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card
+                className={`cursor-pointer transition-all border-2 hover:shadow-lg ${
+                  profileData.intent_type === "jobseeker"
+                    ? "border-blue-600 bg-blue-50/50 shadow-md"
+                    : "border-slate-200 hover:border-blue-300"
+                }`}
+                onClick={() =>
+                  setProfileData({ ...profileData, intent_type: "jobseeker" })
+                }
+              >
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-purple-100 rounded-lg">
+                      <Briefcase className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg mb-1">
+                        I'm exploring opportunities
+                      </h3>
+                      <p className="text-slate-600 text-sm">
+                        You're open to both founding opportunities and traditional roles
+                      </p>
+                    </div>
+                    {profileData.intent_type === "jobseeker" && (
+                      <CheckCircle2 className="h-6 w-6 text-blue-600 flex-shrink-0" />
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        );
+
+      // NEW STEP 2: Photo Upload
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <div className="h-16 w-16 mx-auto bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mb-4">
+                <ImageIcon className="h-8 w-8 text-blue-600" />
+              </div>
+              <h2 className="text-2xl font-bold">Add Your Photos</h2>
+              <p className="text-slate-600 mt-2">
+                Upload at least 3 photos (maximum 10)
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {/* Upload Button */}
+              <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                  id="photo-upload"
+                  disabled={profileData.uploadedPhotos.length >= 10}
+                />
+                <label
+                  htmlFor="photo-upload"
+                  className={`cursor-pointer ${
+                    profileData.uploadedPhotos.length >= 10 ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  <Upload className="h-12 w-12 mx-auto text-slate-400 mb-3" />
+                  <p className="font-medium text-slate-700">
+                    Click to upload photos
+                  </p>
+                  <p className="text-sm text-slate-500 mt-1">
+                    PNG, JPEG, or WebP (max 10MB)
+                  </p>
+                  <p className="text-sm text-slate-500 mt-1">
+                    {profileData.uploadedPhotos.length}/10 uploaded
+                  </p>
+                </label>
+              </div>
+
+              {/* Photo Grid */}
+              {profileData.uploadedPhotos.length > 0 && (
+                <div className="grid grid-cols-3 gap-4">
+                  {profileData.uploadedPhotos.map((photoUrl, index) => (
+                    <div key={photoUrl} className="relative group aspect-square">
+                      <img
+                        src={photoUrl}
+                        alt={`Upload ${index + 1}`}
+                        className="w-full h-full object-cover rounded-lg border-2 border-slate-200"
+                      />
+                      <button
+                        onClick={() => handlePhotoDelete(photoUrl)}
+                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                      {index === 0 && (
+                        <div className="absolute bottom-2 left-2 px-2 py-1 bg-blue-600 text-white text-xs rounded">
+                          Primary
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {profileData.uploadedPhotos.length < 3 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+                  <Sparkles className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-800">
+                      {profileData.uploadedPhotos.length === 0
+                        ? "No photos uploaded yet"
+                        : `${3 - profileData.uploadedPhotos.length} more photo${
+                            3 - profileData.uploadedPhotos.length > 1 ? "s" : ""
+                          } needed`}
+                    </p>
+                    <p className="text-sm text-amber-700 mt-1">
+                      Add at least 3 photos to continue
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      // STEP 3: Basic Info (was Step 1)
+      case 3:
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
@@ -305,7 +673,8 @@ const CofounderOnboarding = () => {
           </div>
         );
 
-      case 2:
+      // STEP 4: Skills (was Step 2)
+      case 4:
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
@@ -434,7 +803,8 @@ const CofounderOnboarding = () => {
           </div>
         );
 
-      case 3:
+      // STEP 5: Looking For (was Step 3)
+      case 5:
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
@@ -563,7 +933,8 @@ const CofounderOnboarding = () => {
           </div>
         );
 
-      case 4:
+      // STEP 6: Logistics (was Step 4)
+      case 6:
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
@@ -680,7 +1051,8 @@ const CofounderOnboarding = () => {
           </div>
         );
 
-      case 5:
+      // STEP 7: Achievements (was Step 5)
+      case 7:
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
@@ -810,7 +1182,8 @@ const CofounderOnboarding = () => {
           </div>
         );
 
-      case 6:
+      // STEP 8: Final Touches + Conditional Founder Project (was Step 6)
+      case 8:
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
@@ -874,6 +1247,78 @@ const CofounderOnboarding = () => {
                   />
                 </div>
               </div>
+
+              {/* Conditional Founder Project Section - Only if intent_type is "founder_with_idea" */}
+              {profileData.intent_type === "founder_with_idea" && (
+                <>
+                  <Separator className="my-6" />
+                  
+                  <div className="bg-blue-50/50 rounded-lg p-6 space-y-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <Lightbulb className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg">Tell us about your idea</h3>
+                        <p className="text-sm text-slate-600">
+                          Help potential cofounders understand your vision
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="idea_description">Idea Description</Label>
+                      <p className="text-sm text-slate-500 mb-2">
+                        What is your startup idea? Keep it concise (elevator pitch)
+                      </p>
+                      <Textarea
+                        id="idea_description"
+                        placeholder="e.g., Building an AI-powered recruiting platform that matches candidates with companies based on culture fit..."
+                        value={profileData.idea_description}
+                        onChange={(e) =>
+                          setProfileData({ ...profileData, idea_description: e.target.value })
+                        }
+                        rows={4}
+                        className="resize-none"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="problem_statement">Problem Statement</Label>
+                      <p className="text-sm text-slate-500 mb-2">
+                        What problem are you solving?
+                      </p>
+                      <Textarea
+                        id="problem_statement"
+                        placeholder="e.g., Current recruiting tools focus only on skills matching, but 50% of hires fail due to culture misfit..."
+                        value={profileData.problem_statement}
+                        onChange={(e) =>
+                          setProfileData({ ...profileData, problem_statement: e.target.value })
+                        }
+                        rows={4}
+                        className="resize-none"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="looking_for_description">What are you looking for</Label>
+                      <p className="text-sm text-slate-500 mb-2">
+                        Cofounders, team members, or contributors - describe who you need
+                      </p>
+                      <Textarea
+                        id="looking_for_description"
+                        placeholder="e.g., Looking for a technical cofounder with AI/ML expertise and experience building scalable platforms..."
+                        value={profileData.looking_for_description}
+                        onChange={(e) =>
+                          setProfileData({ ...profileData, looking_for_description: e.target.value })
+                        }
+                        rows={4}
+                        className="resize-none"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         );
@@ -885,6 +1330,8 @@ const CofounderOnboarding = () => {
 
   const getStepTitle = () => {
     const titles = [
+      "Intent Selection",
+      "Photo Upload",
       "Basic Information",
       "Skills & Expertise",
       "Looking For",
@@ -897,22 +1344,30 @@ const CofounderOnboarding = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-b from-blue-50/50 to-white">
-        <div className="max-w-2xl mx-auto p-4 py-8">
+      {initialLoading ? (
+        <div className="min-h-screen bg-gradient-to-b from-blue-50/50 to-white flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+            <p className="text-slate-600">Loading your profile...</p>
+          </div>
+        </div>
+      ) : (
+        <div className="min-h-screen bg-gradient-to-b from-blue-50/50 to-white">
+          <div className="max-w-2xl mx-auto p-4 py-8">
           {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm text-slate-600">
-                Step {step} of 6 • {getStepTitle()}
+                Step {step} of {totalSteps} • {getStepTitle()}
               </div>
               <div className="text-sm font-medium">
-                {Math.round((step / 6) * 100)}%
+                {Math.round((step / totalSteps) * 100)}%
               </div>
             </div>
             <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full transition-all duration-300"
-                style={{ width: `${(step / 6) * 100}%` }}
+                style={{ width: `${(step / totalSteps) * 100}%` }}
               />
             </div>
           </div>
@@ -942,7 +1397,7 @@ const CofounderOnboarding = () => {
                   Back
                 </Button>
 
-                {step < 6 ? (
+                {step < totalSteps ? (
                   <Button
                     type="button"
                     onClick={handleNext}
@@ -980,6 +1435,7 @@ const CofounderOnboarding = () => {
           )}
         </div>
       </div>
+      )}
     </Layout>
   );
 };
