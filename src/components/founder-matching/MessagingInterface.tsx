@@ -372,13 +372,35 @@ export const MessagingInterface: React.FC<MessagingInterfaceProps> = ({ initialM
              )}
 
              {/* Start New Conversation Section */}
-             {availableMatches.filter(m => !conversations.some(c => c.match_id === m.match_id)).length > 0 && (
+             {availableMatches.filter(m => {
+               // Check if conversation exists by match_id OR by comparing profile IDs
+               const hasConversation = conversations.some(c => {
+                 if (c.match_id === m.match_id) return true;
+                 // Also check if other_profile user_id matches this match's profile
+                 if (c.other_profile && m.matched_profile) {
+                   return c.other_profile.user_id === m.matched_profile.user_id;
+                 }
+                 return false;
+               });
+               return !hasConversation;
+             }).length > 0 && (
                 <div className="flex flex-col pt-2">
                     <h4 className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-slate-50/50 sticky top-0 z-10">
                         Start Conversation
                     </h4>
                     {availableMatches
-                        .filter(m => !conversations.some(c => c.match_id === m.match_id))
+                        .filter(m => {
+                          // Check if conversation exists by match_id OR by comparing profile IDs
+                          const hasConversation = conversations.some(c => {
+                            if (c.match_id === m.match_id) return true;
+                            // Also check if other_profile user_id matches this match's profile
+                            if (c.other_profile && m.matched_profile) {
+                              return c.other_profile.user_id === m.matched_profile.user_id;
+                            }
+                            return false;
+                          });
+                          return !hasConversation;
+                        })
                         .map(match => {
                              const profile = match.matched_profile;
                              if (!profile) return null;
@@ -412,7 +434,18 @@ export const MessagingInterface: React.FC<MessagingInterfaceProps> = ({ initialM
                 </div>
              )}
             
-            {conversations.length === 0 && availableMatches.filter(m => !conversations.some(c => c.match_id === m.match_id)).length === 0 && (
+            {conversations.length === 0 && availableMatches.filter(m => {
+              // Check if conversation exists by match_id OR by comparing profile IDs
+              const hasConversation = conversations.some(c => {
+                if (c.match_id === m.match_id) return true;
+                // Also check if other_profile user_id matches this match's profile
+                if (c.other_profile && m.matched_profile) {
+                  return c.other_profile.user_id === m.matched_profile.user_id;
+                }
+                return false;
+              });
+              return !hasConversation;
+            }).length === 0 && (
                  <div className="p-8 text-center text-muted-foreground mt-10">
                     <MessageSquare className="h-10 w-10 mx-auto mb-2 opacity-50" />
                     <p>No conversations yet</p>
@@ -436,7 +469,7 @@ export const MessagingInterface: React.FC<MessagingInterfaceProps> = ({ initialM
                       className="md:hidden -ml-2"
                       onClick={() => setSelectedConversation(null)}
                     >
-                        <Search className="h-5 w-5 rotate-90" /> {/* Back Icon placeholder */}
+                        <Search className="h-5 w-5 rotate-90" />
                     </Button>
                     
                     <Avatar className="h-10 w-10">
@@ -448,89 +481,73 @@ export const MessagingInterface: React.FC<MessagingInterfaceProps> = ({ initialM
                         <h3 className="font-semibold text-slate-900">
                             {selectedConversation.other_profile?.name || selectedConversation.other_profile?.current_role || "User"}
                         </h3>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                                <span className="h-2 w-2 rounded-full bg-green-500"></span>
-                                Online
-                            </span>
-                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            {selectedConversation.other_profile?.current_role}
+                        </p>
                     </div>
-                </div>
-                
-                <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" disabled>
-                        <Phone className="h-4 w-4 text-slate-500" />
-                    </Button>
-                    <Button variant="ghost" size="icon" disabled>
-                        <Video className="h-4 w-4 text-slate-500" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-4 w-4 text-slate-500" />
-                    </Button>
                 </div>
             </div>
 
             {/* Messages */}
-            <div 
-              className="flex-1 p-4 overflow-y-auto bg-slate-50/50"
-              ref={scrollRef}
-            >
+            <ScrollArea className="flex-1 p-4" ref={scrollRef}>
                 <div className="space-y-4">
-                    {messages.map((msg, idx) => {
-                        const isMe = msg.sender_profile_id !== selectedConversation.other_profile?.profile_id;
-                        // const showAvatar = !isMe && (idx === 0 || messages[idx - 1].sender_profile_id !== msg.sender_profile_id); // Simple logic
-                        
-                        return (
-                            <div 
-                                key={msg.message_id} 
-                                className={cn(
-                                    "flex w-full",
-                                    isMe ? "justify-end" : "justify-start"
-                                )}
-                            >
-                                <div className={cn(
-                                    "max-w-[75%] rounded-2xl px-4 py-2.5 text-sm shadow-sm",
-                                    isMe 
-                                      ? "bg-blue-600 text-white rounded-tr-sm" 
-                                      : "bg-white text-slate-800 border rounded-tl-sm"
-                                )}>
-                                    <p className="leading-relaxed">{msg.message_text}</p>
-                                    <p className={cn(
-                                        "text-[10px] mt-1 text-right opacity-70",
-                                        isMe ? "text-blue-100" : "text-slate-400"
-                                    )}>
-                                        {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
-                                    </p>
+                    {messages.length === 0 ? (
+                        <div className="text-center py-12 text-muted-foreground">
+                            <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                            <p>No messages yet</p>
+                            <p className="text-xs mt-1">Start the conversation!</p>
+                        </div>
+                    ) : (
+                        messages.map((msg) => {
+                            const isOwn = msg.sender_profile_id === selectedConversation.other_profile?.id;
+                            
+                            return (
+                                <div key={msg.message_id} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
+                                    <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+                                        isOwn 
+                                            ? "bg-blue-600 text-white" 
+                                            : "bg-slate-100 text-slate-900"
+                                    }`}>
+                                        <p className="text-sm whitespace-pre-wrap break-words">{msg.message_text}</p>
+                                        <span className={`text-[10px] mt-1 block ${
+                                            isOwn ? "text-blue-100" : "text-muted-foreground"
+                                        }`}>
+                                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })
+                    )}
                 </div>
-            </div>
+            </ScrollArea>
 
-            {/* Input */}
-            <div className="p-4 bg-white border-t">
+            {/* Message Input */}
+            <div className="p-4 border-t bg-slate-50">
                 <form onSubmit={handleSendMessage} className="flex gap-2">
                     <Input
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Type a message..."
-                        className="flex-1"
-                        autoFocus
+                        className="flex-1 bg-white"
+                        disabled={messageSending}
                     />
                     <Button 
                         type="submit" 
-                        size="icon" 
+                        size="icon"
                         disabled={!newMessage.trim() || messageSending}
                         className="bg-blue-600 hover:bg-blue-700"
                     >
-                        <Send className="h-4 w-4" />
+                        {messageSending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Send className="h-4 w-4" />
+                        )}
                     </Button>
                 </form>
             </div>
         </div>
       ) : (
-        /* Empty State */
         <div className="hidden md:flex flex-1 items-center justify-center bg-slate-50/50">
             <div className="text-center p-8">
                 <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
