@@ -448,8 +448,8 @@ const FounderDashboard = () => {
                           aria-label={`View photo ${idx + 1} of ${matchedProfile.photo_urls!.length}`}
                           aria-current={idx === currentPhotoIndex ? "true" : undefined}
                           className={`h-2 rounded-full transition-all ${idx === currentPhotoIndex
-                              ? "bg-white w-6"
-                              : "bg-white/50 w-2"
+                            ? "bg-white w-6"
+                            : "bg-white/50 w-2"
                             }`}
                         />
                       ))}

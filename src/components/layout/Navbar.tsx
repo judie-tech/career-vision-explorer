@@ -108,8 +108,8 @@ const Navbar = () => {
                   key={item.name}
                   to={item.href}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive(item.href)
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     }`}
                 >
                   {item.name}
