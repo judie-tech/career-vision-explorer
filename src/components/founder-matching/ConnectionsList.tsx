@@ -91,56 +91,56 @@ export const ConnectionsList: React.FC = () => {
         return (
           <Card key={connection.match_id} className="overflow-hidden">
             <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-4">
-                {/* Left: Profile info */}
-                <div className="flex items-start gap-4 flex-1">
-                  <Avatar className="h-14 w-14 border-2 border-green-100">
+              <div className="flex flex-col gap-3">
+                {/* Top: Profile info */}
+                <div className="flex items-start gap-3">
+                  <Avatar className="h-12 w-12 flex-shrink-0 border-2 border-green-100">
                     <AvatarImage src={profile.photo_urls?.[0] || ""} />
                     <AvatarFallback className="bg-green-50 text-green-700 font-semibold">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
 
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-lg">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                      <h3 className="font-semibold text-base leading-tight">
                         {displayName}
                       </h3>
-                      <Badge className="bg-green-100 text-green-800">
-                        <CheckCircle className="h-3 w-3 mr-1" />
+                      <Badge className="bg-green-100 text-green-800 text-[10px] px-1.5 py-0.5">
+                        <CheckCircle className="h-2.5 w-2.5 mr-1" />
                         Connected
                       </Badge>
                     </div>
 
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
                       {profile.current_role && (
-                        <span>{profile.current_role}</span>
+                        <span className="truncate">{profile.current_role}</span>
                       )}
                       {profile.years_experience !== undefined && profile.years_experience > 0 && (
                         <div className="flex items-center gap-1">
-                          <Briefcase className="h-3 w-3" />
+                          <Briefcase className="h-3 w-3 flex-shrink-0" />
                           <span>{profile.years_experience} yrs</span>
                         </div>
                       )}
                       {profile.location_preference && (
                         <div className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
+                          <MapPin className="h-3 w-3 flex-shrink-0" />
                           <span>{profile.location_preference}</span>
                         </div>
                       )}
                     </div>
 
                     {profile.bio && (
-                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                         {profile.bio}
                       </p>
                     )}
                   </div>
                 </div>
 
-                {/* Right: Action buttons */}
-                <div className="flex flex-col gap-2">
-                  <Button size="sm" onClick={() => navigate(`/founder/dashboard?tab=messages&match_id=${connection.match_id}`)}>
+                {/* Bottom: Action buttons */}
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" className="flex-1" onClick={() => navigate(`/founder/dashboard?tab=messages&match_id=${connection.match_id}`)}>
                     <MessageCircle className="h-4 w-4 mr-2" />
                     Message
                   </Button>
@@ -148,6 +148,7 @@ export const ConnectionsList: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
+                    className="flex-1"
                     onClick={() => navigate(`/founder/profile/${profile.profile_id}`)}
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
@@ -155,7 +156,7 @@ export const ConnectionsList: React.FC = () => {
                   </Button>
 
                   {profile.linkedin_url && (
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="flex-1">
                       <Linkedin className="h-4 w-4 mr-2" />
                       LinkedIn
                     </Button>

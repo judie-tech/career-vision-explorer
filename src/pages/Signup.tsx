@@ -4,20 +4,20 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Layout from "@/components/layout/Layout";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card";
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
 } from "@/components/ui/form";
 import {
   Select,
@@ -108,7 +108,7 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const location = useLocation()
-  
+
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -139,11 +139,11 @@ const Signup = () => {
     setProfileImage(imageUrl);
     form.setValue('profileImage', imageUrl);
   };
-  
+
   const onSubmit = async (values: z.infer<typeof signupSchema>) => {
     console.log('🚀 Form submitted with values:', values);
     setIsLoading(true);
-    
+
     try {
       // Use default profile image if none provided
       const finalProfileImage = values.profileImage || 'https://via.placeholder.com/150/4F46E5/FFFFFF?text=' + values.name.charAt(0);
@@ -195,13 +195,13 @@ const Signup = () => {
       console.log('✅ User registered successfully');
 
       // Store new user data for onboarding
-      setNewUserData({...values, profileImage: finalProfileImage});
-      
+      setNewUserData({ ...values, profileImage: finalProfileImage });
+
       // Show success message
       toast.success("Account Created Successfully!", {
         description: "Welcome to Visiondrill! Let's set up your profile.",
       });
-      
+
       console.log('✅ Registration includes auto-login');
       toast.success("Welcome to Visiondrill!", {
         description: "Let's set up your profile to find the perfect opportunities.",
@@ -235,7 +235,7 @@ const Signup = () => {
 
   const handleLinkedInConnect = async () => {
     setIsLoading(true);
-    
+
     try {
       // Generate unique email to avoid conflicts
       const timestamp = Date.now();
@@ -246,14 +246,14 @@ const Signup = () => {
         profileImage: 'https://via.placeholder.com/150',
         role: selectedRole
       };
-      
+
       // Pre-fill form with LinkedIn data
       form.setValue('name', linkedInData.name);
       form.setValue('email', linkedInData.email);
       form.setValue('password', linkedInData.password);
       form.setValue('profileImage', linkedInData.profileImage);
       setProfileImage(linkedInData.profileImage);
-      
+
       // Pre-fill role-specific fields based on LinkedIn data
       if (selectedRole === 'freelancer') {
         // Simulate extracting professional info from LinkedIn
@@ -266,10 +266,10 @@ const Signup = () => {
         form.setValue('companyWebsite', 'https://techsolutions.com');
         form.setValue('industry', 'Technology');
       }
-      
+
       setLinkedInImportOpen(false);
       setLinkedInDataImported(true);
-      
+
       // Show appropriate message based on role
       let description = "LinkedIn data imported successfully!";
       if (selectedRole === "jobseeker") {
@@ -279,9 +279,9 @@ const Signup = () => {
       } else if (selectedRole === "employer") {
         description += " Please verify your company information.";
       }
-      
+
       toast.success("LinkedIn Data Imported", { description });
-      
+
     } catch (error) {
       console.error('LinkedIn signup error:', error);
       toast.error("LinkedIn Import Failed", {
@@ -294,7 +294,7 @@ const Signup = () => {
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
-    
+
     // Redirect based on user role
     if (newUserData?.role === 'employer') {
       navigate('/employer/dashboard');
@@ -303,12 +303,12 @@ const Signup = () => {
     } else {
       navigate('/jobseeker/dashboard');
     }
-    
+
     toast.success("Welcome to Visiondrill!", {
       description: "Your profile has been set up successfully.",
     });
   };
-  
+
   return (
     <Layout>
       <div className="max-w-md mx-auto px-4 py-12">
@@ -316,7 +316,7 @@ const Signup = () => {
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
             <CardDescription className="text-center">
-              {linkedInDataImported 
+              {linkedInDataImported
                 ? selectedRole === "jobseeker"
                   ? "Add your phone number to complete registration"
                   : "Complete your profile to finish registration"
@@ -339,8 +339,8 @@ const Signup = () => {
                     <FormItem>
                       <FormLabel>Full Name</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="John Doe" 
+                        <Input
+                          placeholder="John Doe"
                           {...field}
                           className="transition-all focus:ring-2 focus:ring-career-blue"
                           disabled={linkedInDataImported}
@@ -350,7 +350,7 @@ const Signup = () => {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="email"
@@ -358,8 +358,8 @@ const Signup = () => {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="john@example.com" 
+                        <Input
+                          placeholder="john@example.com"
                           {...field}
                           className="transition-all focus:ring-2 focus:ring-career-blue"
                           disabled={linkedInDataImported}
@@ -410,8 +410,8 @@ const Signup = () => {
                         <FormItem>
                           <FormLabel>Professional Title (Optional)</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="e.g., Full Stack Developer" 
+                            <Input
+                              placeholder="e.g., Full Stack Developer"
                               {...field}
                               className="transition-all focus:ring-2 focus:ring-career-blue"
                             />
@@ -420,7 +420,7 @@ const Signup = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="hourlyRate"
@@ -428,8 +428,8 @@ const Signup = () => {
                         <FormItem>
                           <FormLabel>Hourly Rate (Optional)</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="e.g., $50" 
+                            <Input
+                              placeholder="e.g., $50"
                               {...field}
                               className="transition-all focus:ring-2 focus:ring-career-blue"
                             />
@@ -438,7 +438,7 @@ const Signup = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="portfolioUrl"
@@ -446,8 +446,8 @@ const Signup = () => {
                         <FormItem>
                           <FormLabel>Portfolio URL (Optional)</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="https://yourportfolio.com" 
+                            <Input
+                              placeholder="https://yourportfolio.com"
                               {...field}
                               className="transition-all focus:ring-2 focus:ring-career-blue"
                             />
@@ -468,8 +468,8 @@ const Signup = () => {
                         <FormItem>
                           <FormLabel>Company Name <span className="text-red-500">*</span></FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Your Company Name" 
+                            <Input
+                              placeholder="Your Company Name"
                               {...field}
                               className="transition-all focus:ring-2 focus:ring-career-blue"
                             />
@@ -478,7 +478,7 @@ const Signup = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="companyWebsite"
@@ -486,8 +486,8 @@ const Signup = () => {
                         <FormItem>
                           <FormLabel>Company Website (Optional)</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="https://yourcompany.com" 
+                            <Input
+                              placeholder="https://yourcompany.com"
                               {...field}
                               className="transition-all focus:ring-2 focus:ring-career-blue"
                             />
@@ -496,7 +496,7 @@ const Signup = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="industry"
@@ -504,8 +504,8 @@ const Signup = () => {
                         <FormItem>
                           <FormLabel>Industry (Optional)</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="e.g., Technology, Healthcare" 
+                            <Input
+                              placeholder="e.g., Technology, Healthcare"
                               {...field}
                               className="transition-all focus:ring-2 focus:ring-career-blue"
                             />
@@ -516,7 +516,7 @@ const Signup = () => {
                     />
                   </>
                 )}
-                
+
                 <FormField
                   control={form.control}
                   name="password"
@@ -525,9 +525,9 @@ const Signup = () => {
                       <FormLabel>Password</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input 
-                            type={showPassword ? "text" : "password"} 
-                            placeholder="••••••••" 
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="••••••••"
                             {...field}
                             className="transition-all focus:ring-2 focus:ring-career-blue pr-10"
                             disabled={linkedInDataImported}
@@ -535,10 +535,12 @@ const Signup = () => {
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                            aria-pressed={showPassword}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                             disabled={linkedInDataImported}
                           >
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
                           </button>
                         </div>
                       </FormControl>
@@ -555,9 +557,9 @@ const Signup = () => {
                       <FormLabel>Confirm Password</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input 
-                            type={showConfirmPassword ? "text" : "password"} 
-                            placeholder="••••••••" 
+                          <Input
+                            type={showConfirmPassword ? "text" : "password"}
+                            placeholder="••••••••"
                             {...field}
                             className="transition-all focus:ring-2 focus:ring-career-blue pr-10"
                             disabled={linkedInDataImported}
@@ -565,10 +567,12 @@ const Signup = () => {
                           <button
                             type="button"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                            aria-pressed={showConfirmPassword}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                             disabled={linkedInDataImported}
                           >
-                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            {showConfirmPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
                           </button>
                         </div>
                       </FormControl>
@@ -579,7 +583,7 @@ const Signup = () => {
                     </FormItem>
                   )}
                 />
-                
+
                 <Button
                   type="submit"
                   className="w-full bg-career-blue hover:bg-career-blue/90 transition-colors"
@@ -587,13 +591,13 @@ const Signup = () => {
                 >
                   {isLoading ? "Creating Account..." : "Create Account"}
                 </Button>
-                
+
                 {!linkedInDataImported && (
                   <div className="text-center">
                     <p className="text-sm text-gray-500">Or sign up with</p>
                     <div className="mt-2">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         onClick={handleLinkedInSignup}
                         className="w-full flex items-center justify-center gap-2 transition-colors hover:bg-gray-50"
                         disabled={isLoading}
@@ -604,7 +608,7 @@ const Signup = () => {
                     </div>
                   </div>
                 )}
-                
+
                 <div className="text-center mt-4">
                   <p className="text-sm text-gray-500">
                     Already have an account?{" "}
@@ -617,15 +621,15 @@ const Signup = () => {
             </Form>
           </CardContent>
         </Card>
-       
+
         {showOnboarding && newUserData && (
-          <OnboardingWizard 
-            onComplete={handleOnboardingComplete} 
+          <OnboardingWizard
+            onComplete={handleOnboardingComplete}
             userRole={newUserData.role}
             signupData={newUserData}
           />
         )}
-        
+
         <LinkedInImportDialog
           open={linkedInImportOpen}
           onOpenChange={setLinkedInImportOpen}

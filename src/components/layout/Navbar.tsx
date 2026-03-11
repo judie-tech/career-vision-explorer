@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Menu,
@@ -21,20 +21,28 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const toggleMenu = () => {
+    const next = !isMenuOpen;
+    setIsMenuOpen(next);
+    if (!next) {
+      setTimeout(() => menuButtonRef.current?.focus(), 100);
+    }
+  };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setIsMenuOpen(false);
     navigate("/");
   };
@@ -99,11 +107,10 @@ const Navbar = () => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive(item.href)
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive(item.href)
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  }`}
+                    }`}
                 >
                   {item.name}
                 </Link>
@@ -167,10 +174,14 @@ const Navbar = () => {
           {/* Mobile Toggle */}
           <div className="flex md:hidden items-center">
             <button
+              ref={menuButtonRef}
               onClick={toggleMenu}
-              className="p-2 rounded-md hover:bg-accent transition"
+              aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-nav-menu"
+              className="p-2 rounded-md hover:bg-accent transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isMenuOpen ? <X size={24} aria-hidden="true" /> : <Menu size={24} aria-hidden="true" />}
             </button>
           </div>
         </div>
@@ -180,10 +191,13 @@ const Navbar = () => {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            id="mobile-nav-menu"
+            role="navigation"
+            aria-label="Mobile navigation"
+            initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -10 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
             className="md:hidden bg-background border-t border-border/40 px-4 py-4 space-y-3"
           >
             {isAuthenticated ? (

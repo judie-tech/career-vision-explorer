@@ -421,41 +421,13 @@ const FounderDashboard = () => {
 
     return (
       <div className="space-y-6">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-3 gap-4">
-          <Card className="text-center">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-blue-600">
-                {stats.total_views || 0}
-              </div>
-              <div className="text-sm text-slate-500">Profile Views</div>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-indigo-600">
-                {stats.total_matches || 0}
-              </div>
-              <div className="text-sm text-slate-500">Connections</div>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-purple-600">
-                {stats.pending_matches || 0}
-              </div>
-              <div className="text-sm text-slate-500">Interested in You</div>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Main Profile Card */}
         <Card className="overflow-hidden border border-slate-200 shadow-lg hover:shadow-xl transition-shadow">
           <div className="relative h-80 bg-gradient-to-br from-blue-50 to-indigo-50">
             {/* Profile photo carousel or placeholder */}
             <div className="absolute inset-0">
               {matchedProfile.photo_urls &&
-              matchedProfile.photo_urls.length > 0 ? (
+                matchedProfile.photo_urls.length > 0 ? (
                 <div className="relative w-full h-full">
                   <img
                     src={matchedProfile.photo_urls[currentPhotoIndex]}
@@ -473,11 +445,12 @@ const FounderDashboard = () => {
                             e.stopPropagation();
                             setCurrentPhotoIndex(idx);
                           }}
-                          className={`h-2 rounded-full transition-all ${
-                            idx === currentPhotoIndex
+                          aria-label={`View photo ${idx + 1} of ${matchedProfile.photo_urls!.length}`}
+                          aria-current={idx === currentPhotoIndex ? "true" : undefined}
+                          className={`h-2 rounded-full transition-all ${idx === currentPhotoIndex
                               ? "bg-white w-6"
                               : "bg-white/50 w-2"
-                          }`}
+                            }`}
                         />
                       ))}
                     </div>
@@ -495,9 +468,10 @@ const FounderDashboard = () => {
                               : matchedProfile.photo_urls!.length - 1,
                           );
                         }}
+                        aria-label="Previous photo"
                         className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 rounded-full p-2 transition-colors z-10"
                       >
-                        <ChevronLeft className="h-6 w-6 text-white" />
+                        <ChevronLeft className="h-6 w-6 text-white" aria-hidden="true" />
                       </button>
                       <button
                         onClick={(e) => {
@@ -507,9 +481,10 @@ const FounderDashboard = () => {
                               (prev + 1) % matchedProfile.photo_urls!.length,
                           );
                         }}
+                        aria-label="Next photo"
                         className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 rounded-full p-2 transition-colors z-10"
                       >
-                        <ChevronRight className="h-6 w-6 text-white" />
+                        <ChevronRight className="h-6 w-6 text-white" aria-hidden="true" />
                       </button>
                     </>
                   )}
@@ -533,7 +508,11 @@ const FounderDashboard = () => {
 
             {/* Match Score Badge - Clickable */}
             <Badge
-              className="absolute top-4 right-4 px-4 py-2 font-semibold shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-base cursor-pointer hover:scale-105 transition-transform z-10"
+              role="button"
+              tabIndex={0}
+              aria-label={`Match score: ${Math.round(currentMatch.overall_score * 100)}%. Click to see score breakdown.`}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowScoreModal(true); } }}
+              className="absolute top-4 right-4 px-4 py-2 font-semibold shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-base cursor-pointer hover:scale-105 transition-transform z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
               onClick={() => setShowScoreModal(true)}
             >
               {Math.round(currentMatch.overall_score * 100)}% Match
@@ -689,27 +668,29 @@ const FounderDashboard = () => {
           <Button
             size="lg"
             variant="outline"
+            aria-label="Pass on this co-founder"
             className="h-16 w-16 rounded-full border-2 border-slate-300 hover:bg-slate-50 shadow-lg"
             onClick={handleSwipeLeft}
             disabled={swiping}
           >
             {swiping ? (
-              <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+              <Loader2 className="h-8 w-8 animate-spin text-slate-400" aria-hidden="true" />
             ) : (
-              <X className="h-8 w-8 text-slate-500" />
+              <X className="h-8 w-8 text-slate-500" aria-hidden="true" />
             )}
           </Button>
 
           <Button
             size="lg"
+            aria-label="Connect with this co-founder"
             className="h-16 w-16 rounded-full shadow-lg bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
             onClick={handleSwipeRight}
             disabled={swiping}
           >
             {swiping ? (
-              <Loader2 className="h-8 w-8 animate-spin" />
+              <Loader2 className="h-8 w-8 animate-spin" aria-hidden="true" />
             ) : (
-              <Check className="h-8 w-8" />
+              <Check className="h-8 w-8" aria-hidden="true" />
             )}
           </Button>
         </div>
@@ -807,17 +788,46 @@ const FounderDashboard = () => {
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label={pendingCount > 0 ? `Interests — ${pendingCount} pending` : "View interests"}
                 className="relative"
                 onClick={() => setActiveTab("interests")}
               >
-                <Bell className="h-5 w-5 md:h-6 md:w-6 text-slate-700" />
+                <Bell className="h-5 w-5 md:h-6 md:w-6 text-slate-700" aria-hidden="true" />
                 {pendingCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 md:h-5 md:w-5 rounded-full bg-blue-600 text-white text-[10px] md:text-xs flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 h-4 w-4 md:h-5 md:w-5 rounded-full bg-blue-600 text-white text-[10px] md:text-xs flex items-center justify-center" aria-hidden="true">
                     {pendingCount}
                   </span>
                 )}
               </Button>
             </div>
+          </div>
+
+          {/* Stats Overview */}
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <Card className="text-center">
+              <CardContent className="p-3 sm:p-4">
+                <div className="text-xl sm:text-2xl font-bold text-blue-600">
+                  {stats.total_views || 0}
+                </div>
+                <div className="text-xs sm:text-sm text-slate-500">Profile Views</div>
+              </CardContent>
+            </Card>
+            <Card className="text-center">
+              <CardContent className="p-3 sm:p-4">
+                <div className="text-xl sm:text-2xl font-bold text-indigo-600">
+                  {stats.total_matches || 0}
+                </div>
+                <div className="text-xs sm:text-sm text-slate-500">Connections</div>
+              </CardContent>
+            </Card>
+            <Card className="text-center">
+              <CardContent className="p-3 sm:p-4">
+                <div className="text-xl sm:text-2xl font-bold text-purple-600">
+                  {stats.pending_matches || 0}
+                </div>
+                <div className="text-xs sm:text-sm text-slate-500">Interested</div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Main Content */}
@@ -827,38 +837,40 @@ const FounderDashboard = () => {
             className="w-full"
           >
             {/* Navigation */}
-            <div className="md:mb-6">
-              <TabsList className="w-full md:w-auto grid grid-cols-4 md:grid-cols-4 md:inline-flex">
+            <div className="mb-4">
+              <TabsList className="w-full grid grid-cols-4 h-auto">
                 <TabsTrigger
                   value="discover"
-                  className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-2 data-[state=active]:text-blue-600"
+                  className="flex flex-col items-center gap-1 py-2.5 data-[state=active]:text-blue-600"
                 >
-                  <Sparkles className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="text-xs md:text-sm">Discover</span>
+                  <Sparkles className="h-4 w-4" />
+                  <span className="text-[11px] leading-tight">Discover</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="interests"
-                  className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-2 relative data-[state=active]:text-blue-600"
+                  className="flex flex-col items-center gap-1 py-2.5 relative data-[state=active]:text-blue-600"
                 >
-                  <Heart className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="text-xs md:text-sm">Interests</span>
-                  {pendingCount > 0 && (
-                    <span className="absolute top-2 md:top-1 right-8 md:right-1 h-2 w-2 rounded-full bg-pink-600" />
-                  )}
+                  <div className="relative">
+                    <Heart className="h-4 w-4" />
+                    {pendingCount > 0 && (
+                      <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-pink-600" />
+                    )}
+                  </div>
+                  <span className="text-[11px] leading-tight">Interests</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="matches"
-                  className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-2 data-[state=active]:text-blue-600"
+                  className="flex flex-col items-center gap-1 py-2.5 data-[state=active]:text-blue-600"
                 >
-                  <Users className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="text-xs md:text-sm">Matches</span>
+                  <Users className="h-4 w-4" />
+                  <span className="text-[11px] leading-tight">Matches</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="messages"
-                  className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-2 data-[state=active]:text-blue-600"
+                  className="flex flex-col items-center gap-1 py-2.5 data-[state=active]:text-blue-600"
                 >
-                  <MessageCircle className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="text-xs md:text-sm">Messages</span>
+                  <MessageCircle className="h-4 w-4" />
+                  <span className="text-[11px] leading-tight">Messages</span>
                 </TabsTrigger>
               </TabsList>
             </div>
