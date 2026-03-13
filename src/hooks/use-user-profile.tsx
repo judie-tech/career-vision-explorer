@@ -6,6 +6,7 @@ import {
   useCallback,
   useRef,
 } from "react";
+import { apiClient } from "@/lib/api-client";
 import { profileService } from "@/services";
 import { Profile } from "@/types/api";
 
@@ -27,6 +28,15 @@ export const useUserProfile = () => {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchProfile = useCallback(async (force = false) => {
+    const token = apiClient.getToken();
+    if (!token) {
+      setProfile(null);
+      setError(null);
+      setIsLoading(false);
+      profileCache.loading = false;
+      return;
+    }
+
     // Cancel any ongoing request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();

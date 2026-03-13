@@ -9,6 +9,7 @@ import {
   ChevronDown,
   Home,
   Briefcase,
+  LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -69,8 +70,9 @@ const Navbar = () => {
 
   const jobSeekerIcons = [
     { name: "Home", icon: Home, path: "/" },
+    { name: "Dashboard", icon: LayoutDashboard, path: "/jobseeker/dashboard" },
     { name: "Jobs", icon: Briefcase, path: "/jobs" },
-    { name: "Profile", icon: User, path: "/jobseeker/dashboard" },
+    { name: "Profile", icon: User, path: "/profile" },
   ];
 
   const employerNavItems = [
@@ -123,14 +125,12 @@ const Navbar = () => {
               <>
                 <NotificationDropdown />
 
-                {!isJobSeekerUser && (
-                  <Link
-                    to={getDashboardUrl()}
-                    className="px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent"
-                  >
-                    Dashboard
-                  </Link>
-                )}
+                <Link
+                  to={getDashboardUrl()}
+                  className="px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent"
+                >
+                  Dashboard
+                </Link>
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

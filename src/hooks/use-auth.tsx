@@ -274,6 +274,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const signInWithLinkedIn = async () => {
     try {
       setIsLoading(true);
+      localStorage.setItem("oauth_account_type", "job_seeker");
       await authService.signInWithLinkedIn();
     } catch (error: any) {
       console.error("LinkedIn sign-in error:", error);

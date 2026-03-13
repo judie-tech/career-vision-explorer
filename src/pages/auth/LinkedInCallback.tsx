@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
@@ -9,9 +9,13 @@ const LinkedInCallback: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { handleOAuthCallback } = useAuth();
+  const callbackHandledRef = useRef(false);
 
   useEffect(() => {
     const handleCallback = async () => {
+      if (callbackHandledRef.current) return;
+      callbackHandledRef.current = true;
+
       try {
         console.log("🔍 LinkedInCallback: Starting callback handling");
 

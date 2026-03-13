@@ -6,6 +6,9 @@ import {
   UserRegister,
   TokenResponse,
   RefreshTokenRequest,
+  PasswordChangeRequest,
+  PasswordResetRequest,
+  PasswordResetConfirm,
 } from "../types/auth";
 import { trackDbOperation } from "../utils/performance";
 
@@ -139,6 +142,30 @@ class AuthService {
     return this.hasRole("freelancer");
   }
 
+  async changePassword(data: PasswordChangeRequest): Promise<{ message: string }> {
+    return apiClient.post<{ message: string }>("/auth/change-password", data);
+  }
+
+  async resetPassword(data: PasswordResetRequest): Promise<{ message: string }> {
+    return apiClient.post<{ message: string }>("/auth/reset-password", data);
+  }
+
+  async confirmPasswordReset(data: PasswordResetConfirm): Promise<{ message: string }> {
+    return apiClient.post<{ message: string }>("/auth/reset-password/confirm", data);
+  }
+
+  async registerAdmin(userData: UserRegister): Promise<TokenResponse> {
+    const response = await apiClient.post<TokenResponse>("/auth/register/admin", userData);
+    this.setSession(response);
+    return response;
+  }
+
+  async registerFirstAdmin(userData: UserRegister): Promise<TokenResponse> {
+    const response = await apiClient.post<TokenResponse>("/auth/register/first-admin", userData);
+    this.setSession(response);
+    return response;
+  }
+
   /** 🔹 LinkedIn OAuth via Supabase */
   async signInWithLinkedIn(): Promise<void> {
     if (!isSupabaseConfigured() || !supabase) {
@@ -183,18 +210,21 @@ class AuthService {
 
     const supabaseUser = session.user;
     const linkedinProfile = supabaseUser.user_metadata;
+    const accountType =
+      (localStorage.getItem("oauth_account_type") as
+        | "job_seeker"
+        | "employer"
+        | "freelancer"
+        | null) || "job_seeker";
 
     const response = await apiClient.post<TokenResponse>(
-      "/auth/oauth/linkedin",
+      "/auth/linkedin/verify",
       {
+        supabase_access_token: session.access_token,
         supabase_user_id: supabaseUser.id,
         email: supabaseUser.email,
-        name:
-          linkedinProfile?.full_name ||
-          linkedinProfile?.name ||
-          "LinkedIn User",
-        profile_image: linkedinProfile?.avatar_url || linkedinProfile?.picture,
-        linkedin_data: linkedinProfile,
+        account_type: accountType,
+        user_metadata: linkedinProfile,
       }
     );
 
@@ -203,6 +233,7 @@ class AuthService {
     }
 
     await supabase.auth.signOut();
+    localStorage.removeItem("oauth_account_type");
     return response;
   }
 
