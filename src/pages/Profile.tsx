@@ -60,6 +60,76 @@ import { useNavigate } from "react-router-dom";
 import whatsapp from "/src/assets/whatsapp.png";
 import stackoverflow from "/src/assets/stackoverflow.png";
 
+const WORK_MODE_OPTIONS = ["Remote", "Onsite", "Hybrid"] as const;
+const EMPLOYMENT_TYPE_OPTIONS = [
+  "Full-time",
+  "Part-time",
+  "Contract",
+  "Internship",
+  "Freelance",
+] as const;
+
+const normalizeJobPreferences = (preferences?: unknown) => {
+  if (!preferences || typeof preferences !== "object" || Array.isArray(preferences)) {
+    return {} as Record<string, unknown>;
+  }
+
+  const source = preferences as Record<string, unknown>;
+  const normalized: Record<string, unknown> = {};
+
+  const rawWorkMode = source.work_mode;
+  const mode = typeof rawWorkMode === "string" ? rawWorkMode.trim().toLowerCase() : "";
+  if (mode === "remote") {
+    normalized.work_mode = "Remote";
+  } else if (mode === "onsite" || mode === "on-site" || mode === "on site") {
+    normalized.work_mode = "Onsite";
+  } else if (mode === "hybrid") {
+    normalized.work_mode = "Hybrid";
+  } else if (source.remote_work === true) {
+    normalized.work_mode = "Remote";
+  }
+
+  const rawEmploymentTypes = source.employment_types;
+  if (Array.isArray(rawEmploymentTypes)) {
+    const validTypes = rawEmploymentTypes
+      .map((value) => (typeof value === "string" ? value.trim() : ""))
+      .filter((value): value is string =>
+        EMPLOYMENT_TYPE_OPTIONS.includes(value as (typeof EMPLOYMENT_TYPE_OPTIONS)[number])
+      );
+
+    if (validTypes.length > 0) {
+      normalized.employment_types = Array.from(new Set(validTypes));
+    }
+  }
+
+  return normalized;
+};
+
+const getWorkModeFromPreferences = (preferences?: unknown) => {
+  const normalized = normalizeJobPreferences(preferences);
+  return typeof normalized.work_mode === "string" ? normalized.work_mode : "";
+};
+
+const getEmploymentTypesFromPreferences = (preferences?: unknown) => {
+  const normalized = normalizeJobPreferences(preferences);
+  return Array.isArray(normalized.employment_types)
+    ? (normalized.employment_types as string[])
+    : [];
+};
+
+const upsertJobPreferences = (
+  currentPreferences: unknown,
+  updates: Record<string, unknown>
+) => {
+  const merged = {
+    ...normalizeJobPreferences(currentPreferences),
+    ...updates,
+  };
+
+  const normalized = normalizeJobPreferences(merged);
+  return Object.keys(normalized).length > 0 ? normalized : undefined;
+};
+
 const Profile: React.FC = () => {
   const { user, isAuthenticated, profile: authProfile } = useAuth();
   const navigate = useNavigate();
@@ -88,7 +158,7 @@ const Profile: React.FC = () => {
   const skillsInputRef = useRef<HTMLTextAreaElement>(null);
   const workExperienceInputRef = useRef<HTMLTextAreaElement>(null);
   const educationInputRef = useRef<HTMLInputElement>(null);
-  const preferencesInputRef = useRef<HTMLTextAreaElement>(null);
+  const preferencesInputRef = useRef<HTMLDivElement>(null);
   const salaryInputRef = useRef<HTMLInputElement>(null);
   const dobInputRef = useRef<HTMLInputElement>(null);
   const phoneInputRef = useRef<HTMLInputElement>(null);
@@ -101,16 +171,37 @@ const Profile: React.FC = () => {
   const stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
   const projectsInputRef = useRef<HTMLDivElement>(null);
 
+  const preferenceDisplayKeys = new Set([
+    "work_mode",
+    "employment_types",
+  ]);
+
+  const getDisplayablePreferences = (preferences?: Record<string, unknown>) => {
+    if (!preferences) {
+      return [] as [string, unknown][];
+    }
+
+    return Object.entries(preferences).filter(([key]) => {
+      const normalizedKey = key.trim().toLowerCase();
+      return preferenceDisplayKeys.has(normalizedKey);
+    });
+  };
+
   // Redirect employers to their dashboard
 
   useEffect(() => {
     if (isAuthenticated) {
       if (authProfile) {
-        setProfile(authProfile);
-        setEditForm(authProfile);
+        const sanitizedAuthProfile = {
+          ...authProfile,
+          preferences: normalizeJobPreferences(authProfile.preferences),
+        };
+
+        setProfile(sanitizedAuthProfile);
+        setEditForm(sanitizedAuthProfile);
         setLocalCompletionPercentage(
-          authProfile.profile_completion_percentage ||
-          calculateProfileCompletion(authProfile)
+          sanitizedAuthProfile.profile_completion_percentage ||
+          calculateProfileCompletion(sanitizedAuthProfile)
         );
       }
       loadProfile();
@@ -130,13 +221,18 @@ const Profile: React.FC = () => {
       setLoading(true);
       const profileData = await profileService.getProfile();
 
-      setProfile(profileData);
-      setEditForm(profileData);
+      const sanitizedProfileData = {
+        ...profileData,
+        preferences: normalizeJobPreferences(profileData.preferences),
+      };
+
+      setProfile(sanitizedProfileData);
+      setEditForm(sanitizedProfileData);
       setProfileImageRefreshKey(Date.now());
       // Use backend value if available, otherwise calculate locally
       setLocalCompletionPercentage(
-        profileData.profile_completion_percentage ||
-        calculateProfileCompletion(profileData)
+        sanitizedProfileData.profile_completion_percentage ||
+        calculateProfileCompletion(sanitizedProfileData)
       );
     } catch (error) {
       console.error("Error loading profile:", error);
@@ -148,7 +244,13 @@ const Profile: React.FC = () => {
 
   const handleSave = async (dataToSave?: Partial<ProfileUpdate>) => {
     const payload = dataToSave || editForm;
-    if (!payload || Object.keys(payload).length === 0) {
+    const normalizedPreferences = upsertJobPreferences(payload.preferences, {});
+    const payloadWithSanitizedPreferences = {
+      ...payload,
+      preferences: normalizedPreferences,
+    };
+
+    if (!payloadWithSanitizedPreferences || Object.keys(payloadWithSanitizedPreferences).length === 0) {
       toast.info("No changes to save.");
       setEditing(false);
       return;
@@ -163,7 +265,7 @@ const Profile: React.FC = () => {
 
       // Clean the payload - remove undefined values
       const cleanPayload: ProfileUpdate = Object.fromEntries(
-        Object.entries(payload).filter(
+        Object.entries(payloadWithSanitizedPreferences).filter(
           ([_, value]) => value !== undefined && value !== null
         )
       ) as ProfileUpdate;
@@ -218,12 +320,17 @@ const Profile: React.FC = () => {
         );
       }
 
-      setProfile(updatedProfile);
-      setEditForm(updatedProfile);
+      const sanitizedUpdatedProfile = {
+        ...updatedProfile,
+        preferences: normalizeJobPreferences(updatedProfile.preferences),
+      };
+
+      setProfile(sanitizedUpdatedProfile);
+      setEditForm(sanitizedUpdatedProfile);
       // Use backend value if available, otherwise calculate locally
       setLocalCompletionPercentage(
-        updatedProfile.profile_completion_percentage ||
-        calculateProfileCompletion(updatedProfile)
+        sanitizedUpdatedProfile.profile_completion_percentage ||
+        calculateProfileCompletion(sanitizedUpdatedProfile)
       );
       setEditing(false);
       toast.success("Profile updated successfully!");
@@ -443,7 +550,10 @@ const Profile: React.FC = () => {
     : null;
 
   const handleCancel = () => {
-    setEditForm(profile as ProfileType);
+    setEditForm({
+      ...(profile as ProfileType),
+      preferences: normalizeJobPreferences(profile?.preferences),
+    });
     // Use backend value if available, otherwise calculate locally
     setLocalCompletionPercentage(
       profile?.profile_completion_percentage ||
@@ -2860,31 +2970,74 @@ const Profile: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   {editing ? (
-                    <Textarea
-                      ref={preferencesInputRef}
-                      value={JSON.stringify(
-                        editForm.preferences || {},
-                        null,
-                        2
-                      )}
-                      onChange={(e) => {
-                        try {
-                          const preferences = JSON.parse(e.target.value);
-                          setEditForm({ ...editForm, preferences });
-                        } catch { }
-                      }}
-                      placeholder={`{
-  "remote_work": true,
-  "travel_willingness": "low",
-  "company_size": "startup",
-  "industry_preferences": ["tech", "finance"]
-}`}
-                      rows={6}
-                    />
+                    <div className="space-y-4" ref={preferencesInputRef} tabIndex={-1}>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Work Mode</label>
+                        <Select
+                          value={getWorkModeFromPreferences(editForm.preferences)}
+                          onValueChange={(value) =>
+                            setEditForm({
+                              ...editForm,
+                              preferences: upsertJobPreferences(editForm.preferences, {
+                                work_mode: value,
+                              }),
+                            })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select work mode" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {WORK_MODE_OPTIONS.map((mode) => (
+                              <SelectItem key={mode} value={mode}>
+                                {mode}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Employment Type</label>
+                        <div className="flex flex-wrap gap-2">
+                          {EMPLOYMENT_TYPE_OPTIONS.map((employmentType) => {
+                            const selectedEmploymentTypes = getEmploymentTypesFromPreferences(
+                              editForm.preferences
+                            );
+                            const isSelected = selectedEmploymentTypes.includes(employmentType);
+
+                            return (
+                              <Button
+                                key={employmentType}
+                                type="button"
+                                variant={isSelected ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => {
+                                  const nextEmploymentTypes = isSelected
+                                    ? selectedEmploymentTypes.filter(
+                                      (value) => value !== employmentType
+                                    )
+                                    : [...selectedEmploymentTypes, employmentType];
+
+                                  setEditForm({
+                                    ...editForm,
+                                    preferences: upsertJobPreferences(editForm.preferences, {
+                                      employment_types: nextEmploymentTypes,
+                                    }),
+                                  });
+                                }}
+                              >
+                                {employmentType}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
                   ) : profile?.preferences &&
-                    Object.keys(profile.preferences).length > 0 ? (
+                    getDisplayablePreferences(profile.preferences).length > 0 ? (
                     <div className="space-y-2">
-                      {Object.entries(profile.preferences).map(([k, v]) => (
+                      {getDisplayablePreferences(profile.preferences).map(([k, v]) => (
                         <div key={k} className="flex justify-between text-sm">
                           <span className="text-muted-foreground capitalize">
                             {k.replace("_", " ")}
