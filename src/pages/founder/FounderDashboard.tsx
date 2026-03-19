@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   Check,
   MessageCircle,
-  Bell,
   Sparkles,
   Heart,
   X,
@@ -422,133 +421,139 @@ const FounderDashboard = () => {
     return (
       <div className="space-y-6">
         {/* Main Profile Card */}
-        <Card className="overflow-hidden border border-slate-200 shadow-lg hover:shadow-xl transition-shadow">
-          <div className="relative h-80 bg-gradient-to-br from-blue-50 to-indigo-50">
-            {/* Profile photo carousel or placeholder */}
-            <div className="absolute inset-0">
-              {matchedProfile.photo_urls &&
-                matchedProfile.photo_urls.length > 0 ? (
-                <div className="relative w-full h-full">
-                  <img
-                    src={matchedProfile.photo_urls[currentPhotoIndex]}
-                    alt={`${matchedProfile.name} - Photo ${currentPhotoIndex + 1}`}
-                    className="w-full h-full object-cover"
-                  />
+        <Card className="overflow-hidden mx-auto max-w-[850px] border border-slate-200 shadow-lg hover:shadow-xl transition-shadow flex flex-col h-auto min-h-[500px]">
+          <div className="flex flex-col sm:flex-row border-b border-slate-100 bg-white">
+            <div className="relative w-full sm:w-[45%] h-80 sm:h-[450px] shrink-0 bg-gradient-to-br from-blue-50 to-indigo-50">
+              {/* Profile photo carousel or placeholder */}
+              <div className="absolute inset-0">
+                {matchedProfile.photo_urls &&
+                  matchedProfile.photo_urls.length > 0 ? (
+                  <div className="relative w-full h-full">
+                    <img
+                      src={matchedProfile.photo_urls[currentPhotoIndex]}
+                      alt={`${matchedProfile.name} - Photo ${currentPhotoIndex + 1}`}
+                      className="w-full h-full object-cover"
+                    />
 
-                  {/* Photo navigation dots */}
-                  {matchedProfile.photo_urls.length > 1 && (
-                    <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
-                      {matchedProfile.photo_urls.map((_, idx) => (
+                    {/* Photo navigation dots */}
+                    {matchedProfile.photo_urls.length > 1 && (
+                      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+                        {matchedProfile.photo_urls.map((_, idx) => (
+                          <button
+                            key={idx}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCurrentPhotoIndex(idx);
+                            }}
+                            aria-label={`View photo ${idx + 1} of ${matchedProfile.photo_urls!.length}`}
+                            aria-current={idx === currentPhotoIndex ? "true" : undefined}
+                            className={`h-2 rounded-full transition-all ${idx === currentPhotoIndex
+                              ? "bg-white w-6"
+                              : "bg-white/50 w-2"
+                              }`}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Left/Right nav arrows */}
+                    {matchedProfile.photo_urls.length > 1 && (
+                      <>
                         <button
-                          key={idx}
                           onClick={(e) => {
                             e.stopPropagation();
-                            setCurrentPhotoIndex(idx);
+                            setCurrentPhotoIndex((prev) =>
+                              prev > 0
+                                ? prev - 1
+                                : matchedProfile.photo_urls!.length - 1,
+                            );
                           }}
-                          aria-label={`View photo ${idx + 1} of ${matchedProfile.photo_urls!.length}`}
-                          aria-current={idx === currentPhotoIndex ? "true" : undefined}
-                          className={`h-2 rounded-full transition-all ${idx === currentPhotoIndex
-                            ? "bg-white w-6"
-                            : "bg-white/50 w-2"
-                            }`}
-                        />
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Left/Right nav arrows */}
-                  {matchedProfile.photo_urls.length > 1 && (
-                    <>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCurrentPhotoIndex((prev) =>
-                            prev > 0
-                              ? prev - 1
-                              : matchedProfile.photo_urls!.length - 1,
-                          );
-                        }}
-                        aria-label="Previous photo"
-                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 rounded-full p-2 transition-colors z-10"
-                      >
-                        <ChevronLeft className="h-6 w-6 text-white" aria-hidden="true" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCurrentPhotoIndex(
-                            (prev) =>
-                              (prev + 1) % matchedProfile.photo_urls!.length,
-                          );
-                        }}
-                        aria-label="Next photo"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 rounded-full p-2 transition-colors z-10"
-                      >
-                        <ChevronRight className="h-6 w-6 text-white" aria-hidden="true" />
-                      </button>
-                    </>
-                  )}
-                </div>
-              ) : matchedProfile.profile_image_url ? (
-                <div className="w-full h-full flex items-center justify-center">
-                  <img
-                    src={matchedProfile.profile_image_url}
-                    alt={matchedProfile.name}
-                    className="h-40 w-40 rounded-full object-cover border-4 border-white shadow-lg"
-                  />
-                </div>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="h-40 w-40 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
-                    <Users className="h-20 w-20 text-blue-400" />
+                          aria-label="Previous photo"
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 rounded-full p-2 transition-colors z-10"
+                        >
+                          <ChevronLeft className="h-6 w-6 text-white" aria-hidden="true" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCurrentPhotoIndex(
+                              (prev) =>
+                                (prev + 1) % matchedProfile.photo_urls!.length,
+                            );
+                          }}
+                          aria-label="Next photo"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 rounded-full p-2 transition-colors z-10"
+                        >
+                          <ChevronRight className="h-6 w-6 text-white" aria-hidden="true" />
+                        </button>
+                      </>
+                    )}
                   </div>
-                </div>
-              )}
+                ) : matchedProfile.profile_image_url ? (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <img
+                      src={matchedProfile.profile_image_url}
+                      alt={matchedProfile.name}
+                      className="h-40 w-40 rounded-full object-cover border-4 border-white shadow-lg"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="h-40 w-40 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                      <Users className="h-20 w-20 text-blue-400" />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Match Score Badge - Clickable */}
+              <Badge
+                role="button"
+                tabIndex={0}
+                aria-label={`Match score: ${Math.round(currentMatch.overall_score * 100)}%. Click to see score breakdown.`}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowScoreModal(true); } }}
+                className="absolute top-4 right-4 px-4 py-2 font-semibold shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-base cursor-pointer hover:scale-105 transition-transform z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
+                onClick={() => setShowScoreModal(true)}
+              >
+                {Math.round(currentMatch.overall_score * 100)}% Match
+              </Badge>
+
+              {/* View Profile Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-4 left-4 bg-white/80 hover:bg-white"
+                onClick={() =>
+                  handleViewProfile(
+                    matchedProfile.profile_id || matchedProfile.id,
+                  )
+                }
+              >
+                View Full Profile
+              </Button>
             </div>
+            {/* End of Left Side (Photo) */}
 
-            {/* Match Score Badge - Clickable */}
-            <Badge
-              role="button"
-              tabIndex={0}
-              aria-label={`Match score: ${Math.round(currentMatch.overall_score * 100)}%. Click to see score breakdown.`}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowScoreModal(true); } }}
-              className="absolute top-4 right-4 px-4 py-2 font-semibold shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-base cursor-pointer hover:scale-105 transition-transform z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
-              onClick={() => setShowScoreModal(true)}
-            >
-              {Math.round(currentMatch.overall_score * 100)}% Match
-            </Badge>
-
-            {/* View Profile Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute top-4 left-4 bg-white/80 hover:bg-white"
-              onClick={() =>
-                handleViewProfile(
-                  matchedProfile.profile_id || matchedProfile.id,
-                )
-              }
-            >
-              View Full Profile
-            </Button>
-          </div>
-
-          <CardContent className="p-6">
-            {/* Name and Role */}
-            <div className="mb-6">
-              <h2 className="text-3xl font-bold text-slate-900">
-                {matchedProfile.name},{" "}
-                <span className="text-slate-600">
-                  {matchedProfile.years_experience} years
-                </span>
-              </h2>
-              <div className="flex items-center gap-2 mt-2">
-                <Briefcase className="h-6 w-6 text-blue-500" />
-                <span className="text-xl font-medium text-slate-700">
-                  {matchedProfile.current_role}
-                </span>
+            {/* Right Side: Name and Role */}
+            <div className="p-4 sm:p-6 flex-1 flex flex-col justify-center bg-zinc-50 border-l border-slate-100">
+              <div className="mb-0">
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">
+                  {matchedProfile.name},{" "}
+                  <span className="text-slate-600">
+                    {matchedProfile.years_experience} years
+                  </span>
+                </h2>
+                <div className="flex items-center gap-2 mt-3">
+                  <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
+                  <span className="text-lg sm:text-xl font-medium text-slate-700">
+                    {matchedProfile.current_role}
+                  </span>
+                </div>
               </div>
             </div>
+          </div> {/* End Flex Row Split */}
+
+          <CardContent className="p-6 flex-1">
 
             {/* Bio */}
             <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
@@ -729,7 +734,7 @@ const FounderDashboard = () => {
         <div
           className={cn(
             "mx-auto p-4 md:p-6",
-            activeTab === "messages" ? "max-w-7xl" : "max-w-4xl",
+            activeTab === "messages" ? "max-w-[100rem]" : "max-w-6xl",
           )}
         >
           {/* Header */}
@@ -784,21 +789,6 @@ const FounderDashboard = () => {
                 </Button>
               )}
 
-              {/* Notification Bell */}
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label={pendingCount > 0 ? `Interests — ${pendingCount} pending` : "View interests"}
-                className="relative"
-                onClick={() => setActiveTab("interests")}
-              >
-                <Bell className="h-5 w-5 md:h-6 md:w-6 text-slate-700" aria-hidden="true" />
-                {pendingCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 md:h-5 md:w-5 rounded-full bg-blue-600 text-white text-[10px] md:text-xs flex items-center justify-center" aria-hidden="true">
-                    {pendingCount}
-                  </span>
-                )}
-              </Button>
             </div>
           </div>
 
@@ -985,3 +975,6 @@ const FounderDashboard = () => {
 };
 
 export default FounderDashboard;
+
+
+

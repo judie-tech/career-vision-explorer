@@ -38,6 +38,7 @@ import { ProjectDetailView } from "@/components/founder-matching/ProjectDetailVi
 // Define the profile type
 interface FounderProfileData {
   id: string;
+  profile_id?: string;
   user_id: string;
   current_role: string;
   years_experience: number;
@@ -154,7 +155,7 @@ const FounderProfile = () => {
 
       // Fetch all projects for this profile using typed service
       try {
-        const targetProfileId = profileId || data.id;
+        const targetProfileId = profileId || data.profile_id || data.id;
         const projectsList = await cofounderMatchingService.listProjects(targetProfileId);
         setProjects(projectsList);
       } catch (projectErr) {
@@ -233,17 +234,6 @@ const FounderProfile = () => {
 
       // Initialize projects same way as on load
       let projectsList = response.projects || [];
-      if (projectsList.length === 0 && response.intent_type === "founder_with_idea" && response.idea_description) {
-        projectsList = [{
-          id: "idea-project",
-          title: "My Startup Idea",
-          description: response.idea_description || "",
-          problem_statement: response.problem_statement || "",
-          roles_needed: response.looking_for_description ? [response.looking_for_description] : [],
-          tech_stack: [],
-          is_idea: true
-        }];
-      }
       setProjects(projectsList);
 
       setIsEditing(false);
@@ -1182,7 +1172,7 @@ const FounderProfile = () => {
                             });
                             // Refresh projects list
                             if (profileData) {
-                              const refreshed = await cofounderMatchingService.listProjects(profileData.id);
+                              const refreshed = await cofounderMatchingService.listProjects(profileData.profile_id || profileData.id);
                               setProjects(refreshed);
                             }
                           } catch (error: any) {
@@ -1364,9 +1354,14 @@ const FounderProfile = () => {
                                 )}
                               </Button>
                             )}
-                            {isOwnProfile && (
+                            {isOwnProfile && profileData?.intent_type === "founder_with_idea" && (
                               <Badge className="bg-white/20 text-white text-xs border-0">
                                 Click to manage
+                              </Badge>
+                            )}
+                            {isOwnProfile && profileData?.intent_type !== "founder_with_idea" && (
+                              <Badge className="bg-white/20 text-white text-xs border-0">
+                                Click to view
                               </Badge>
                             )}
                           </div>
@@ -1423,3 +1418,5 @@ const FounderProfile = () => {
 };
 
 export default FounderProfile;
+
+

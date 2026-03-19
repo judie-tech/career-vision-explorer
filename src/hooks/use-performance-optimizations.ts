@@ -3,15 +3,6 @@ import { useEffect } from 'react';
 
 export const usePerformanceOptimizations = () => {
   useEffect(() => {
-    // Preload critical resources
-    const preloadCriticalResources = () => {
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'style';
-      link.href = '/src/index.css';
-      document.head.appendChild(link);
-    };
-
     // Optimize images
     const optimizeImages = () => {
       const images = document.querySelectorAll('img[loading="lazy"]');
@@ -35,11 +26,11 @@ export const usePerformanceOptimizations = () => {
     const prefetchNextPage = () => {
       const currentPath = window.location.pathname;
       let nextPath = '';
-      
+
       if (currentPath === '/') nextPath = '/jobs';
       else if (currentPath === '/jobs') nextPath = '/profile';
       else if (currentPath === '/career-paths') nextPath = '/skills';
-      
+
       if (nextPath) {
         const link = document.createElement('link');
         link.rel = 'prefetch';
@@ -59,7 +50,6 @@ export const usePerformanceOptimizations = () => {
 
     window.addEventListener('scroll', optimizedScrollHandler, { passive: true });
 
-    preloadCriticalResources();
     optimizeImages();
     prefetchNextPage();
 

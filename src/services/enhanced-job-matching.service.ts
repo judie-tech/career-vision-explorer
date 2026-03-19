@@ -1,6 +1,6 @@
 import { jobsService } from './jobs.service';
 import { profileService } from './profile.service';
-import { geminiService } from './gemini.service';
+import { deepseekService } from './deepseek.service';
 import { Job, Profile } from '../types/api';
 
 export interface JobMatchRequest {
@@ -45,7 +45,7 @@ class EnhancedJobMatchingService {
     onMatch: (match: JobMatchResult) => void
   ): Promise<JobMatchResult[]> {
     const { profile, batchSize = this.BATCH_SIZE, minMatchScore = this.MIN_MATCH_SCORE, signal, pauseCheck } = request;
-    
+
     // Fetch all available jobs
     console.log('Fetching jobs for matching...');
     const jobsResponse = await jobsService.getJobs({
@@ -86,7 +86,7 @@ class EnhancedJobMatchingService {
 
       // Process batch
       const batchMatches = await this.processBatch(batch, profile, minMatchScore);
-      
+
       // Add matches and notify
       for (const match of batchMatches) {
         matches.push(match);
@@ -127,7 +127,7 @@ class EnhancedJobMatchingService {
         // Get full AI analysis for every job
         console.log(`Getting AI analysis for ${job.title}...`);
         const analysis = await this.getAIAnalysis(job, profile, profileContext);
-        
+
         // Use AI's match percentage as the score
         if (analysis.matchPercentage >= minMatchScore) {
           const match: JobMatchResult = {
@@ -156,12 +156,12 @@ class EnhancedJobMatchingService {
     console.log(`\nCalculating match for ${job.title}:`);
     console.log('Profile skills:', profile.skills);
     console.log('Job skills:', job.skills_required);
-    
+
     // Skills match (40% weight)
     const jobSkills = job.skills_required || [];
     const userSkills = profile.skills || [];
-    const matchedSkills = jobSkills.filter((skill: string) => 
-      userSkills.some((userSkill: string) => 
+    const matchedSkills = jobSkills.filter((skill: string) =>
+      userSkills.some((userSkill: string) =>
         userSkill.toLowerCase().includes(skill.toLowerCase()) ||
         skill.toLowerCase().includes(userSkill.toLowerCase())
       )
@@ -186,7 +186,7 @@ class EnhancedJobMatchingService {
       const jobLocation = job.location.toLowerCase();
       const userLocation = profile.location.toLowerCase();
       let locScore = 0;
-      
+
       if (jobLocation.includes('remote') || job.remote_friendly) {
         locScore = 20;
       } else if (jobLocation.includes(userLocation) || userLocation.includes(jobLocation)) {
@@ -264,20 +264,20 @@ class EnhancedJobMatchingService {
         Make the analysis personal by using "you" and "your". Be specific and actionable.
       `;
 
-      const response = await geminiService.generateText(prompt);
-      
+      const response = await deepseekService.generateText(prompt);
+
       if (response.status === 'success') {
         try {
           // Clean and parse the response
           let cleanResponse = response.response.trim();
-          
+
           // Remove markdown code blocks if present
           if (cleanResponse.includes('```json')) {
             cleanResponse = cleanResponse.replace(/```json\s*/g, '').replace(/```/g, '');
           }
-          
+
           const analysis = JSON.parse(cleanResponse);
-          
+
           // Ensure all required fields are present
           return {
             matchPercentage: analysis.matchPercentage || this.calculateBasicMatchScore(job, profile),
@@ -291,7 +291,7 @@ class EnhancedJobMatchingService {
           return this.getFallbackAnalysis(job, profile);
         }
       }
-      
+
       return this.getFallbackAnalysis(job, profile);
     } catch (error) {
       console.error('AI analysis failed:', error);
@@ -301,7 +301,7 @@ class EnhancedJobMatchingService {
 
   private getFallbackAnalysis(job: Job, profile: Profile): JobMatchResult['analysis'] {
     const matchPercentage = this.calculateBasicMatchScore(job, profile);
-    
+
     return {
       matchPercentage,
       keyStrengths: [

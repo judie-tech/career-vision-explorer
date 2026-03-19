@@ -7,12 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
-import { 
-  MapPin, 
-  DollarSign, 
-  Star, 
-  Briefcase, 
-  TrendingUp, 
+import {
+  MapPin,
+  DollarSign,
+  Star,
+  Briefcase,
+  TrendingUp,
   Filter,
   Sparkles,
   Heart,
@@ -67,9 +67,10 @@ const AIJobRecommendations: React.FC = () => {
   });
   const [newSkill, setNewSkill] = useState('');
   const [activeTab, setActiveTab] = useState('skills');
+  const effectiveRole = profile?.active_role || user?.account_type;
 
   useEffect(() => {
-    if (isAuthenticated && user?.account_type === 'job_seeker' && profile) {
+    if (isAuthenticated && effectiveRole === 'job_seeker' && profile) {
       // Set preferences from profile but don't auto-load
       setSearchPreferences(prev => ({
         ...prev,
@@ -78,7 +79,7 @@ const AIJobRecommendations: React.FC = () => {
         skills: profile.skills?.length ? profile.skills : prev.skills,
       }));
     }
-  }, [isAuthenticated, user, profile]);
+  }, [isAuthenticated, effectiveRole, profile]);
 
   const loadSkillBasedRecommendations = async () => {
     try {
@@ -96,7 +97,7 @@ const AIJobRecommendations: React.FC = () => {
   const getAIRecommendations = async () => {
     try {
       setIsLoading(true);
-      
+
       // Use the enhanced AI job matching service for better results
       const enhancedMatches = await aiJobMatchingService.matchJobsWithAI(profile, {
         max_results: 20,
@@ -104,7 +105,7 @@ const AIJobRecommendations: React.FC = () => {
         include_stretch_opportunities: true,
         focus_on_skill_growth: true
       });
-      
+
       if (enhancedMatches.length > 0) {
         // Convert enhanced matches to JobRecommendation format
         const jobRecommendations: JobRecommendation[] = enhancedMatches.map(match => ({
@@ -114,21 +115,21 @@ const AIJobRecommendations: React.FC = () => {
           reasons: match.personalized_insights.why_good_fit || ['AI-generated match'],
           created_at: match.postedDate || new Date().toISOString()
         }));
-        
+
         setAiRecommendations(jobRecommendations);
         console.log('Enhanced AI Recommendations set:', jobRecommendations);
         setActiveTab('ai-recommendations');
         toast.success('AI recommendations generated with enhanced matching!');
         return;
       }
-      
+
       // Fallback to original enhanced AI service
       const recommendations = await enhancedAIService.getJobRecommendations({
         location: searchPreferences.location || profile?.location,
         salary_range: searchPreferences.salary_expectation || profile?.salary_expectation,
         job_type: 'full-time'
       });
-      
+
       const recommendationPromises = recommendations.map(async (rec) => {
         try {
           const jobDetails = await jobsService.getJobById(rec.job_id);
@@ -145,7 +146,7 @@ const AIJobRecommendations: React.FC = () => {
       if (detailedRecommendations.length < recommendations.length) {
         toast.warning('Some recommended jobs could not be loaded.');
       }
-      
+
       setAiRecommendations(detailedRecommendations);
       console.log('AI Recommendations set:', detailedRecommendations);
       setActiveTab('ai-recommendations');
@@ -157,7 +158,7 @@ const AIJobRecommendations: React.FC = () => {
       setIsLoading(false);
     }
   };
-  
+
   const searchWithAI = async () => {
     if (searchPreferences.skills.length === 0) {
       toast.error('Please add at least one skill for AI matching');
@@ -217,7 +218,7 @@ const AIJobRecommendations: React.FC = () => {
 
   const JobCard: React.FC<{ job: JobMatch | JobRecommendation }> = ({ job }) => {
     const skills = ('matched_skills' in job) ? job.matched_skills : (job as JobRecommendation).skills_required || [];
-    
+
     return (
       <Card className="hover:shadow-lg transition-shadow duration-200">
         <CardHeader>
@@ -249,7 +250,7 @@ const AIJobRecommendations: React.FC = () => {
               </div>
             )}
           </div>
-          
+
           {skills.length > 0 && (
             <div>
               <Label className="text-sm font-medium text-gray-700 mb-2 block">
@@ -264,7 +265,7 @@ const AIJobRecommendations: React.FC = () => {
               </div>
             </div>
           )}
-          
+
           <div className="flex gap-2">
             <Button size="sm" className="flex-1" onClick={() => handleViewDetails(job)}>
               <ExternalLink className="h-4 w-4 mr-2" />
@@ -426,7 +427,7 @@ const AIJobRecommendations: React.FC = () => {
                     />
                     <Button onClick={addSkill} variant="outline">Add</Button>
                   </div>
-                  
+
                   {searchPreferences.skills.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-2">
                       {searchPreferences.skills.map((skill) => (

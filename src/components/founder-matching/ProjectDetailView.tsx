@@ -101,8 +101,8 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
         action === "approve"
           ? "Member approved!"
           : action === "reject"
-          ? "Request rejected"
-          : "Member removed"
+            ? "Request rejected"
+            : "Member removed"
       );
       await fetchProject();
     } catch (error: any) {
@@ -149,7 +149,7 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
     try {
       const chat = await cofounderMatchingService.createProjectGroupChat(
         project.id,
-        `${project.title} - Team Chat`
+        `${project.title} - Team Chat`.substring(0, 200)
       );
       toast.success("Group chat created!");
       await fetchProject();

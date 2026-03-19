@@ -95,11 +95,11 @@ export interface MatchProfile {
     role_alignment: number;
   };
   status?:
-    | "suggested"
-    | "interested"
-    | "declined"
-    | "mutual_interest"
-    | "skipped";
+  | "suggested"
+  | "interested"
+  | "declined"
+  | "mutual_interest"
+  | "skipped";
   mutual_interest_at?: string;
 }
 
@@ -556,13 +556,13 @@ class CofounderMatchingService {
   }
 
   async getMessages(
-    conversationId: string, 
-    limit = 50, 
+    conversationId: string,
+    limit = 50,
     beforeId?: string
   ): Promise<Message[]> {
     const params = new URLSearchParams({ limit: limit.toString() });
     if (beforeId) params.append('before_id', beforeId);
-    
+
     return await apiClient.get<Message[]>(
       `/cofounder-matching/conversations/${conversationId}/messages?${params.toString()}`
     );
@@ -655,7 +655,8 @@ class CofounderMatchingService {
   }
 
   async createProjectGroupChat(projectId: string, title?: string): Promise<ProjectGroupChat> {
-    return await apiClient.post<ProjectGroupChat>(`/cofounder-matching/projects/${projectId}/group-chat`, { title });
+    const safeTitle = title ? title.slice(0, 200) : undefined;
+    return await apiClient.post<ProjectGroupChat>(`/cofounder-matching/projects/${projectId}/group-chat`, { title: safeTitle });
   }
 
   async getGroupConversations(): Promise<Conversation[]> {

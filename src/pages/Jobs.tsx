@@ -44,6 +44,38 @@ const generateMockUUID = (id: string): string => {
   return `${padded.slice(0, 8)}-0000-0000-0000-000000000000`;
 };
 
+const normalizeKeyPart = (value?: string) =>
+  (value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ");
+
+const getCanonicalJobKey = (job: Job) => {
+  const idPart = normalizeKeyPart(job.job_id || job.id);
+  if (idPart) {
+    return `id:${idPart}`;
+  }
+
+  return [
+    normalizeKeyPart(job.title),
+    normalizeKeyPart(job.company),
+    normalizeKeyPart(job.location),
+    normalizeKeyPart(job.type),
+  ].join("|");
+};
+
+const dedupeJobs = (jobList: Job[]) => {
+  const seen = new Set<string>();
+  return jobList.filter((job) => {
+    const key = getCanonicalJobKey(job);
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+};
+
 const Jobs = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -161,16 +193,14 @@ const Jobs = () => {
             });
 
             if (mountedRef.current) {
-              // Deduplicate jobs by job_id to prevent duplicates
               setJobs((prevJobs) => {
-                const existingIds = new Set(prevJobs.map((job) => job.job_id));
-                const newJobs = transformedJobs.filter(
-                  (job) => !existingIds.has(job.job_id),
-                );
+                const mergedJobs = [...prevJobs, ...transformedJobs];
+                const dedupedJobs = dedupeJobs(mergedJobs);
+                const newJobsCount = dedupedJobs.length - prevJobs.length;
                 console.log(
-                  `Adding ${newJobs.length} new jobs (${transformedJobs.length - newJobs.length} duplicates filtered)`,
+                  `Adding ${newJobsCount} new jobs (${mergedJobs.length - dedupedJobs.length} duplicates filtered)`,
                 );
-                return [...prevJobs, ...newJobs];
+                return dedupedJobs;
               });
               setCurrentPage(nextPage);
               setHasMore(response.jobs.length === 6);
@@ -233,16 +263,14 @@ const Jobs = () => {
         );
 
         if (mountedRef.current) {
-          // Deduplicate jobs by job_id to prevent duplicates
           setJobs((prevJobs) => {
-            const existingIds = new Set(prevJobs.map((job) => job.job_id));
-            const newJobs = transformedJobs.filter(
-              (job) => !existingIds.has(job.job_id),
-            );
+            const mergedJobs = [...prevJobs, ...transformedJobs];
+            const dedupedJobs = dedupeJobs(mergedJobs);
+            const newJobsCount = dedupedJobs.length - prevJobs.length;
             console.log(
-              `Adding ${newJobs.length} new jobs (${transformedJobs.length - newJobs.length} duplicates filtered)`,
+              `Adding ${newJobsCount} new jobs (${mergedJobs.length - dedupedJobs.length} duplicates filtered)`,
             );
-            return [...prevJobs, ...newJobs];
+            return dedupedJobs;
           });
           setCurrentPage(nextPage);
           setHasMore(apiJobs.length === 6);
@@ -365,7 +393,7 @@ const Jobs = () => {
             );
 
             if (mountedRef.current) {
-              setJobs(transformedJobs); // Initial load - replace existing jobs
+              setJobs(dedupeJobs(transformedJobs)); // Initial load - replace existing jobs
               setHasMore(response.jobs.length === 6);
               console.log(
                 `Initial load. HasMore: ${response.jobs.length === 6}, Jobs returned: ${response.jobs.length}`,
@@ -474,7 +502,7 @@ const Jobs = () => {
           );
 
           if (mountedRef.current) {
-            setJobs(transformedJobs);
+            setJobs(dedupeJobs(transformedJobs));
             // Set hasMore based on whether we got a full page of results
             setHasMore(apiJobs.length === 6);
             toast.success(`Loaded ${transformedJobs.length} jobs`);
@@ -502,7 +530,7 @@ const Jobs = () => {
       }));
 
       if (mountedRef.current) {
-        setJobs(transformedMockJobs);
+        setJobs(dedupeJobs(transformedMockJobs));
         toast.info("Showing sample jobs from database");
       }
     } catch (error: any) {
@@ -523,7 +551,7 @@ const Jobs = () => {
               Math.round((mockJob.similarity_score ?? 0) * 100) ||
               Math.floor(Math.random() * 30) + 70,
           }));
-          setJobs(transformedMockJobs);
+          setJobs(dedupeJobs(transformedMockJobs));
           setError("Failed to load jobs from database. Showing sample data.");
           toast.error(
             "Failed to load jobs from database. Showing sample data.",

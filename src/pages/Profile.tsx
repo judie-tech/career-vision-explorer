@@ -72,13 +72,14 @@ const Profile: React.FC = () => {
   const [localCompletionPercentage, setLocalCompletionPercentage] = useState(0);
   const [isPhotoEditorOpen, setIsPhotoEditorOpen] = useState(false);
   const [photoEditorSrc, setPhotoEditorSrc] = useState<string | null>(null);
-  const [photoEditorZoom, setPhotoEditorZoom] = useState(1.0);
+  const [photoEditorZoom, setPhotoEditorZoom] = useState(1.2);
   const [photoEditorX, setPhotoEditorX] = useState(0);
   const [photoEditorY, setPhotoEditorY] = useState(0);
   const [photoEditorImageSize, setPhotoEditorImageSize] = useState<{
     width: number;
     height: number;
   } | null>(null);
+  const [profileImageRefreshKey, setProfileImageRefreshKey] = useState<number>(Date.now());
 
   // Input refs for scrolling to sections
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -103,16 +104,15 @@ const Profile: React.FC = () => {
   // Redirect employers to their dashboard
 
   useEffect(() => {
-    if (isAuthenticated && authProfile) {
-      setProfile(authProfile);
-      setEditForm(authProfile);
-      // Use backend value if available, otherwise calculate locally
-      setLocalCompletionPercentage(
-        authProfile.profile_completion_percentage ||
-        calculateProfileCompletion(authProfile)
-      );
-      setLoading(false);
-    } else if (isAuthenticated && !authProfile) {
+    if (isAuthenticated) {
+      if (authProfile) {
+        setProfile(authProfile);
+        setEditForm(authProfile);
+        setLocalCompletionPercentage(
+          authProfile.profile_completion_percentage ||
+          calculateProfileCompletion(authProfile)
+        );
+      }
       loadProfile();
     } else {
       setLoading(false);
@@ -127,16 +127,12 @@ const Profile: React.FC = () => {
 
   const loadProfile = async () => {
     try {
-      if (!user?.user_id) {
-        console.error("No user_id found in user");
-        return;
-      }
-
       setLoading(true);
-      const profileData = await profileService.getProfile(user.user_id);
+      const profileData = await profileService.getProfile();
 
       setProfile(profileData);
       setEditForm(profileData);
+      setProfileImageRefreshKey(Date.now());
       // Use backend value if available, otherwise calculate locally
       setLocalCompletionPercentage(
         profileData.profile_completion_percentage ||
@@ -288,7 +284,7 @@ const Profile: React.FC = () => {
         width: image.naturalWidth,
         height: image.naturalHeight,
       });
-      setPhotoEditorZoom(1.0);
+      setPhotoEditorZoom(1.2);
       setPhotoEditorX(0);
       setPhotoEditorY(0);
       setIsPhotoEditorOpen(true);
@@ -332,7 +328,7 @@ const Profile: React.FC = () => {
 
     setPhotoEditorSrc(null);
     setPhotoEditorImageSize(null);
-    setPhotoEditorZoom(1.0);
+    setPhotoEditorZoom(1.2);
     setPhotoEditorX(0);
     setPhotoEditorY(0);
     setIsPhotoEditorOpen(true);
@@ -369,7 +365,7 @@ const Profile: React.FC = () => {
       throw new Error("Failed to initialize image editor");
     }
 
-    const safeZoom = Math.max(1, Math.min(3, zoom));
+    const safeZoom = Math.max(1.05, Math.min(3, zoom));
     const frame = getCropFrame(
       image.width,
       image.height,
@@ -406,7 +402,19 @@ const Profile: React.FC = () => {
         photoEditorY
       );
 
-      await profileService.uploadProfileImage(croppedFile);
+      const uploadResult = await profileService.uploadProfileImage(croppedFile);
+      if (uploadResult?.image_url) {
+        setProfile((prev) =>
+          prev
+            ? { ...prev, profile_image_url: uploadResult.image_url }
+            : prev
+        );
+        setEditForm((prev) => ({
+          ...prev,
+          profile_image_url: uploadResult.image_url,
+        }));
+        setProfileImageRefreshKey(Date.now());
+      }
       await loadProfile();
       toast.success("Profile image updated successfully");
       closePhotoEditor();
@@ -419,12 +427,16 @@ const Profile: React.FC = () => {
   };
 
   const PHOTO_PREVIEW_SIZE = 288;
+  const profileAvatarSrc = profile?.profile_image_url
+    ? `${profile.profile_image_url}${profile.profile_image_url.includes("?") ? "&" : "?"
+    }t=${profileImageRefreshKey}`
+    : undefined;
   const previewFrame = photoEditorImageSize
     ? getCropFrame(
       photoEditorImageSize.width,
       photoEditorImageSize.height,
       PHOTO_PREVIEW_SIZE,
-      Math.max(1, Math.min(3, photoEditorZoom)),
+      Math.max(1.05, Math.min(3, photoEditorZoom)),
       photoEditorX,
       photoEditorY
     )
@@ -1350,7 +1362,7 @@ const Profile: React.FC = () => {
                         className="h-24 w-24 mx-auto mb-4 cursor-pointer ring-offset-background transition hover:opacity-90"
                         onClick={openPhotoEditorPanel}
                       >
-                        <AvatarImage src={profile?.profile_image_url} />
+                        <AvatarImage src={profileAvatarSrc} />
                         <AvatarFallback className="text-2xl">
                           {profile?.name
                             ?.split(" ")
@@ -1542,6 +1554,8 @@ const Profile: React.FC = () => {
                             <SelectItem value="Internship">
                               Internship
                             </SelectItem>
+                            <SelectItem value="Freelance">Freelance</SelectItem>
+                            <SelectItem value="Hybrid">Hybrid</SelectItem>
                             <SelectItem value="Remote">Remote</SelectItem>
                           </SelectContent>
                         </Select>
@@ -2095,14 +2109,12 @@ const Profile: React.FC = () => {
                                 </Button>
                               </li>
                             )}
-                            {!profile?.preferences && (
+                            {!profile?.preferred_job_type && (
                               <li>
                                 <Button
                                   variant="link"
                                   className="text-xs p-0 h-auto"
-                                  onClick={() =>
-                                    handleJumpToField("preferences")
-                                  }
+                                  onClick={() => handleJumpToField("job_type")}
                                   aria-label="Add job preferences"
                                 >
                                   Job Preferences
@@ -2951,7 +2963,7 @@ const Profile: React.FC = () => {
                 <label className="text-sm font-medium">Zoom</label>
                 <Input
                   type="range"
-                  min={1}
+                  min={1.05}
                   max={3}
                   step={0.01}
                   value={photoEditorZoom}

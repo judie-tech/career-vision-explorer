@@ -32,7 +32,7 @@ const Navbar = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, profile, isAuthenticated, logout } = useAuth();
 
   const toggleMenu = () => {
     const next = !isMenuOpen;
@@ -50,7 +50,8 @@ const Navbar = () => {
 
   const getDashboardUrl = () => {
     if (!user) return "/";
-    switch (user.account_type) {
+    const effectiveRole = profile?.active_role || user.account_type;
+    switch (effectiveRole) {
       case "admin":
         return "/admin/dashboard";
       case "employer":
@@ -64,8 +65,10 @@ const Navbar = () => {
     }
   };
 
-  const isJobSeekerUser = user?.account_type === "job_seeker";
-  const isEmployerUser = user?.account_type === "employer";
+  const effectiveRole = profile?.active_role || user?.account_type;
+  const isJobSeekerUser = effectiveRole === "job_seeker";
+  const isEmployerUser = effectiveRole === "employer";
+  const isFreelancerUser = effectiveRole === "freelancer";
   const isActive = (path: string) => location.pathname === path;
 
   const jobSeekerIcons = [
@@ -81,6 +84,10 @@ const Navbar = () => {
     { name: "Jobs", href: "/employer/jobs" },
     { name: "Projects", href: "/employer/projects" },
     { name: "Boosting Services", href: "/employer/boosting-services" },
+  ];
+
+  const freelancerNavItems = [
+    { name: "Jobs", href: "/jobs" },
   ];
 
   return (
@@ -125,6 +132,20 @@ const Navbar = () => {
               <>
                 <NotificationDropdown />
 
+                {isFreelancerUser &&
+                  freelancerNavItems.map((item) => (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive(item.href)
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                        }`}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+
                 <Link
                   to={getDashboardUrl()}
                   className="px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent"
@@ -145,6 +166,9 @@ const Navbar = () => {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => navigate("/profile")}>
                       Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/account")}>
+                      Account Settings
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={handleLogout}
@@ -171,8 +195,9 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile Toggle */}
-          <div className="flex md:hidden items-center">
+          {/* Mobile Actions */}
+          <div className="flex md:hidden items-center gap-1">
+            {isAuthenticated && <NotificationDropdown />}
             <button
               ref={menuButtonRef}
               onClick={toggleMenu}
@@ -214,6 +239,18 @@ const Navbar = () => {
                     </Link>
                   ))}
 
+                {isFreelancerUser &&
+                  freelancerNavItems.map((item) => (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent"
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+
                 {isJobSeekerUser &&
                   jobSeekerIcons.map((item) => (
                     <Link
@@ -225,6 +262,14 @@ const Navbar = () => {
                       {item.name}
                     </Link>
                   ))}
+
+                <Link
+                  to="/account"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-accent"
+                >
+                  Account Settings
+                </Link>
 
                 <button
                   onClick={handleLogout}

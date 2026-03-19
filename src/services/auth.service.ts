@@ -9,6 +9,7 @@ import {
   PasswordChangeRequest,
   PasswordResetRequest,
   PasswordResetConfirm,
+  DeleteAccountRequest,
 } from "../types/auth";
 import { trackDbOperation } from "../utils/performance";
 
@@ -152,6 +153,10 @@ class AuthService {
 
   async confirmPasswordReset(data: PasswordResetConfirm): Promise<{ message: string }> {
     return apiClient.post<{ message: string }>("/auth/reset-password/confirm", data);
+  }
+
+  async deleteAccount(data: DeleteAccountRequest): Promise<{ message: string }> {
+    return apiClient.post<{ message: string }>("/auth/delete-account", data);
   }
 
   async registerAdmin(userData: UserRegister): Promise<TokenResponse> {

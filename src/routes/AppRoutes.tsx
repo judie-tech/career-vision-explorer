@@ -17,6 +17,7 @@ const JobDetails = lazy(() => import("@/pages/JobDetails"));
 const PublicProfile = lazy(() => import("@/pages/PublicProfile"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Profile = lazy(() => import("@/pages/Profile"));
+const AccountManagement = lazy(() => import("@/pages/AccountManagement"));
 const Skills = lazy(() => import("@/pages/Skills"));
 const CareerPaths = lazy(() => import("@/pages/CareerPaths"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
@@ -590,6 +591,16 @@ export const AppRoutes = () => {
             <ProtectedRoute>
               <Suspense fallback={<PageLoader />}>
                 <Profile />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <AccountManagement />
               </Suspense>
             </ProtectedRoute>
           }

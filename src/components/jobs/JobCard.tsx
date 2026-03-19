@@ -166,9 +166,9 @@ export const JobCard = ({ job, isApplied, isSaved, onApply, onSave }: JobCardPro
         </p>
 
         <div className="flex flex-wrap gap-2">
-          {job.skills.map(skill => (
+          {job.skills.map((skill, index) => (
             <Badge
-              key={skill}
+              key={`${skill}-${index}`}
               className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors"
             >
               {skill}

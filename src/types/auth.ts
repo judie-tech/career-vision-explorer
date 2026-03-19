@@ -52,6 +52,10 @@ export interface PasswordResetConfirm {
   new_password: string;
 }
 
+export interface DeleteAccountRequest {
+  current_password: string;
+}
+
 export interface AuthError {
   detail: string;
   status_code: number;

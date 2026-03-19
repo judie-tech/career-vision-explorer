@@ -1,22 +1,22 @@
 
 import { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card";
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
 } from "@/components/ui/form";
 import { toast } from "@/components/ui/sonner";
 import Layout from "@/components/layout/Layout";
@@ -36,11 +36,9 @@ const loginSchema = z.object({
 });
 
 const Login = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { login, user, signInWithLinkedIn } = useAuth();
+  const { login, signInWithLinkedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -48,22 +46,19 @@ const Login = () => {
       password: "",
     },
   });
-  
+
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
-    
+
     try {
       await login({
         email: values.email,
         password: values.password
       });
-      
+
       toast.success("Welcome back!", {
         description: "You've been successfully logged in.",
       });
-      
-      const from = location.state?.from?.pathname || "/";
-      navigate(from, { replace: true });
     } catch (error: any) {
       console.error('Login error:', error);
       toast.error("Login Failed", {
@@ -80,7 +75,7 @@ const Login = () => {
       toast.info("LinkedIn Authentication", {
         description: "Redirecting to LinkedIn for authentication...",
       });
-      
+
       await signInWithLinkedIn();
       // The OAuth flow will redirect the user, so we don't need to navigate here
     } catch (error: any) {
@@ -91,7 +86,7 @@ const Login = () => {
       setIsLoading(false);
     }
   };
-  
+
   return (
     <Layout>
       <div className="max-w-md mx-auto px-4 py-12">
@@ -112,8 +107,8 @@ const Login = () => {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="john@example.com" 
+                        <Input
+                          placeholder="john@example.com"
                           {...field}
                           className="transition-all focus:ring-2 focus:ring-career-blue"
                         />
@@ -122,7 +117,7 @@ const Login = () => {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="password"
@@ -130,9 +125,9 @@ const Login = () => {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="password" 
-                          placeholder="••••••••" 
+                        <Input
+                          type="password"
+                          placeholder="••••••••"
                           {...field}
                           className="transition-all focus:ring-2 focus:ring-career-blue"
                         />
@@ -141,20 +136,20 @@ const Login = () => {
                     </FormItem>
                   )}
                 />
-                
-                <Button 
-                  type="submit" 
-                  className="w-full bg-career-blue hover:bg-career-blue/90 transition-colors" 
+
+                <Button
+                  type="submit"
+                  className="w-full bg-career-blue hover:bg-career-blue/90 transition-colors"
                   disabled={isLoading}
                 >
                   {isLoading ? "Logging in..." : "Log In"}
                 </Button>
-                
+
                 <div className="text-center">
                   <p className="text-sm text-gray-500">Or sign in with</p>
                   <div className="mt-2">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full flex items-center justify-center gap-2 transition-colors hover:bg-gray-50"
                       onClick={handleLinkedInLogin}
                       disabled={isLoading}
@@ -165,7 +160,7 @@ const Login = () => {
                     </Button>
                   </div>
                 </div>
-                
+
                 <div className="text-center mt-4 space-y-2">
                   <p className="text-sm text-gray-500">
                     Don't have an account?{" "}
