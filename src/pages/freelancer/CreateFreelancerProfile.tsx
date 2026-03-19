@@ -13,6 +13,12 @@ import { toast } from 'sonner';
 import Layout from '@/components/layout/Layout';
 import type { Freelancer } from '@/types/freelancer';
 
+const dedupeTextList = (values: string[]): string[] => {
+  return Array.from(
+    new Set(values.map((value) => value.trim()).filter(Boolean))
+  );
+};
+
 export default function CreateFreelancerProfile() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -51,11 +57,11 @@ export default function CreateFreelancerProfile() {
           title: existing.title || '',
           bio: existing.bio || '',
           hourly_rate: existing.hourly_rate ? String(existing.hourly_rate) : '',
-          skills: existing.skills || [],
+          skills: dedupeTextList(existing.skills || []),
           experience_years: existing.experience_years || 0,
           portfolio_url: existing.portfolio_url || '',
           location: existing.location || profile?.location || '',
-          languages: existing.languages?.length ? existing.languages : ['English'],
+          languages: existing.languages?.length ? dedupeTextList(existing.languages) : ['English'],
           available_for_hire: existing.available_for_hire ?? true,
         });
       } catch (error: any) {
@@ -74,7 +80,7 @@ export default function CreateFreelancerProfile() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.title || !formData.bio) {
       toast.error('Please fill in all required fields');
       return;
@@ -82,17 +88,17 @@ export default function CreateFreelancerProfile() {
 
     try {
       setLoading(true);
-      
+
       const payload = {
         title: formData.title,
         bio: formData.bio,
         hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : undefined,
-        skills: [...new Set([...formData.skills])],
+        skills: dedupeTextList(formData.skills),
         experience_years: formData.experience_years,
         portfolio_url: formData.portfolio_url || undefined,
         available_for_hire: formData.available_for_hire,
         location: formData.location || undefined,
-        languages: formData.languages,
+        languages: dedupeTextList(formData.languages),
       };
 
       if (existingProfile?.freelancer_id) {
@@ -122,8 +128,12 @@ export default function CreateFreelancerProfile() {
   };
 
   const addSkill = () => {
-    if (skillInput.trim() && !formData.skills.includes(skillInput.trim())) {
-      setFormData({ ...formData, skills: [...formData.skills, skillInput.trim()] });
+    const normalizedSkill = skillInput.trim();
+    const hasSkill = formData.skills.some(
+      (skill) => skill.trim().toLowerCase() === normalizedSkill.toLowerCase()
+    );
+    if (normalizedSkill && !hasSkill) {
+      setFormData({ ...formData, skills: dedupeTextList([...formData.skills, normalizedSkill]) });
       setSkillInput('');
     }
   };
@@ -133,8 +143,12 @@ export default function CreateFreelancerProfile() {
   };
 
   const addLanguage = () => {
-    if (languageInput.trim() && !formData.languages.includes(languageInput.trim())) {
-      setFormData({ ...formData, languages: [...formData.languages, languageInput.trim()] });
+    const normalizedLanguage = languageInput.trim();
+    const hasLanguage = formData.languages.some(
+      (language) => language.trim().toLowerCase() === normalizedLanguage.toLowerCase()
+    );
+    if (normalizedLanguage && !hasLanguage) {
+      setFormData({ ...formData, languages: dedupeTextList([...formData.languages, normalizedLanguage]) });
       setLanguageInput('');
     }
   };
@@ -253,8 +267,8 @@ export default function CreateFreelancerProfile() {
                     </Button>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {formData.skills.map((skill) => (
-                      <Badge key={skill} variant="default">
+                    {formData.skills.map((skill, index) => (
+                      <Badge key={`${skill}-${index}`} variant="default">
                         {skill}
                         <button
                           type="button"
@@ -283,8 +297,8 @@ export default function CreateFreelancerProfile() {
                     </Button>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {formData.languages.map((language) => (
-                      <Badge key={language} variant="default">
+                    {formData.languages.map((language, index) => (
+                      <Badge key={`${language}-${index}`} variant="default">
                         {language}
                         {formData.languages.length > 1 && (
                           <button

@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { RoleSwitcher } from "@/components/layout/RoleSwitcher";
 import { toast } from "sonner";
 import {
   Card,
@@ -115,10 +116,10 @@ const JobSeekerDashboard = () => {
                       .map((n) => n[0])
                       .join("")
                       .toUpperCase() || user?.name
-                      ?.split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase() || "PN"}
+                        ?.split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase() || "PN"}
                   </AvatarFallback>
                 </Avatar>
 
@@ -130,6 +131,7 @@ const JobSeekerDashboard = () => {
 
                   {/* Edit Profile Button and Notification Icons - Now in same row */}
                   <div className="flex items-center gap-4">
+                    <RoleSwitcher />
                     <Button
                       onClick={handleEditProfile}
                       className="flex items-center gap-2"
@@ -302,8 +304,8 @@ const JobSeekerDashboard = () => {
             role: profile?.active_role || user?.account_type || "job_seeker",
             education: Array.isArray(profile?.education)
               ? profile.education
-                  .map((edu) => `${edu.institution} - ${edu.degree}`)
-                  .join(", ")
+                .map((edu) => `${edu.institution} - ${edu.degree}`)
+                .join(", ")
               : "",
             experience: profile?.experience_years?.toString() || "",
             location: profile?.location || "",

@@ -29,8 +29,13 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="flex items-center gap-2">
-        <Skeleton className="w-4 h-4 bg-primary rounded-full" />
+      <div
+        className="flex items-center gap-2"
+        role="status"
+        aria-live="polite"
+        aria-label="Redirecting to your dashboard"
+      >
+        <Skeleton className="w-4 h-4 bg-primary rounded-full" aria-hidden="true" />
         <p className="text-lg text-gray-600">
           Redirecting to your dashboard...
         </p>

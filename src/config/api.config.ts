@@ -83,8 +83,8 @@ export function validateApiConfig(): void {
   }
 
   // Warn if sensitive keys are exposed
-  if (import.meta.env.GEMINI_API_KEY) {
-    console.error('WARNING: GEMINI_API_KEY should not be exposed in frontend!');
+  if (import.meta.env.DEEPSEEK_API_KEY || import.meta.env.GEMINI_API_KEY) {
+    console.error('WARNING: AI API keys should not be exposed in frontend environment variables.');
   }
 }
 

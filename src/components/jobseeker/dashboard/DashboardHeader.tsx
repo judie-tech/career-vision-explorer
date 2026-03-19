@@ -12,7 +12,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, Settings, User, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
-import { RoleSwitcher } from "@/components/layout/RoleSwitcher";
 
 export const DashboardHeader = () => {
   const { user, logout } = useAuth();
@@ -31,13 +30,12 @@ export const DashboardHeader = () => {
           Track your applications, discover new opportunities, and advance your career journey
         </p>
       </div>
-      
+
       <div className="flex items-center gap-4">
-        <RoleSwitcher />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="relative h-12 px-4 rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm hover:bg-white hover:shadow-lg transition-all duration-200"
             >
               <div className="flex items-center gap-3">
@@ -86,8 +84,8 @@ export const DashboardHeader = () => {
             </div>
             <DropdownMenuSeparator />
             <div className="py-2">
-              <DropdownMenuItem 
-                onClick={handleLogout} 
+              <DropdownMenuItem
+                onClick={handleLogout}
                 className="cursor-pointer flex items-center px-4 py-2 hover:bg-red-50 transition-colors text-red-600 focus:text-red-600 focus:bg-red-50"
               >
                 <LogOut className="mr-3 h-4 w-4" />

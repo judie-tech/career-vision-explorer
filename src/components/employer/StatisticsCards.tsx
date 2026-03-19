@@ -19,9 +19,13 @@ interface StatCardProps {
 }
 
 const StatCard = ({ title, value, subtitle, icon, iconColor, bgColor, trend, onClick }: StatCardProps) => (
-  <Card 
-    onClick={onClick} 
-    className="cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 border-0 shadow-md bg-gradient-to-br from-white to-gray-50"
+  <Card
+    onClick={onClick}
+    role="button"
+    tabIndex={0}
+    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
+    aria-label={`${title}: ${value}. ${subtitle}`}
+    className="cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 border-0 shadow-md bg-gradient-to-br from-white to-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
   >
     <CardContent className="p-6">
       <div className="flex items-start justify-between">
@@ -41,7 +45,7 @@ const StatCard = ({ title, value, subtitle, icon, iconColor, bgColor, trend, onC
         </div>
       </div>
       <div className="flex items-center justify-end mt-4 opacity-60">
-        <ArrowUpRight className="h-4 w-4" />
+        <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
       </div>
     </CardContent>
   </Card>

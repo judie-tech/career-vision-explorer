@@ -16,7 +16,7 @@ import { formatDistanceToNow } from 'date-fns';
 
 const NotificationIcon = ({ type }: { type: Notification['type'] }) => {
   const iconProps = { className: 'h-4 w-4' };
-  
+
   switch (type) {
     case 'interview_scheduled':
     case 'interview_reminder':
@@ -30,9 +30,9 @@ const NotificationIcon = ({ type }: { type: Notification['type'] }) => {
       return <BriefcaseIcon {...iconProps} className="h-4 w-4 text-purple-500" />;
     case 'cofounder_mutual_interest':
     case 'cofounder_connection':
-       return <User {...iconProps} className="h-4 w-4 text-pink-500" />;
+      return <User {...iconProps} className="h-4 w-4 text-pink-500" />;
     case 'cofounder_match_suggestion':
-       return <User {...iconProps} className="h-4 w-4 text-blue-500" />;
+      return <User {...iconProps} className="h-4 w-4 text-blue-500" />;
     case 'profile_viewed':
       return <User {...iconProps} className="h-4 w-4 text-indigo-500" />;
     case 'message_received':
@@ -74,10 +74,10 @@ export const NotificationDropdown = () => {
 
   useEffect(() => {
     fetchNotifications();
-    
+
     // Poll for new notifications every 30 seconds
     const interval = setInterval(fetchNotifications, 30000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -120,7 +120,7 @@ export const NotificationDropdown = () => {
     if (!notification.is_read) {
       handleMarkAsRead(notification.id, {} as React.MouseEvent);
     }
-    
+
     if (notification.link) {
       navigate(notification.link);
       setIsOpen(false);
@@ -129,13 +129,22 @@ export const NotificationDropdown = () => {
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <span role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}` : ''}
+      </span>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          aria-label={unreadCount > 0 ? `Notifications — ${unreadCount} unread` : "Notifications"}
+        >
+          <Bell className="h-5 w-5" aria-hidden="true" />
           {unreadCount > 0 && (
             <Badge
               variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+              aria-hidden="true"
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </Badge>
@@ -173,9 +182,8 @@ export const NotificationDropdown = () => {
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 hover:bg-accent cursor-pointer transition-colors ${
-                    !notification.is_read ? 'bg-blue-50/50' : ''
-                  }`}
+                  className={`p-4 hover:bg-accent cursor-pointer transition-colors ${!notification.is_read ? 'bg-blue-50/50' : ''
+                    }`}
                   onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="flex gap-3">
@@ -200,8 +208,9 @@ export const NotificationDropdown = () => {
                               size="icon"
                               className="h-6 w-6"
                               onClick={(e) => handleMarkAsRead(notification.id, e)}
+                              aria-label="Mark notification as read"
                             >
-                              <Check className="h-3 w-3" />
+                              <Check className="h-3 w-3" aria-hidden="true" />
                             </Button>
                           )}
                           <Button
@@ -209,8 +218,9 @@ export const NotificationDropdown = () => {
                             size="icon"
                             className="h-6 w-6"
                             onClick={(e) => handleDelete(notification.id, e)}
+                            aria-label="Delete notification"
                           >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash2 className="h-3 w-3" aria-hidden="true" />
                           </Button>
                         </div>
                       </div>

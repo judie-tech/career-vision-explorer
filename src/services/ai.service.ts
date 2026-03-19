@@ -1,9 +1,9 @@
 import { apiClient } from '../lib/api-client';
-import { 
-  AIAnalysisRequest, 
-  AIAnalysisResponse, 
-  InterviewResponse, 
-  InterviewQuestion 
+import {
+  AIAnalysisRequest,
+  AIAnalysisResponse,
+  InterviewResponse,
+  InterviewQuestion
 } from '../types/api';
 
 class AIService {
@@ -15,9 +15,9 @@ class AIService {
 
   // Job matching
   async analyzeJobMatch(jobDescription: string, userSkills?: string[]): Promise<AIAnalysisResponse> {
-    const request: AIAnalysisRequest = { 
+    const request: AIAnalysisRequest = {
       job_description: jobDescription,
-      user_skills: userSkills 
+      user_skills: userSkills
     };
     return await apiClient.post<AIAnalysisResponse>('/ai/job-match', request);
   }
@@ -113,21 +113,21 @@ class AIService {
   }
 
   // Gemini-powered features
-  async geminiSkillAnalysis(skills: string[]): Promise<{
+  async deepseekSkillAnalysis(skills: string[]): Promise<{
     analysis: string;
     strengths: string[];
     improvement_areas: string[];
     market_insights: string[];
   }> {
-    return await apiClient.post('/gemini/analyze-skills', { skills });
+    return await apiClient.post('/deepseek/analyze-skills', { skills });
   }
 
-  async geminiCareerAdvice(profile: any): Promise<{
+  async deepseekCareerAdvice(profile: any): Promise<{
     advice: string;
     action_items: string[];
     resources: string[];
   }> {
-    return await apiClient.post('/gemini/career-advice', { profile });
+    return await apiClient.post('/deepseek/career-advice', { profile });
   }
 
   // Chat with AI assistant
@@ -160,7 +160,7 @@ class AIService {
   }> {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     return await apiClient.post('/ai/upload-and-parse-cv', formData);
   }
 

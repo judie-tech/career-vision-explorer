@@ -12,18 +12,33 @@ export const ProtectedRoute = ({
   children,
   requiredRole,
 }: ProtectedRouteProps) => {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, profile, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
+  const normalizeRole = (role?: string) => {
+    if (!role) return "";
+    const normalized = role.trim().toLowerCase().replace(/[-\s]+/g, "_");
+    if (normalized === "jobseeker") return "job_seeker";
+    return normalized;
+  };
+  const getDashboardPath = (role?: string) => {
+    const normalizedRole = normalizeRole(role);
+    if (normalizedRole === "admin") return "/admin/dashboard";
+    if (normalizedRole === "employer") return "/employer/dashboard";
+    if (normalizedRole === "freelancer") return "/freelancer/dashboard";
+    if (normalizedRole === "job_seeker") return "/jobseeker/dashboard";
+    return "/dashboard";
+  };
+  const effectiveRole = normalizeRole(profile?.active_role || user?.account_type);
 
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated) {
         navigate("/login", { replace: true });
-      } else if (requiredRole && user?.account_type !== requiredRole) {
-        navigate("/", { replace: true });
+      } else if (requiredRole && effectiveRole !== requiredRole) {
+        navigate(getDashboardPath(effectiveRole), { replace: true });
       }
     }
-  }, [isAuthenticated, isLoading, user, requiredRole, navigate]);
+  }, [isAuthenticated, isLoading, requiredRole, navigate, effectiveRole]);
 
   if (isLoading) {
     return (
@@ -35,7 +50,7 @@ export const ProtectedRoute = ({
 
   if (
     !isAuthenticated ||
-    (requiredRole && user?.account_type !== requiredRole)
+    (requiredRole && effectiveRole !== requiredRole)
   ) {
     return null;
   }

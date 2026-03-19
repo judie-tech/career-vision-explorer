@@ -1,7 +1,7 @@
 import { jobsService } from './jobs.service';
 import { profileService } from './profile.service';
 import { aiJobMatchingService } from './ai-job-matching.service';
-import { geminiService } from './gemini.service';
+import { deepseekService } from './deepseek.service';
 
 export interface JobMatch {
   id: string;
@@ -50,7 +50,7 @@ export interface MarketInsight {
 }
 
 class JobMatchingService {
-  
+
   /**
    * Calculate skill-based match score between user and job
    */
@@ -61,37 +61,37 @@ class JobMatchingService {
     overlap: number;
   } {
     if (!jobSkills.length) return { score: 0, matchedSkills: [], missingSkills: [], overlap: 0 };
-    
+
     // Normalize skills for better matching (case-insensitive, trim spaces)
     const normalizedUserSkills = userSkills.map(skill => skill.toLowerCase().trim());
     const normalizedJobSkills = jobSkills.map(skill => skill.toLowerCase().trim());
-    
+
     // Find exact matches
-    const exactMatches = normalizedJobSkills.filter(jobSkill => 
+    const exactMatches = normalizedJobSkills.filter(jobSkill =>
       normalizedUserSkills.includes(jobSkill)
     );
-    
+
     // Find partial matches (e.g., "React" matches "React.js")
-    const partialMatches = normalizedJobSkills.filter(jobSkill => 
+    const partialMatches = normalizedJobSkills.filter(jobSkill =>
       !exactMatches.includes(jobSkill) &&
-      normalizedUserSkills.some(userSkill => 
+      normalizedUserSkills.some(userSkill =>
         userSkill.includes(jobSkill) || jobSkill.includes(userSkill)
       )
     );
-    
+
     const totalMatches = exactMatches.length + (partialMatches.length * 0.7); // Partial matches count as 70%
     const matchPercentage = (totalMatches / normalizedJobSkills.length) * 100;
-    
+
     // Get original case skills for display
-    const matchedSkills = jobSkills.filter(jobSkill => 
+    const matchedSkills = jobSkills.filter(jobSkill =>
       exactMatches.includes(jobSkill.toLowerCase().trim()) ||
       partialMatches.includes(jobSkill.toLowerCase().trim())
     );
-    
-    const missingSkills = jobSkills.filter(jobSkill => 
+
+    const missingSkills = jobSkills.filter(jobSkill =>
       !matchedSkills.some(matched => matched.toLowerCase().trim() === jobSkill.toLowerCase().trim())
     );
-    
+
     return {
       score: Math.round(Math.min(matchPercentage, 100)),
       matchedSkills,
@@ -108,7 +108,7 @@ class JobMatchingService {
       // Get user profile and skills
       const userProfile = await profileService.getProfile();
       const userSkills = userProfile.skills || [];
-      
+
       // Get all active job listings
       const jobsResponse = await jobsService.getJobs({
         is_active: true,
@@ -117,40 +117,40 @@ class JobMatchingService {
         sort_by: 'created_at',
         sort_order: 'desc'
       });
-      
+
       const jobs = jobsResponse.jobs || [];
-      
+
       if (!jobs.length) {
         // Return analysis with mock data if no real jobs
         return this.getMockMarketAnalysis();
       }
-      
+
       // Calculate matches for each job with AI enhancement
       const jobMatches: JobMatch[] = await this.calculateEnhancedJobMatches(userProfile, jobs);
-      
+
       // Calculate market statistics
-      const averageMatchScore = jobMatches.length > 0 
+      const averageMatchScore = jobMatches.length > 0
         ? Math.round(jobMatches.reduce((sum, job) => sum + job.matchScore, 0) / jobMatches.length)
         : 0;
-      
+
       // Get top 10 matches
       const topMatches = jobMatches
         .sort((a, b) => b.matchScore - a.matchScore)
         .slice(0, 10);
-      
+
       // Analyze skill demand across all jobs
       const skillDemand = this.analyzeSkillDemand(jobs);
-      
+
       // Generate AI-powered market insights
       const marketInsights = await this.generateAIMarketInsights(userProfile, jobMatches, skillDemand);
-      
+
       // Count unique skills in market
       const allMarketSkills = new Set();
       jobs.forEach(job => {
         const skills = job.skills_required || job.skills || [];
         skills.forEach(skill => allMarketSkills.add(skill.toLowerCase().trim()));
       });
-      
+
       return {
         totalJobs: jobs.length,
         averageMatchScore,
@@ -160,7 +160,7 @@ class JobMatchingService {
         userSkillsCount: userSkills.length,
         marketSkillsCount: allMarketSkills.size
       };
-      
+
     } catch (error) {
       console.error('Error analyzing job market:', error);
       // Return mock data as fallback
@@ -173,7 +173,7 @@ class JobMatchingService {
    */
   private analyzeSkillDemand(jobs: any[]): SkillDemandData[] {
     const skillCounts = new Map<string, number>();
-    
+
     jobs.forEach(job => {
       const skills = job.skills_required || job.skills || [];
       skills.forEach(skill => {
@@ -181,9 +181,9 @@ class JobMatchingService {
         skillCounts.set(normalizedSkill, (skillCounts.get(normalizedSkill) || 0) + 1);
       });
     });
-    
+
     const totalJobs = jobs.length;
-    
+
     return Array.from(skillCounts.entries())
       .map(([skill, count]) => ({
         skill: skill.charAt(0).toUpperCase() + skill.slice(1), // Capitalize
@@ -198,13 +198,13 @@ class JobMatchingService {
    * Generate actionable market insights
    */
   private generateMarketInsights(
-    userSkills: string[], 
-    jobMatches: JobMatch[], 
+    userSkills: string[],
+    jobMatches: JobMatch[],
     skillDemand: SkillDemandData[]
   ): MarketInsight[] {
     const insights: MarketInsight[] = [];
-    const averageScore = jobMatches.length > 0 
-      ? jobMatches.reduce((sum, job) => sum + job.matchScore, 0) / jobMatches.length 
+    const averageScore = jobMatches.length > 0
+      ? jobMatches.reduce((sum, job) => sum + job.matchScore, 0) / jobMatches.length
       : 0;
 
     // Strength analysis
@@ -221,7 +221,7 @@ class JobMatchingService {
     // Opportunity analysis
     const highDemandSkills = skillDemand.slice(0, 5);
     const userSkillsLower = userSkills.map(s => s.toLowerCase());
-    const missingHighDemandSkills = highDemandSkills.filter(skill => 
+    const missingHighDemandSkills = highDemandSkills.filter(skill =>
       !userSkillsLower.includes(skill.skill.toLowerCase())
     );
 
@@ -247,7 +247,7 @@ class JobMatchingService {
     }
 
     // Trend analysis
-    const topSkillsYouHave = userSkills.filter(userSkill => 
+    const topSkillsYouHave = userSkills.filter(userSkill =>
       skillDemand.some(demand => demand.skill.toLowerCase() === userSkill.toLowerCase())
     );
 
@@ -307,11 +307,11 @@ class JobMatchingService {
    */
   private calculateBasicJobMatches(userProfile: any, jobs: any[]): JobMatch[] {
     const userSkills = userProfile.skills || [];
-    
+
     return jobs.map(job => {
       const jobSkills = job.skills_required || job.skills || [];
       const matchData = this.calculateMatchScore(userSkills, jobSkills);
-      
+
       return {
         id: job.id,
         title: job.title,
@@ -341,8 +341,8 @@ class JobMatchingService {
   ): Promise<MarketInsight[]> {
     try {
       const userSkills = userProfile.skills || [];
-      const averageScore = jobMatches.length > 0 
-        ? jobMatches.reduce((sum, job) => sum + job.matchScore, 0) / jobMatches.length 
+      const averageScore = jobMatches.length > 0
+        ? jobMatches.reduce((sum, job) => sum + job.matchScore, 0) / jobMatches.length
         : 0;
 
       const prompt = `
@@ -374,8 +374,8 @@ class JobMatchingService {
         Focus on practical, actionable advice for career advancement.
       `;
 
-      const response = await geminiService.generateText(prompt);
-      
+      const response = await deepseekService.generateText(prompt);
+
       if (response.status === 'success') {
         try {
           const aiInsights = JSON.parse(response.response);
@@ -411,13 +411,13 @@ class JobMatchingService {
     }
 
     if (filters?.location) {
-      matches = matches.filter(job => 
+      matches = matches.filter(job =>
         job.location.toLowerCase().includes(filters.location!.toLowerCase())
       );
     }
 
     if (filters?.jobType) {
-      matches = matches.filter(job => 
+      matches = matches.filter(job =>
         job.type.toLowerCase() === filters.jobType!.toLowerCase()
       );
     }

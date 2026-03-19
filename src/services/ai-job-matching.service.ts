@@ -1,4 +1,4 @@
-import { geminiService } from './gemini.service';
+import { deepseekService } from './deepseek.service';
 import { profileService } from './profile.service';
 import { jobsService } from './jobs.service';
 import { Job, Profile } from '../types/api';
@@ -63,7 +63,7 @@ class AIJobMatchingService {
   private readonly CIRCUIT_BREAKER_TIMEOUT = 60000; // 1 minute
   private readonly MAX_CONCURRENT_REQUESTS = 2;
   private activeRequests = 0;
-  
+
   private isCircuitOpen(): boolean {
     const now = Date.now();
     if (this.failureCount >= this.CIRCUIT_BREAKER_THRESHOLD) {
@@ -101,9 +101,9 @@ class AIJobMatchingService {
       this.activeRequests--;
     }
   }
-  
+
   /**
-   * Enhanced AI-powered job matching using Gemini
+   * Enhanced AI-powered job matching using DeepSeek
    */
   async matchJobsWithAI(
     userProfile?: Profile,
@@ -127,7 +127,7 @@ class AIJobMatchingService {
       try {
         // Get user profile if not provided
         const profile = userProfile || await profileService.getProfile();
-        
+
         // Get available jobs (reduced limit to prevent overload)
         const jobsResponse = await jobsService.getJobs({
           is_active: true,
@@ -142,17 +142,17 @@ class AIJobMatchingService {
 
         // Build comprehensive profile context for AI
         const profileContext = this.buildProfileContext(profile);
-        
+
         // Process jobs in smaller batches for AI analysis
         const batchSize = 3; // Reduced from 10 to prevent timeouts
         const allMatches: EnhancedJobMatch[] = [];
-        
+
         for (let i = 0; i < Math.min(jobs.length, 10); i += batchSize) { // Limit total jobs processed
           const jobBatch = jobs.slice(i, i + batchSize);
           try {
             const batchMatches = await this.analyzeJobBatch(profileContext, jobBatch, preferences);
             allMatches.push(...batchMatches);
-            
+
             // Add delay between batches to prevent API throttling
             if (i + batchSize < jobs.length) {
               await new Promise(resolve => setTimeout(resolve, 1000));
@@ -165,13 +165,13 @@ class AIJobMatchingService {
 
         // Sort by overall AI score and apply preferences
         const result = this.filterAndSortMatches(allMatches, preferences);
-        
+
         // Cache the successful result
         jobsService.cacheAIResult(cacheKey, result);
-        
+
         this.recordSuccess();
         return result;
-        
+
       } catch (error) {
         console.error('AI job matching failed:', error);
         this.recordFailure();
@@ -191,16 +191,16 @@ class AIJobMatchingService {
     try {
       const profile = userProfile || await profileService.getProfile();
       const job = await jobsService.getJobById(jobId);
-      
+
       if (!job) {
         return null;
       }
 
       const profileContext = this.buildProfileContext(profile);
       const matches = await this.analyzeJobBatch(profileContext, [job]);
-      
+
       return matches[0] || null;
-      
+
     } catch (error) {
       console.error('Job match analysis failed:', error);
       return null;
@@ -221,7 +221,7 @@ class AIJobMatchingService {
     try {
       const profile = userProfile || await profileService.getProfile();
       const profileContext = this.buildProfileContext(profile);
-      
+
       const prompt = `
         Based on this comprehensive user profile, provide personalized career recommendations:
         
@@ -244,20 +244,20 @@ class AIJobMatchingService {
         Be specific, actionable, and realistic based on their current profile and market conditions.
       `;
 
-      const response = await geminiService.generateText(prompt);
-      
+      const response = await deepseekService.generateText(prompt);
+
       if (response.status === 'success') {
         try {
           // Clean the response to handle markdown code blocks
           let cleanResponse = response.response.trim();
-          
+
           // Remove markdown code blocks if present
           if (cleanResponse.startsWith('```json')) {
             cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
           } else if (cleanResponse.startsWith('```')) {
             cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
           }
-          
+
           const recommendations = JSON.parse(cleanResponse);
           return recommendations;
         } catch (parseError) {
@@ -266,9 +266,9 @@ class AIJobMatchingService {
           return this.getFallbackCareerRecommendations();
         }
       }
-      
+
       return this.getFallbackCareerRecommendations();
-      
+
     } catch (error) {
       console.error('Career recommendations failed:', error);
       return this.getFallbackCareerRecommendations();
@@ -399,27 +399,27 @@ class AIJobMatchingService {
         Provide honest, realistic assessments. Include both positive aspects and areas for improvement.
       `;
 
-      const response = await geminiService.generateText(prompt);
-      
+      const response = await deepseekService.generateText(prompt);
+
       if (response.status === 'success') {
         try {
           // Clean the response to handle markdown code blocks and comments
           let cleanResponse = response.response.trim();
-          
+
           // Remove markdown code blocks if present
           if (cleanResponse.startsWith('```json')) {
             cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
           } else if (cleanResponse.startsWith('```')) {
             cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
           }
-          
+
           // Remove JavaScript-style comments that break JSON parsing
           cleanResponse = cleanResponse
             .replace(/\/\/.*$/gm, '')  // Remove single-line comments
             .replace(/\/\*[\s\S]*?\*\//g, '')  // Remove multi-line comments
             .replace(/,\s*}/g, '}')  // Remove trailing commas before closing braces
             .replace(/,\s*]/g, ']');  // Remove trailing commas before closing brackets
-          
+
           const analysis = JSON.parse(cleanResponse);
           return this.transformAIAnalysisToJobMatches(analysis.job_matches, jobs);
         } catch (parseError) {
@@ -428,9 +428,9 @@ class AIJobMatchingService {
           return this.createBasicMatches(jobs);
         }
       }
-      
+
       return this.createBasicMatches(jobs);
-      
+
     } catch (error) {
       console.error('AI job analysis failed:', error);
       return this.createBasicMatches(jobs);
@@ -495,8 +495,8 @@ class AIJobMatchingService {
     }
 
     if (preferences?.include_remote_only) {
-      filtered = filtered.filter(match => 
-        match.location.toLowerCase().includes('remote') || 
+      filtered = filtered.filter(match =>
+        match.location.toLowerCase().includes('remote') ||
         match.type.toLowerCase().includes('remote')
       );
     }
@@ -517,16 +517,16 @@ class AIJobMatchingService {
    */
   private formatWorkExperience(workExp?: any[]): string {
     if (!workExp || workExp.length === 0) return 'No work experience listed';
-    
-    return workExp.map(exp => 
+
+    return workExp.map(exp =>
       `${exp.position} at ${exp.company} (${exp.duration}): ${exp.description}`
     ).join('; ');
   }
 
   private formatProjects(projects?: any[]): string {
     if (!projects || projects.length === 0) return 'No projects listed';
-    
-    return projects.map(project => 
+
+    return projects.map(project =>
       `${project.name}: ${project.description} (Tech: ${project.tech_stack?.join(', ') || 'Not specified'})`
     ).join('; ');
   }

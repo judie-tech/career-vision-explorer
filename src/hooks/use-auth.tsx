@@ -209,8 +209,10 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const hasRole = (role: "job_seeker" | "employer" | "admin" | "freelancer") =>
-    user?.account_type === role;
+  const hasRole = (role: "job_seeker" | "employer" | "admin" | "freelancer") => {
+    const effectiveRole = (profile?.active_role as User["account_type"] | undefined) || user?.account_type;
+    return effectiveRole === role;
+  };
 
   const isAdmin = () => hasRole("admin");
   const isEmployer = () => hasRole("employer");
@@ -274,6 +276,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const signInWithLinkedIn = async () => {
     try {
       setIsLoading(true);
+      localStorage.setItem("oauth_account_type", "job_seeker");
       await authService.signInWithLinkedIn();
     } catch (error: any) {
       console.error("LinkedIn sign-in error:", error);
