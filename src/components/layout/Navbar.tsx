@@ -132,6 +132,18 @@ const Navbar = () => {
               <>
                 <NotificationDropdown />
 
+                {isJobSeekerUser && (
+                  <Link
+                    to="/jobs"
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive("/jobs")
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                  >
+                    Jobs
+                  </Link>
+                )}
+
                 {isFreelancerUser &&
                   freelancerNavItems.map((item) => (
                     <Link
