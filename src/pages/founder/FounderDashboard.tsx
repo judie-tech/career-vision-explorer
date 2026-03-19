@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   Check,
   MessageCircle,
-  Bell,
   Sparkles,
   Heart,
   X,
@@ -421,155 +420,140 @@ const FounderDashboard = () => {
 
     return (
       <div className="space-y-6">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-3 gap-4">
-          <Card className="text-center">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-blue-600">
-                {stats.total_views || 0}
-              </div>
-              <div className="text-sm text-slate-500">Profile Views</div>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-indigo-600">
-                {stats.total_matches || 0}
-              </div>
-              <div className="text-sm text-slate-500">Connections</div>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-purple-600">
-                {stats.pending_matches || 0}
-              </div>
-              <div className="text-sm text-slate-500">Interested in You</div>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Main Profile Card */}
-        <Card className="overflow-hidden border border-slate-200 shadow-lg hover:shadow-xl transition-shadow">
-          <div className="relative h-80 bg-gradient-to-br from-blue-50 to-indigo-50">
-            {/* Profile photo carousel or placeholder */}
-            <div className="absolute inset-0">
-              {matchedProfile.photo_urls &&
-              matchedProfile.photo_urls.length > 0 ? (
-                <div className="relative w-full h-full">
-                  <img
-                    src={matchedProfile.photo_urls[currentPhotoIndex]}
-                    alt={`${matchedProfile.name} - Photo ${currentPhotoIndex + 1}`}
-                    className="w-full h-full object-cover"
-                  />
+        <Card className="overflow-hidden mx-auto max-w-[850px] border border-slate-200 shadow-lg hover:shadow-xl transition-shadow flex flex-col h-auto min-h-[500px]">
+          <div className="flex flex-col sm:flex-row border-b border-slate-100 bg-white">
+            <div className="relative w-full sm:w-[45%] h-80 sm:h-[450px] shrink-0 bg-gradient-to-br from-blue-50 to-indigo-50">
+              {/* Profile photo carousel or placeholder */}
+              <div className="absolute inset-0">
+                {matchedProfile.photo_urls &&
+                  matchedProfile.photo_urls.length > 0 ? (
+                  <div className="relative w-full h-full">
+                    <img
+                      src={matchedProfile.photo_urls[currentPhotoIndex]}
+                      alt={`${matchedProfile.name} - Photo ${currentPhotoIndex + 1}`}
+                      className="w-full h-full object-cover"
+                    />
 
-                  {/* Photo navigation dots */}
-                  {matchedProfile.photo_urls.length > 1 && (
-                    <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
-                      {matchedProfile.photo_urls.map((_, idx) => (
-                        <button
-                          key={idx}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setCurrentPhotoIndex(idx);
-                          }}
-                          className={`h-2 rounded-full transition-all ${
-                            idx === currentPhotoIndex
+                    {/* Photo navigation dots */}
+                    {matchedProfile.photo_urls.length > 1 && (
+                      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+                        {matchedProfile.photo_urls.map((_, idx) => (
+                          <button
+                            key={idx}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCurrentPhotoIndex(idx);
+                            }}
+                            aria-label={`View photo ${idx + 1} of ${matchedProfile.photo_urls!.length}`}
+                            aria-current={idx === currentPhotoIndex ? "true" : undefined}
+                            className={`h-2 rounded-full transition-all ${idx === currentPhotoIndex
                               ? "bg-white w-6"
                               : "bg-white/50 w-2"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  )}
+                              }`}
+                          />
+                        ))}
+                      </div>
+                    )}
 
-                  {/* Left/Right nav arrows */}
-                  {matchedProfile.photo_urls.length > 1 && (
-                    <>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCurrentPhotoIndex((prev) =>
-                            prev > 0
-                              ? prev - 1
-                              : matchedProfile.photo_urls!.length - 1,
-                          );
-                        }}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 rounded-full p-2 transition-colors z-10"
-                      >
-                        <ChevronLeft className="h-6 w-6 text-white" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCurrentPhotoIndex(
-                            (prev) =>
-                              (prev + 1) % matchedProfile.photo_urls!.length,
-                          );
-                        }}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 rounded-full p-2 transition-colors z-10"
-                      >
-                        <ChevronRight className="h-6 w-6 text-white" />
-                      </button>
-                    </>
-                  )}
-                </div>
-              ) : matchedProfile.profile_image_url ? (
-                <div className="w-full h-full flex items-center justify-center">
-                  <img
-                    src={matchedProfile.profile_image_url}
-                    alt={matchedProfile.name}
-                    className="h-40 w-40 rounded-full object-cover border-4 border-white shadow-lg"
-                  />
-                </div>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="h-40 w-40 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
-                    <Users className="h-20 w-20 text-blue-400" />
+                    {/* Left/Right nav arrows */}
+                    {matchedProfile.photo_urls.length > 1 && (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCurrentPhotoIndex((prev) =>
+                              prev > 0
+                                ? prev - 1
+                                : matchedProfile.photo_urls!.length - 1,
+                            );
+                          }}
+                          aria-label="Previous photo"
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 rounded-full p-2 transition-colors z-10"
+                        >
+                          <ChevronLeft className="h-6 w-6 text-white" aria-hidden="true" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCurrentPhotoIndex(
+                              (prev) =>
+                                (prev + 1) % matchedProfile.photo_urls!.length,
+                            );
+                          }}
+                          aria-label="Next photo"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 rounded-full p-2 transition-colors z-10"
+                        >
+                          <ChevronRight className="h-6 w-6 text-white" aria-hidden="true" />
+                        </button>
+                      </>
+                    )}
                   </div>
-                </div>
-              )}
+                ) : matchedProfile.profile_image_url ? (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <img
+                      src={matchedProfile.profile_image_url}
+                      alt={matchedProfile.name}
+                      className="h-40 w-40 rounded-full object-cover border-4 border-white shadow-lg"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="h-40 w-40 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                      <Users className="h-20 w-20 text-blue-400" />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Match Score Badge - Clickable */}
+              <Badge
+                role="button"
+                tabIndex={0}
+                aria-label={`Match score: ${Math.round(currentMatch.overall_score * 100)}%. Click to see score breakdown.`}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowScoreModal(true); } }}
+                className="absolute top-4 right-4 px-4 py-2 font-semibold shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-base cursor-pointer hover:scale-105 transition-transform z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
+                onClick={() => setShowScoreModal(true)}
+              >
+                {Math.round(currentMatch.overall_score * 100)}% Match
+              </Badge>
+
+              {/* View Profile Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-4 left-4 bg-white/80 hover:bg-white"
+                onClick={() =>
+                  handleViewProfile(
+                    matchedProfile.profile_id || matchedProfile.id,
+                  )
+                }
+              >
+                View Full Profile
+              </Button>
             </div>
+            {/* End of Left Side (Photo) */}
 
-            {/* Match Score Badge - Clickable */}
-            <Badge
-              className="absolute top-4 right-4 px-4 py-2 font-semibold shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-base cursor-pointer hover:scale-105 transition-transform z-10"
-              onClick={() => setShowScoreModal(true)}
-            >
-              {Math.round(currentMatch.overall_score * 100)}% Match
-            </Badge>
-
-            {/* View Profile Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute top-4 left-4 bg-white/80 hover:bg-white"
-              onClick={() =>
-                handleViewProfile(
-                  matchedProfile.profile_id || matchedProfile.id,
-                )
-              }
-            >
-              View Full Profile
-            </Button>
-          </div>
-
-          <CardContent className="p-6">
-            {/* Name and Role */}
-            <div className="mb-6">
-              <h2 className="text-3xl font-bold text-slate-900">
-                {matchedProfile.name},{" "}
-                <span className="text-slate-600">
-                  {matchedProfile.years_experience} years
-                </span>
-              </h2>
-              <div className="flex items-center gap-2 mt-2">
-                <Briefcase className="h-6 w-6 text-blue-500" />
-                <span className="text-xl font-medium text-slate-700">
-                  {matchedProfile.current_role}
-                </span>
+            {/* Right Side: Name and Role */}
+            <div className="p-4 sm:p-6 flex-1 flex flex-col justify-center bg-zinc-50 border-l border-slate-100">
+              <div className="mb-0">
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">
+                  {matchedProfile.name},{" "}
+                  <span className="text-slate-600">
+                    {matchedProfile.years_experience} years
+                  </span>
+                </h2>
+                <div className="flex items-center gap-2 mt-3">
+                  <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
+                  <span className="text-lg sm:text-xl font-medium text-slate-700">
+                    {matchedProfile.current_role}
+                  </span>
+                </div>
               </div>
             </div>
+          </div> {/* End Flex Row Split */}
+
+          <CardContent className="p-6 flex-1">
 
             {/* Bio */}
             <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
@@ -689,27 +673,29 @@ const FounderDashboard = () => {
           <Button
             size="lg"
             variant="outline"
+            aria-label="Pass on this co-founder"
             className="h-16 w-16 rounded-full border-2 border-slate-300 hover:bg-slate-50 shadow-lg"
             onClick={handleSwipeLeft}
             disabled={swiping}
           >
             {swiping ? (
-              <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+              <Loader2 className="h-8 w-8 animate-spin text-slate-400" aria-hidden="true" />
             ) : (
-              <X className="h-8 w-8 text-slate-500" />
+              <X className="h-8 w-8 text-slate-500" aria-hidden="true" />
             )}
           </Button>
 
           <Button
             size="lg"
+            aria-label="Connect with this co-founder"
             className="h-16 w-16 rounded-full shadow-lg bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
             onClick={handleSwipeRight}
             disabled={swiping}
           >
             {swiping ? (
-              <Loader2 className="h-8 w-8 animate-spin" />
+              <Loader2 className="h-8 w-8 animate-spin" aria-hidden="true" />
             ) : (
-              <Check className="h-8 w-8" />
+              <Check className="h-8 w-8" aria-hidden="true" />
             )}
           </Button>
         </div>
@@ -748,7 +734,7 @@ const FounderDashboard = () => {
         <div
           className={cn(
             "mx-auto p-4 md:p-6",
-            activeTab === "messages" ? "max-w-7xl" : "max-w-4xl",
+            activeTab === "messages" ? "max-w-[100rem]" : "max-w-6xl",
           )}
         >
           {/* Header */}
@@ -803,21 +789,35 @@ const FounderDashboard = () => {
                 </Button>
               )}
 
-              {/* Notification Bell */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative"
-                onClick={() => setActiveTab("interests")}
-              >
-                <Bell className="h-5 w-5 md:h-6 md:w-6 text-slate-700" />
-                {pendingCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 md:h-5 md:w-5 rounded-full bg-blue-600 text-white text-[10px] md:text-xs flex items-center justify-center">
-                    {pendingCount}
-                  </span>
-                )}
-              </Button>
             </div>
+          </div>
+
+          {/* Stats Overview */}
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <Card className="text-center">
+              <CardContent className="p-3 sm:p-4">
+                <div className="text-xl sm:text-2xl font-bold text-blue-600">
+                  {stats.total_views || 0}
+                </div>
+                <div className="text-xs sm:text-sm text-slate-500">Profile Views</div>
+              </CardContent>
+            </Card>
+            <Card className="text-center">
+              <CardContent className="p-3 sm:p-4">
+                <div className="text-xl sm:text-2xl font-bold text-indigo-600">
+                  {stats.total_matches || 0}
+                </div>
+                <div className="text-xs sm:text-sm text-slate-500">Connections</div>
+              </CardContent>
+            </Card>
+            <Card className="text-center">
+              <CardContent className="p-3 sm:p-4">
+                <div className="text-xl sm:text-2xl font-bold text-purple-600">
+                  {stats.pending_matches || 0}
+                </div>
+                <div className="text-xs sm:text-sm text-slate-500">Interested</div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Main Content */}
@@ -827,38 +827,40 @@ const FounderDashboard = () => {
             className="w-full"
           >
             {/* Navigation */}
-            <div className="md:mb-6">
-              <TabsList className="w-full md:w-auto grid grid-cols-4 md:grid-cols-4 md:inline-flex">
+            <div className="mb-4">
+              <TabsList className="w-full grid grid-cols-4 h-auto">
                 <TabsTrigger
                   value="discover"
-                  className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-2 data-[state=active]:text-blue-600"
+                  className="flex flex-col items-center gap-1 py-2.5 data-[state=active]:text-blue-600"
                 >
-                  <Sparkles className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="text-xs md:text-sm">Discover</span>
+                  <Sparkles className="h-4 w-4" />
+                  <span className="text-[11px] leading-tight">Discover</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="interests"
-                  className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-2 relative data-[state=active]:text-blue-600"
+                  className="flex flex-col items-center gap-1 py-2.5 relative data-[state=active]:text-blue-600"
                 >
-                  <Heart className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="text-xs md:text-sm">Interests</span>
-                  {pendingCount > 0 && (
-                    <span className="absolute top-2 md:top-1 right-8 md:right-1 h-2 w-2 rounded-full bg-pink-600" />
-                  )}
+                  <div className="relative">
+                    <Heart className="h-4 w-4" />
+                    {pendingCount > 0 && (
+                      <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-pink-600" />
+                    )}
+                  </div>
+                  <span className="text-[11px] leading-tight">Interests</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="matches"
-                  className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-2 data-[state=active]:text-blue-600"
+                  className="flex flex-col items-center gap-1 py-2.5 data-[state=active]:text-blue-600"
                 >
-                  <Users className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="text-xs md:text-sm">Matches</span>
+                  <Users className="h-4 w-4" />
+                  <span className="text-[11px] leading-tight">Matches</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="messages"
-                  className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-3 md:py-2 data-[state=active]:text-blue-600"
+                  className="flex flex-col items-center gap-1 py-2.5 data-[state=active]:text-blue-600"
                 >
-                  <MessageCircle className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="text-xs md:text-sm">Messages</span>
+                  <MessageCircle className="h-4 w-4" />
+                  <span className="text-[11px] leading-tight">Messages</span>
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -973,3 +975,6 @@ const FounderDashboard = () => {
 };
 
 export default FounderDashboard;
+
+
+

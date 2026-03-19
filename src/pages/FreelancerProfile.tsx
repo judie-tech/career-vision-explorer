@@ -20,16 +20,21 @@ import { Freelancer } from "@/types/freelancer";
 import { toast } from "sonner";
 import Layout from "@/components/layout/Layout";
 import { ContactDialog } from "@/components/freelancer/ContactDialog";
+import { PricingDialog } from "@/components/freelancer/PricingDialog";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function FreelancerProfile() {
   const { freelancerId } = useParams<{ freelancerId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [freelancer, setFreelancer] = useState<Freelancer | null>(null);
   const [loading, setLoading] = useState(true);
+  const [portfolioActionLoading, setPortfolioActionLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<
     "portfolio" | "pricing" | "reviews"
   >("portfolio");
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [pricingDialogOpen, setPricingDialogOpen] = useState(false);
   const [selectedPackageForContact, setSelectedPackageForContact] = useState<
     string | undefined
   >();
@@ -108,6 +113,57 @@ export default function FreelancerProfile() {
   const openContactDialog = (packageType?: string) => {
     setSelectedPackageForContact(packageType);
     setContactDialogOpen(true);
+  };
+
+  const isOwnFreelancerProfile =
+    !!user?.user_id && !!freelancer?.user_id && user.user_id === freelancer.user_id;
+
+  const reviews = ((freelancer as any)?.reviews ||
+    (freelancer as any)?.recent_reviews || []) as Array<{
+      id?: string;
+      reviewer_name?: string;
+      rating?: number;
+      comment?: string;
+      created_at?: string;
+      project_title?: string;
+    }>;
+
+  const uniqueSkills = Array.from(
+    new Set((freelancer?.skills || []).map((skill) => (skill || "").trim()).filter(Boolean))
+  );
+
+  const handlePortfolioSync = async () => {
+    if (!freelancer?.freelancer_id) return;
+    setPortfolioActionLoading(true);
+    try {
+      const result = await freelancerService.syncPortfolio(freelancer.freelancer_id);
+      toast.success(result.message || "Portfolio synced successfully.");
+      await loadFreelancer();
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to sync portfolio.");
+    } finally {
+      setPortfolioActionLoading(false);
+    }
+  };
+
+  const handleEnhancePortfolioImages = async () => {
+    if (!freelancer?.freelancer_id) return;
+    setPortfolioActionLoading(true);
+    try {
+      const result = await freelancerService.enhancePortfolioImages(freelancer.freelancer_id);
+      toast.success(result.message || "Portfolio images enhanced.");
+      await loadFreelancer();
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to enhance portfolio images.");
+    } finally {
+      setPortfolioActionLoading(false);
+    }
+  };
+
+  const handleSavePricing = async (pricingData: any) => {
+    if (!freelancer?.freelancer_id) return;
+    await freelancerService.updateFreelancerPricing(freelancer.freelancer_id, pricingData);
+    await loadFreelancer();
   };
 
   if (loading) {
@@ -193,19 +249,25 @@ export default function FreelancerProfile() {
                     </p>
                   </div>
 
-                  {/* Only Contact button (Schedule Interview removed) */}
+                  {/* CTA */}
                   <div className="flex gap-3">
-                    <Button size="lg" onClick={() => openContactDialog()}>
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Contact
-                    </Button>
+                    {isOwnFreelancerProfile ? (
+                      <Button size="lg" onClick={() => navigate("/freelancer/edit-profile")}>
+                        Edit Profile
+                      </Button>
+                    ) : (
+                      <Button size="lg" onClick={() => openContactDialog()}>
+                        <MessageSquare className="w-4 h-4 mr-2" />
+                        Contact
+                      </Button>
+                    )}
                   </div>
                 </div>
 
                 {/* Skills */}
-                {freelancer.skills && freelancer.skills.length > 0 && (
+                {uniqueSkills.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-6">
-                    {freelancer.skills.slice(0, 4).map((skill, index) => (
+                    {uniqueSkills.slice(0, 4).map((skill, index) => (
                       <Badge
                         key={index}
                         variant="secondary"
@@ -214,12 +276,12 @@ export default function FreelancerProfile() {
                         {skill}
                       </Badge>
                     ))}
-                    {freelancer.skills.length > 4 && (
+                    {uniqueSkills.length > 4 && (
                       <Badge
                         variant="outline"
                         className="px-3 py-1 text-gray-500"
                       >
-                        +{freelancer.skills.length - 4} more
+                        +{uniqueSkills.length - 4} more
                       </Badge>
                     )}
                   </div>
@@ -247,8 +309,26 @@ export default function FreelancerProfile() {
 
             {/* Portfolio Tab */}
             <TabsContent value="portfolio" className="mt-0">
+              {isOwnFreelancerProfile && (
+                <div className="flex flex-wrap items-center gap-3 mb-6">
+                  <Button
+                    variant="outline"
+                    onClick={handlePortfolioSync}
+                    disabled={portfolioActionLoading}
+                  >
+                    Sync Portfolio
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleEnhancePortfolioImages}
+                    disabled={portfolioActionLoading}
+                  >
+                    Enhance Images
+                  </Button>
+                </div>
+              )}
               {freelancer.portfolio_items &&
-              freelancer.portfolio_items.length > 0 ? (
+                freelancer.portfolio_items.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {freelancer.portfolio_items.map((item) => (
                     <Card
@@ -307,6 +387,21 @@ export default function FreelancerProfile() {
 
             {/* Pricing Tab */}
             <TabsContent value="pricing" className="mt-0">
+              <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div className="text-gray-700 dark:text-gray-300">
+                  <span className="text-sm uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Hourly Rate
+                  </span>
+                  <div className="text-3xl font-bold mt-1">
+                    {freelancer.hourly_rate ? `$${freelancer.hourly_rate}/hr` : "Not set"}
+                  </div>
+                </div>
+                {isOwnFreelancerProfile && (
+                  <Button onClick={() => setPricingDialogOpen(true)}>
+                    Manage Pricing
+                  </Button>
+                )}
+              </div>
               {freelancer.pricing ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Basic Package */}
@@ -490,17 +585,71 @@ export default function FreelancerProfile() {
 
             {/* Reviews Tab */}
             <TabsContent value="reviews" className="mt-0">
-              <Card className="p-12 text-center">
-                <Star className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No reviews yet</h3>
-                <p className="text-gray-500">
-                  This freelancer hasn't received any reviews yet.
-                </p>
-              </Card>
+              <div className="space-y-6">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Star className="w-5 h-5 text-yellow-500 fill-current" />
+                        <span className="text-2xl font-bold">
+                          {freelancer.rating?.toFixed(1) || "0.0"}
+                        </span>
+                        <span className="text-gray-500">
+                          ({freelancer.total_reviews || 0} reviews)
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {reviews.length > 0 ? (
+                  <div className="space-y-4">
+                    {reviews.map((review, index) => (
+                      <Card key={review.id || `${review.reviewer_name || "review"}-${index}`}>
+                        <CardContent className="pt-6 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="font-semibold">
+                              {review.reviewer_name || "Client"}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                              <span className="font-medium">
+                                {(review.rating || 0).toFixed(1)}
+                              </span>
+                            </div>
+                          </div>
+                          {review.project_title && (
+                            <p className="text-sm text-gray-500">{review.project_title}</p>
+                          )}
+                          <p className="text-gray-700 dark:text-gray-300">
+                            {review.comment || "No review comment provided."}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <Card className="p-12 text-center">
+                    <Star className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No reviews yet</h3>
+                    <p className="text-gray-500">
+                      This freelancer hasn't received any reviews yet.
+                    </p>
+                  </Card>
+                )}
+              </div>
             </TabsContent>
           </Tabs>
         </div>
       </div>
+
+      <PricingDialog
+        open={pricingDialogOpen}
+        onOpenChange={setPricingDialogOpen}
+        currentHourlyRate={freelancer.hourly_rate}
+        currentPricing={freelancer.pricing}
+        onSave={handleSavePricing}
+      />
 
       <ContactDialog
         isOpen={contactDialogOpen}

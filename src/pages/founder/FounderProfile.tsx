@@ -38,6 +38,7 @@ import { ProjectDetailView } from "@/components/founder-matching/ProjectDetailVi
 // Define the profile type
 interface FounderProfileData {
   id: string;
+  profile_id?: string;
   user_id: string;
   current_role: string;
   years_experience: number;
@@ -54,12 +55,12 @@ interface FounderProfileData {
   bio: string;
   linkedin_url: string;
   portfolio_url: string;
-    intent_type?: string;
-    looking_for?: string;
-    looking_for_description?: string;
-    idea_description?: string;
-    problem_statement?: string;
-    projects?: any[];
+  intent_type?: string;
+  looking_for?: string;
+  looking_for_description?: string;
+  idea_description?: string;
+  problem_statement?: string;
+  projects?: any[];
   photo_urls: string[];
   created_at: string;
   updated_at: string;
@@ -151,10 +152,10 @@ const FounderProfile = () => {
       console.log("Profile data received:", data);
       setProfileData(data);
       setEditFormData(data);
-      
+
       // Fetch all projects for this profile using typed service
       try {
-        const targetProfileId = profileId || data.id;
+        const targetProfileId = profileId || data.profile_id || data.id;
         const projectsList = await cofounderMatchingService.listProjects(targetProfileId);
         setProjects(projectsList);
       } catch (projectErr) {
@@ -230,22 +231,11 @@ const FounderProfile = () => {
       );
 
       setProfileData(response);
-      
+
       // Initialize projects same way as on load
       let projectsList = response.projects || [];
-      if (projectsList.length === 0 && response.intent_type === "founder_with_idea" && response.idea_description) {
-        projectsList = [{
-          id: "idea-project",
-          title: "My Startup Idea",
-          description: response.idea_description || "",
-          problem_statement: response.problem_statement || "",
-          roles_needed: response.looking_for_description ? [response.looking_for_description] : [],
-          tech_stack: [],
-          is_idea: true
-        }];
-      }
       setProjects(projectsList);
-      
+
       setIsEditing(false);
       toast.success("Profile updated successfully!");
     } catch (error) {
@@ -382,9 +372,9 @@ const FounderProfile = () => {
     setPhotoUploading(true);
     try {
       const response = await cofounderMatchingService.uploadPhoto(file);
-      
+
       toast.success(response.message || 'Photo uploaded successfully!');
-      
+
       // Refresh profile data
       await fetchProfileData();
     } catch (error: any) {
@@ -403,9 +393,9 @@ const FounderProfile = () => {
     setPhotoDeleting(photoUrl);
     try {
       const response = await cofounderMatchingService.deletePhoto(photoUrl);
-      
+
       toast.success(response.message || 'Photo deleted successfully');
-      
+
       // Refresh profile data
       await fetchProfileData();
     } catch (error: any) {
@@ -552,7 +542,7 @@ const FounderProfile = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       {displayData.photo_urls?.map((photoUrl, index) => (
                         <div key={index} className="relative group aspect-square">
                           <img
@@ -568,11 +558,12 @@ const FounderProfile = () => {
                           <Button
                             size="icon"
                             variant="destructive"
+                            aria-label={`Delete photo ${index + 1}`}
                             className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                             onClick={() => handlePhotoDelete(photoUrl)}
                             disabled={photoDeleting === photoUrl}
                           >
-                            <X className="h-4 w-4" />
+                            <X className="h-4 w-4" aria-hidden="true" />
                           </Button>
                           {index === 0 && (
                             <Badge className="absolute bottom-2 left-2 text-xs bg-blue-600">
@@ -581,7 +572,7 @@ const FounderProfile = () => {
                           )}
                         </div>
                       ))}
-                      
+
                       {/* Upload button */}
                       {(displayData.photo_urls?.length || 0) < 10 && (
                         <label className="aspect-square border-2 border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-all group">
@@ -605,7 +596,7 @@ const FounderProfile = () => {
                         </label>
                       )}
                     </div>
-                    
+
                     {(displayData.photo_urls?.length || 0) < 3 && (
                       <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                         <p className="text-sm text-amber-800">
@@ -628,15 +619,19 @@ const FounderProfile = () => {
                 <CardContent className="space-y-4">
                   <div>
                     {isEditing ? (
-                      <input
-                        type="text"
-                        value={displayData.current_role || ""}
-                        onChange={(e) =>
-                          handleEditFieldChange("current_role", e.target.value)
-                        }
-                        className="text-2xl font-bold text-slate-900 w-full p-2 border rounded"
-                        placeholder="Enter your current role"
-                      />
+                      <>
+                        <label htmlFor="edit-current-role" className="sr-only">Current role</label>
+                        <input
+                          id="edit-current-role"
+                          type="text"
+                          value={displayData.current_role || ""}
+                          onChange={(e) =>
+                            handleEditFieldChange("current_role", e.target.value)
+                          }
+                          className="text-2xl font-bold text-slate-900 w-full p-2 border rounded"
+                          placeholder="Enter your current role"
+                        />
+                      </>
                     ) : (
                       <h2 className="text-2xl font-bold text-slate-900">
                         {displayData.current_role}
@@ -655,14 +650,18 @@ const FounderProfile = () => {
                       Bio
                     </h3>
                     {isEditing ? (
-                      <textarea
-                        value={displayData.bio || ""}
-                        onChange={(e) =>
-                          handleEditFieldChange("bio", e.target.value)
-                        }
-                        className="w-full p-2 border rounded min-h-[120px]"
-                        placeholder="Tell us about yourself..."
-                      />
+                      <>
+                        <label htmlFor="edit-bio" className="sr-only">Bio</label>
+                        <textarea
+                          id="edit-bio"
+                          value={displayData.bio || ""}
+                          onChange={(e) =>
+                            handleEditFieldChange("bio", e.target.value)
+                          }
+                          className="w-full p-2 border rounded min-h-[120px]"
+                          placeholder="Tell us about yourself..."
+                        />
+                      </>
                     ) : (
                       <p className="text-slate-700 leading-relaxed">
                         {displayData.bio || "No bio provided"}
@@ -723,9 +722,10 @@ const FounderProfile = () => {
                                 onClick={() =>
                                   handleRemoveSkill("technical", index)
                                 }
+                                aria-label={`Remove ${skill} from technical skills`}
                                 className="ml-2 hover:text-red-500"
                               >
-                                ×
+                                <span aria-hidden="true">&times;</span>
                               </button>
                             </Badge>
                           ))}
@@ -738,10 +738,10 @@ const FounderProfile = () => {
                             {skill}
                           </Badge>
                         )) || (
-                          <p className="text-slate-500">
-                            No technical skills listed
-                          </p>
-                        )}
+                            <p className="text-slate-500">
+                              No technical skills listed
+                            </p>
+                          )}
                       </div>
                     )}
                   </div>
@@ -787,9 +787,10 @@ const FounderProfile = () => {
                               {skill}
                               <button
                                 onClick={() => handleRemoveSkill("soft", index)}
+                                aria-label={`Remove ${skill} from soft skills`}
                                 className="ml-2 hover:text-red-500"
                               >
-                                ×
+                                <span aria-hidden="true">&times;</span>
                               </button>
                             </Badge>
                           ))}
@@ -806,10 +807,10 @@ const FounderProfile = () => {
                             {skill}
                           </Badge>
                         )) || (
-                          <p className="text-slate-500">
-                            No soft skills listed
-                          </p>
-                        )}
+                            <p className="text-slate-500">
+                              No soft skills listed
+                            </p>
+                          )}
                       </div>
                     )}
                   </div>
@@ -838,10 +839,10 @@ const FounderProfile = () => {
                           {role}
                         </Badge>
                       )) || (
-                        <p className="text-slate-500">
-                          No specific roles sought
-                        </p>
-                      )}
+                          <p className="text-slate-500">
+                            No specific roles sought
+                          </p>
+                        )}
                     </div>
                   </div>
 
@@ -859,10 +860,10 @@ const FounderProfile = () => {
                           {industry}
                         </Badge>
                       )) || (
-                        <p className="text-slate-500">
-                          No industries specified
-                        </p>
-                      )}
+                          <p className="text-slate-500">
+                            No industries specified
+                          </p>
+                        )}
                     </div>
                   </div>
                 </CardContent>
@@ -938,10 +939,10 @@ const FounderProfile = () => {
                       <p className="text-sm text-slate-700">{achievement}</p>
                     </div>
                   )) || (
-                    <p className="text-slate-500 text-sm">
-                      No achievements listed
-                    </p>
-                  )}
+                      <p className="text-slate-500 text-sm">
+                        No achievements listed
+                      </p>
+                    )}
                 </CardContent>
               </Card>
 
@@ -964,10 +965,10 @@ const FounderProfile = () => {
                           {edu}
                         </p>
                       )) || (
-                        <p className="text-slate-500 text-sm">
-                          No education listed
-                        </p>
-                      )}
+                          <p className="text-slate-500 text-sm">
+                            No education listed
+                          </p>
+                        )}
                     </div>
                   </div>
 
@@ -1031,10 +1032,10 @@ const FounderProfile = () => {
                         {cert}
                       </Badge>
                     )) || (
-                      <p className="text-slate-500 text-sm">
-                        No certifications listed
-                      </p>
-                    )}
+                        <p className="text-slate-500 text-sm">
+                          No certifications listed
+                        </p>
+                      )}
                   </div>
                 </CardContent>
               </Card>
@@ -1043,358 +1044,250 @@ const FounderProfile = () => {
 
           {/* Projects Section - Full width, below the grid */}
           {(projects.length > 0 || isOwnProfile) && (
-                <Card className="mt-6">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span className="flex items-center gap-2 text-lg font-semibold">
-                        <Briefcase className="h-5 w-5 text-blue-600" />
-                        {isOwnProfile
-                          ? profileData?.intent_type === "founder_with_idea"
-                            ? "Active Projects"
-                            : "Browse Projects"
-                          : "Projects"}
-                      </span>
-                      {isOwnProfile && !showProjectForm && profileData?.intent_type === "founder_with_idea" && (
-                        <Button
-                          size="sm"
-                          onClick={() => setShowProjectForm(true)}
-                          variant="outline"
-                        >
-                          <Plus className="h-4 w-4 mr-1" />
-                          New Project
-                        </Button>
-                      )}
-                      {isOwnProfile && profileData?.intent_type !== "founder_with_idea" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={browsingProjects}
-                          onClick={async () => {
-                            setShowBrowse(!showBrowse);
-                            if (!showBrowse && browsableProjects.length === 0) {
-                              setBrowsingProjects(true);
-                              try {
-                                const results = await cofounderMatchingService.browseMatchedProjects();
-                                setBrowsableProjects(results);
-                              } catch (err: any) {
-                                console.error("Failed to browse projects:", err);
-                                toast.error(err?.message || "Failed to load projects");
-                              } finally {
-                                setBrowsingProjects(false);
-                              }
-                            }
-                          }}
-                        >
-                          {browsingProjects ? (
-                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                          ) : (
-                            <Search className="h-4 w-4 mr-1" />
-                          )}
-                          {showBrowse ? "Hide" : "Browse Projects"}
-                        </Button>
-                      )}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Project creation form - only for founder_with_idea */}
-                    {showProjectForm && profileData?.intent_type === "founder_with_idea" && (
-                      <div className="p-4 border-2 border-dashed rounded-lg space-y-3 bg-blue-50/30">
-                        <input
-                          type="text"
-                          placeholder="Project Title"
-                          value={projectForm.title}
-                          onChange={(e) =>
-                            setProjectForm({ ...projectForm, title: e.target.value })
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2 text-lg font-semibold">
+                    <Briefcase className="h-5 w-5 text-blue-600" />
+                    {isOwnProfile
+                      ? profileData?.intent_type === "founder_with_idea"
+                        ? "Active Projects"
+                        : "Browse Projects"
+                      : "Projects"}
+                  </span>
+                  {isOwnProfile && !showProjectForm && profileData?.intent_type === "founder_with_idea" && (
+                    <Button
+                      size="sm"
+                      onClick={() => setShowProjectForm(true)}
+                      variant="outline"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      New Project
+                    </Button>
+                  )}
+                  {isOwnProfile && profileData?.intent_type !== "founder_with_idea" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={browsingProjects}
+                      onClick={async () => {
+                        setShowBrowse(!showBrowse);
+                        if (!showBrowse && browsableProjects.length === 0) {
+                          setBrowsingProjects(true);
+                          try {
+                            const results = await cofounderMatchingService.browseMatchedProjects();
+                            setBrowsableProjects(results);
+                          } catch (err: any) {
+                            console.error("Failed to browse projects:", err);
+                            toast.error(err?.message || "Failed to load projects");
+                          } finally {
+                            setBrowsingProjects(false);
                           }
-                          className="w-full p-2 border rounded text-sm"
-                        />
-                        <textarea
-                          placeholder="Brief description of the project"
-                          value={projectForm.description}
-                          onChange={(e) =>
+                        }
+                      }}
+                    >
+                      {browsingProjects ? (
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      ) : (
+                        <Search className="h-4 w-4 mr-1" />
+                      )}
+                      {showBrowse ? "Hide" : "Browse Projects"}
+                    </Button>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Project creation form - only for founder_with_idea */}
+                {showProjectForm && profileData?.intent_type === "founder_with_idea" && (
+                  <div className="p-4 border-2 border-dashed rounded-lg space-y-3 bg-blue-50/30">
+                    <input
+                      type="text"
+                      placeholder="Project Title"
+                      value={projectForm.title}
+                      onChange={(e) =>
+                        setProjectForm({ ...projectForm, title: e.target.value })
+                      }
+                      className="w-full p-2 border rounded text-sm"
+                    />
+                    <textarea
+                      placeholder="Brief description of the project"
+                      value={projectForm.description}
+                      onChange={(e) =>
+                        setProjectForm({
+                          ...projectForm,
+                          description: e.target.value,
+                        })
+                      }
+                      className="w-full p-2 border rounded min-h-[80px] text-sm"
+                    />
+                    <div className="grid md:grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        placeholder="Roles Needed (comma-separated)"
+                        value={projectForm.roles_needed}
+                        onChange={(e) =>
+                          setProjectForm({
+                            ...projectForm,
+                            roles_needed: e.target.value,
+                          })
+                        }
+                        className="w-full p-2 border rounded text-sm"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Tech Stack (comma-separated)"
+                        value={projectForm.tech_stack}
+                        onChange={(e) =>
+                          setProjectForm({
+                            ...projectForm,
+                            tech_stack: e.target.value,
+                          })
+                        }
+                        className="w-full p-2 border rounded text-sm"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={async () => {
+                          try {
+                            await cofounderMatchingService.createProject({
+                              title: projectForm.title,
+                              description: projectForm.description,
+                              roles_needed: projectForm.roles_needed
+                                .split(",")
+                                .map((r) => r.trim())
+                                .filter(Boolean),
+                              tech_stack: projectForm.tech_stack
+                                .split(",")
+                                .map((t) => t.trim())
+                                .filter(Boolean),
+                            });
+                            toast.success("Project created!");
+                            setShowProjectForm(false);
                             setProjectForm({
-                              ...projectForm,
-                              description: e.target.value,
-                            })
+                              title: "",
+                              description: "",
+                              roles_needed: "",
+                              tech_stack: "",
+                            });
+                            // Refresh projects list
+                            if (profileData) {
+                              const refreshed = await cofounderMatchingService.listProjects(profileData.profile_id || profileData.id);
+                              setProjects(refreshed);
+                            }
+                          } catch (error: any) {
+                            console.error("Failed to create project:", error);
+                            toast.error(error?.message || "Failed to create project");
                           }
-                          className="w-full p-2 border rounded min-h-[80px] text-sm"
-                        />
-                        <div className="grid md:grid-cols-2 gap-3">
-                          <input
-                            type="text"
-                            placeholder="Roles Needed (comma-separated)"
-                            value={projectForm.roles_needed}
-                            onChange={(e) =>
-                              setProjectForm({
-                                ...projectForm,
-                                roles_needed: e.target.value,
-                              })
-                            }
-                            className="w-full p-2 border rounded text-sm"
-                          />
-                          <input
-                            type="text"
-                            placeholder="Tech Stack (comma-separated)"
-                            value={projectForm.tech_stack}
-                            onChange={(e) =>
-                              setProjectForm({
-                                ...projectForm,
-                                tech_stack: e.target.value,
-                              })
-                            }
-                            className="w-full p-2 border rounded text-sm"
-                          />
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={async () => {
-                              try {
-                                await cofounderMatchingService.createProject({
-                                  title: projectForm.title,
-                                  description: projectForm.description,
-                                  roles_needed: projectForm.roles_needed
-                                    .split(",")
-                                    .map((r) => r.trim())
-                                    .filter(Boolean),
-                                  tech_stack: projectForm.tech_stack
-                                    .split(",")
-                                    .map((t) => t.trim())
-                                    .filter(Boolean),
-                                });
-                                toast.success("Project created!");
-                                setShowProjectForm(false);
-                                setProjectForm({
-                                  title: "",
-                                  description: "",
-                                  roles_needed: "",
-                                  tech_stack: "",
-                                });
-                                // Refresh projects list
-                                if (profileData) {
-                                  const refreshed = await cofounderMatchingService.listProjects(profileData.id);
-                                  setProjects(refreshed);
-                                }
-                              } catch (error: any) {
-                                console.error("Failed to create project:", error);
-                                toast.error(error?.message || "Failed to create project");
-                              }
-                            }}
-                            size="sm"
-                          >
-                            Save
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            onClick={() => {
-                              setShowProjectForm(false);
-                              setProjectForm({
-                                title: "",
-                                description: "",
-                                roles_needed: "",
-                                tech_stack: "",
-                              });
-                            }}
-                            size="sm"
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    )}
+                        }}
+                        size="sm"
+                      >
+                        Save
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setShowProjectForm(false);
+                          setProjectForm({
+                            title: "",
+                            description: "",
+                            roles_needed: "",
+                            tech_stack: "",
+                          });
+                        }}
+                        size="sm"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
-                    {/* Browse Projects section for cofounder/jobseeker */}
-                    {isOwnProfile && profileData?.intent_type !== "founder_with_idea" && showBrowse && (
-                      <div className="space-y-4">
-                        {browsingProjects ? (
-                          <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                            <span className="ml-2 text-sm text-slate-500">Loading projects from your matches...</span>
-                          </div>
-                        ) : browsableProjects.length === 0 ? (
-                          <div className="text-center py-8 text-slate-400">
-                            <Search className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                            <p className="text-sm">No projects found from your matched founders</p>
-                            <p className="text-xs mt-1">Connect with more founders who have ideas to see their projects here</p>
-                          </div>
-                        ) : (
-                          <div className="space-y-4">
-                            <p className="text-sm text-muted-foreground">
-                              Projects from your matched founders — request to join!
-                            </p>
-                            {browsableProjects.map((project, idx) => (
-                              <div
-                                key={project.id || idx}
-                                className="border rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow"
-                              >
-                                <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4">
-                                  <div className="flex items-center justify-between">
-                                    <div>
-                                      <h4 className="font-bold text-white text-lg">{project.title}</h4>
-                                      {project.owner_name && (
-                                        <p className="text-emerald-100 text-sm mt-0.5">by {project.owner_name}</p>
-                                      )}
-                                    </div>
-                                    <Button
-                                      size="sm"
-                                      onClick={async () => {
-                                        setJoiningProjectId(project.id);
-                                        try {
-                                          await cofounderMatchingService.requestJoinProject(project.id);
-                                          toast.success("Join request sent!");
-                                        } catch (error: any) {
-                                          toast.error(error?.message || "Failed to send request");
-                                        } finally {
-                                          setJoiningProjectId(null);
-                                        }
-                                      }}
-                                      disabled={joiningProjectId === project.id}
-                                      className="bg-amber-500 text-white hover:bg-amber-600 border-2 border-white shadow-lg font-semibold shrink-0"
-                                    >
-                                      {joiningProjectId === project.id ? (
-                                        <>
-                                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                                          Sending...
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Users className="h-4 w-4 mr-1" />
-                                          Join Project
-                                        </>
-                                      )}
-                                    </Button>
-                                  </div>
-                                </div>
-                                <div className="px-6 py-4 space-y-3">
-                                  {project.description && (
-                                    <p className="text-sm text-slate-700 line-clamp-3">{project.description}</p>
-                                  )}
-                                  {project.problem_statement && (
-                                    <div className="bg-amber-50 border border-amber-100 rounded-lg p-3">
-                                      <p className="text-xs font-semibold text-amber-700 uppercase mb-1">Problem</p>
-                                      <p className="text-sm text-slate-700 line-clamp-2">{project.problem_statement}</p>
-                                    </div>
-                                  )}
-                                  {project.tech_stack && project.tech_stack.length > 0 && (
-                                    <div className="flex flex-wrap gap-1">
-                                      {project.tech_stack.map((tech: string, i: number) => (
-                                        <Badge key={i} className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 border-0">
-                                          {tech}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  )}
-                                  {project.roles_needed && project.roles_needed.length > 0 && (
-                                    <div className="text-xs text-muted-foreground">
-                                      <span className="font-medium">Roles needed: </span>
-                                      {project.roles_needed.join(", ")}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                {/* Browse Projects section for cofounder/jobseeker */}
+                {isOwnProfile && profileData?.intent_type !== "founder_with_idea" && showBrowse && (
+                  <div className="space-y-4">
+                    {browsingProjects ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                        <span className="ml-2 text-sm text-slate-500">Loading projects from your matches...</span>
                       </div>
-                    )}
-
-                    {/* Own projects list */}
-                    {projects.length === 0 && !showProjectForm && !showBrowse ? (
+                    ) : browsableProjects.length === 0 ? (
                       <div className="text-center py-8 text-slate-400">
-                        <Briefcase className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                        <p className="text-sm">
-                          {isOwnProfile && profileData?.intent_type !== "founder_with_idea"
-                            ? "Browse projects from matched founders to find one to join"
-                            : "No active projects yet"}
-                        </p>
+                        <Search className="h-10 w-10 mx-auto mb-2 opacity-30" />
+                        <p className="text-sm">No projects found from your matched founders</p>
+                        <p className="text-xs mt-1">Connect with more founders who have ideas to see their projects here</p>
                       </div>
                     ) : (
-                      <div className="space-y-6">
-                        {projects.map((project, idx) => (
+                      <div className="space-y-4">
+                        <p className="text-sm text-muted-foreground">
+                          Projects from your matched founders — request to join!
+                        </p>
+                        {browsableProjects.map((project, idx) => (
                           <div
                             key={project.id || idx}
-                            className="border rounded-xl overflow-hidden bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-                            onClick={() => setSelectedProjectId(project.id)}
+                            className="border rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow"
                           >
-                            {/* Project Header */}
-                            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+                            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4">
                               <div className="flex items-center justify-between">
-                                <h4 className="font-bold text-white text-xl">
-                                  {project.title}
-                                </h4>
-                                {!isOwnProfile && (
-                                  <Button
-                                    size="sm"
-                                    onClick={async (e) => {
-                                      e.stopPropagation();
-                                      setJoiningProjectId(project.id);
-                                      try {
-                                        await cofounderMatchingService.requestJoinProject(project.id);
-                                        toast.success("Join request sent!");
-                                      } catch (error: any) {
-                                        console.error("Failed to join:", error);
-                                        toast.error(error?.message || "Failed to send request");
-                                      } finally {
-                                        setJoiningProjectId(null);
-                                      }
-                                    }}
-                                    disabled={joiningProjectId === project.id}
-                                    className="bg-amber-500 text-white hover:bg-amber-600 border-2 border-white shadow-lg font-semibold shrink-0"
-                                  >
-                                    {joiningProjectId === project.id ? (
-                                      <>
-                                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                                        Sending...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Users className="h-4 w-4 mr-1" />
-                                        Join Project
-                                      </>
-                                    )}
-                                  </Button>
-                                )}
-                                {isOwnProfile && (
-                                  <Badge className="bg-white/20 text-white text-xs border-0">
-                                    Click to manage
-                                  </Badge>
-                                )}
+                                <div>
+                                  <h4 className="font-bold text-white text-lg">{project.title}</h4>
+                                  {project.owner_name && (
+                                    <p className="text-emerald-100 text-sm mt-0.5">by {project.owner_name}</p>
+                                  )}
+                                </div>
+                                <Button
+                                  size="sm"
+                                  onClick={async () => {
+                                    setJoiningProjectId(project.id);
+                                    try {
+                                      await cofounderMatchingService.requestJoinProject(project.id);
+                                      toast.success("Join request sent!");
+                                    } catch (error: any) {
+                                      toast.error(error?.message || "Failed to send request");
+                                    } finally {
+                                      setJoiningProjectId(null);
+                                    }
+                                  }}
+                                  disabled={joiningProjectId === project.id}
+                                  className="bg-amber-500 text-white hover:bg-amber-600 border-2 border-white shadow-lg font-semibold shrink-0"
+                                >
+                                  {joiningProjectId === project.id ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                      Sending...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Users className="h-4 w-4 mr-1" />
+                                      Join Project
+                                    </>
+                                  )}
+                                </Button>
                               </div>
                             </div>
-
-                            {/* Project Body */}
-                            <div className="px-6 py-5 space-y-5">
-                              {/* Description */}
-                              {(project.description || project.idea_description) && (
-                                <div>
-                                  <h5 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                                    About
-                                  </h5>
-                                  <p className="text-sm text-slate-700 leading-relaxed line-clamp-3">
-                                    {project.description || project.idea_description}
-                                  </p>
-                                </div>
+                            <div className="px-6 py-4 space-y-3">
+                              {project.description && (
+                                <p className="text-sm text-slate-700 line-clamp-3">{project.description}</p>
                               )}
-
-                              {/* Problem Statement */}
                               {project.problem_statement && (
-                                <div className="bg-amber-50 border border-amber-100 rounded-lg p-4">
-                                  <h5 className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-2">
-                                    Problem Statement
-                                  </h5>
-                                  <p className="text-sm text-slate-700 leading-relaxed line-clamp-2">
-                                    {project.problem_statement}
-                                  </p>
+                                <div className="bg-amber-50 border border-amber-100 rounded-lg p-3">
+                                  <p className="text-xs font-semibold text-amber-700 uppercase mb-1">Problem</p>
+                                  <p className="text-sm text-slate-700 line-clamp-2">{project.problem_statement}</p>
                                 </div>
                               )}
-
-                              {/* Tech Stack */}
                               {project.tech_stack && project.tech_stack.length > 0 && (
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-1">
                                   {project.tech_stack.map((tech: string, i: number) => (
-                                    <Badge key={i} className="px-3 py-1 text-xs bg-blue-100 text-blue-700 border-0 font-medium">
+                                    <Badge key={i} className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 border-0">
                                       {tech}
                                     </Badge>
                                   ))}
+                                </div>
+                              )}
+                              {project.roles_needed && project.roles_needed.length > 0 && (
+                                <div className="text-xs text-muted-foreground">
+                                  <span className="font-medium">Roles needed: </span>
+                                  {project.roles_needed.join(", ")}
                                 </div>
                               )}
                             </div>
@@ -1402,8 +1295,121 @@ const FounderProfile = () => {
                         ))}
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                )}
+
+                {/* Own projects list */}
+                {projects.length === 0 && !showProjectForm && !showBrowse ? (
+                  <div className="text-center py-8 text-slate-400">
+                    <Briefcase className="h-10 w-10 mx-auto mb-2 opacity-30" />
+                    <p className="text-sm">
+                      {isOwnProfile && profileData?.intent_type !== "founder_with_idea"
+                        ? "Browse projects from matched founders to find one to join"
+                        : "No active projects yet"}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {projects.map((project, idx) => (
+                      <div
+                        key={project.id || idx}
+                        className="border rounded-xl overflow-hidden bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                        onClick={() => setSelectedProjectId(project.id)}
+                      >
+                        {/* Project Header */}
+                        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-bold text-white text-xl">
+                              {project.title}
+                            </h4>
+                            {!isOwnProfile && (
+                              <Button
+                                size="sm"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  setJoiningProjectId(project.id);
+                                  try {
+                                    await cofounderMatchingService.requestJoinProject(project.id);
+                                    toast.success("Join request sent!");
+                                  } catch (error: any) {
+                                    console.error("Failed to join:", error);
+                                    toast.error(error?.message || "Failed to send request");
+                                  } finally {
+                                    setJoiningProjectId(null);
+                                  }
+                                }}
+                                disabled={joiningProjectId === project.id}
+                                className="bg-amber-500 text-white hover:bg-amber-600 border-2 border-white shadow-lg font-semibold shrink-0"
+                              >
+                                {joiningProjectId === project.id ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                    Sending...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Users className="h-4 w-4 mr-1" />
+                                    Join Project
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                            {isOwnProfile && profileData?.intent_type === "founder_with_idea" && (
+                              <Badge className="bg-white/20 text-white text-xs border-0">
+                                Click to manage
+                              </Badge>
+                            )}
+                            {isOwnProfile && profileData?.intent_type !== "founder_with_idea" && (
+                              <Badge className="bg-white/20 text-white text-xs border-0">
+                                Click to view
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Project Body */}
+                        <div className="px-6 py-5 space-y-5">
+                          {/* Description */}
+                          {(project.description || project.idea_description) && (
+                            <div>
+                              <h5 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                                About
+                              </h5>
+                              <p className="text-sm text-slate-700 leading-relaxed line-clamp-3">
+                                {project.description || project.idea_description}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Problem Statement */}
+                          {project.problem_statement && (
+                            <div className="bg-amber-50 border border-amber-100 rounded-lg p-4">
+                              <h5 className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-2">
+                                Problem Statement
+                              </h5>
+                              <p className="text-sm text-slate-700 leading-relaxed line-clamp-2">
+                                {project.problem_statement}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Tech Stack */}
+                          {project.tech_stack && project.tech_stack.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {project.tech_stack.map((tech: string, i: number) => (
+                                <Badge key={i} className="px-3 py-1 text-xs bg-blue-100 text-blue-700 border-0 font-medium">
+                                  {tech}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
@@ -1412,3 +1418,5 @@ const FounderProfile = () => {
 };
 
 export default FounderProfile;
+
+

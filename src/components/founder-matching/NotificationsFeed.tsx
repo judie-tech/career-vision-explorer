@@ -106,13 +106,6 @@ export const NotificationsFeed: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="font-semibold">Pending Interests</h3>
-        <Badge variant="outline" className="bg-blue-50">
-          {pendingMatches.length} new
-        </Badge>
-      </div>
-
       {pendingMatches.map((match) => {
         const profile = match.matched_profile;
         const displayName = profile.name || profile.current_role;
@@ -121,26 +114,26 @@ export const NotificationsFeed: React.FC = () => {
         return (
           <Card key={match.match_id} className="border-2 border-blue-200">
             <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-4">
-                {/* Left: Profile info */}
-                <div className="flex items-start gap-4 flex-1">
-                  <div className="relative">
-                    <Avatar className="h-16 w-16 border-2 border-blue-100">
+              <div className="flex flex-col gap-3">
+                {/* Top: Profile info */}
+                <div className="flex items-start gap-3">
+                  <div className="relative flex-shrink-0">
+                    <Avatar className="h-14 w-14 border-2 border-blue-100">
                       <AvatarImage src={profile.photo_urls?.[0] || ""} />
                       <AvatarFallback className="bg-blue-50 text-blue-700">
                         {initials}
                       </AvatarFallback>
                     </Avatar>
                     <div className="absolute -top-2 -right-2">
-                      <Badge className="bg-pink-500">
-                        <Heart className="h-3 w-3 mr-1" />
+                      <Badge className="bg-pink-500 text-[10px] px-1.5 py-0.5">
+                        <Heart className="h-2.5 w-2.5 mr-1" />
                         Interested
                       </Badge>
                     </div>
                   </div>
 
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-base leading-tight">
                       {displayName}
                     </h3>
                     <p className="text-sm text-muted-foreground">
@@ -157,11 +150,11 @@ export const NotificationsFeed: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Right: Action buttons */}
-                <div className="flex flex-col gap-2">
+                {/* Bottom: Action buttons */}
+                <div className="flex gap-2">
                   <Button
                     size="sm"
-                    className="bg-gradient-to-r from-green-500 to-emerald-500"
+                    className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500"
                     onClick={() => handleAccept(match.match_id)}
                   >
                     <Heart className="h-4 w-4 mr-2" />
@@ -171,7 +164,7 @@ export const NotificationsFeed: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-red-300 text-red-600 hover:bg-red-50"
+                    className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
                     onClick={() => handleDecline(match.match_id)}
                   >
                     <X className="h-4 w-4 mr-2" />

@@ -1,5 +1,6 @@
 // src/lib/api-client.ts
 import { API_CONFIG } from "../config/api.config";
+import { authStorage } from "./session-auth-storage";
 
 // API Client configuration for FastAPI backend
 class ApiClient {
@@ -8,20 +9,16 @@ class ApiClient {
 
   constructor() {
     this.baseURL = API_CONFIG.BASE_URL;
-    this.token = localStorage.getItem("access_token");
+    this.token = authStorage.getAccessToken();
   }
 
   setToken(token: string | null) {
     this.token = token;
-    if (token) {
-      localStorage.setItem("access_token", token);
-    } else {
-      localStorage.removeItem("access_token");
-    }
+    authStorage.setAccessToken(token);
   }
 
   getToken(): string | null {
-    return this.token || localStorage.getItem("access_token");
+    return this.token || authStorage.getAccessToken();
   }
 
   private async request<T>(
@@ -102,7 +99,7 @@ class ApiClient {
 
         try {
           const text = await response.text();
-          
+
           if (import.meta.env.DEV) {
             console.error(`❌ ${response.status} ${endpoint}:`, text);
           }
@@ -184,6 +181,13 @@ class ApiClient {
   async put<T>(endpoint: string, data?: any): Promise<T> {
     return this.request<T>(endpoint, {
       method: "PUT",
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  async patch<T>(endpoint: string, data?: any): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: "PATCH",
       body: data ? JSON.stringify(data) : undefined,
     });
   }

@@ -13,7 +13,7 @@ const FounderMatches = () => {
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-8">
         <div className="container">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
@@ -34,6 +34,7 @@ const FounderMatches = () => {
             </div>
             <Button
               variant="outline"
+              className="flex-shrink-0"
               onClick={() => navigate("/founder/dashboard")}
             >
               My Founder Profile

@@ -81,11 +81,11 @@ const Footer = () => {
           </div>
 
           {/* Links Section */}
-          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-8 lg:mt-0 lg:col-span-2">
+          <nav aria-label="Footer navigation" className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-8 lg:mt-0 lg:col-span-2">
             <div className="md:grid md:grid-cols-2 md:gap-8">
               {/* Solutions */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+                <h3 className="text-sm font-semibold text-gray-600 tracking-wider uppercase">
                   Solutions
                 </h3>
                 <ul className="mt-4 space-y-4">
@@ -125,7 +125,7 @@ const Footer = () => {
               </div>
               {/* Support */}
               <div className="mt-12 md:mt-0">
-                <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+                <h3 className="text-sm font-semibold text-gray-600 tracking-wider uppercase">
                   Support
                 </h3>
                 <ul className="mt-4 space-y-4">
@@ -160,7 +160,7 @@ const Footer = () => {
             <div className="md:grid md:grid-cols-2 md:gap-8">
               {/* Company */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+                <h3 className="text-sm font-semibold text-gray-600 tracking-wider uppercase">
                   Company
                 </h3>
                 <ul className="mt-4 space-y-4">
@@ -192,7 +192,7 @@ const Footer = () => {
               </div>
               {/* Legal */}
               <div className="mt-12 md:mt-0">
-                <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+                <h3 className="text-sm font-semibold text-gray-600 tracking-wider uppercase">
                   Legal
                 </h3>
                 <ul className="mt-4 space-y-4">
@@ -215,15 +215,13 @@ const Footer = () => {
                 </ul>
               </div>
             </div>
+          </nav>
+          <div className="mt-12 border-t border-gray-200 pt-8">
+            <p className="text-base text-gray-500 text-center">
+              &copy; {new Date().getFullYear()} Visiondrill Career Explorer. All
+              rights reserved.
+            </p>
           </div>
-        </div>
-
-        {/* Footer Bottom */}
-        <div className="mt-12 border-t border-gray-200 pt-8">
-          <p className="text-base text-gray-400 text-center">
-            &copy; {new Date().getFullYear()} Visiondrill Career Explorer. All
-            rights reserved.
-          </p>
         </div>
       </div>
     </footer>

@@ -96,12 +96,12 @@ export function MatchDiscovery({ initialFilters }: MatchDiscoveryProps) {
         prev.map((match) =>
           match.match_id === matchId
             ? {
-                ...match,
-                status: response.status as any,
-                mutual_interest_at: response.mutual_interest
-                  ? new Date().toISOString()
-                  : undefined,
-              }
+              ...match,
+              status: response.status as any,
+              mutual_interest_at: response.mutual_interest
+                ? new Date().toISOString()
+                : undefined,
+            }
             : match
         )
       );
@@ -276,6 +276,7 @@ export function MatchDiscovery({ initialFilters }: MatchDiscoveryProps) {
                       {industry}
                       <button
                         type="button"
+                        aria-label={`Remove ${industry} from industry filter`}
                         onClick={() =>
                           setFilters({
                             ...filters,
@@ -286,7 +287,7 @@ export function MatchDiscovery({ initialFilters }: MatchDiscoveryProps) {
                         }
                         className="ml-1 hover:text-destructive"
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-3 w-3" aria-hidden="true" />
                       </button>
                     </Badge>
                   ))}
@@ -351,10 +352,11 @@ export function MatchDiscovery({ initialFilters }: MatchDiscoveryProps) {
                 <div className="flex flex-wrap gap-2 mt-2">
                   {filters.location_preferences.map((location) => (
                     <Badge key={location} variant="outline" className="gap-1">
-                      <MapPin className="h-3 w-3" />
+                      <MapPin className="h-3 w-3" aria-hidden="true" />
                       {location}
                       <button
                         type="button"
+                        aria-label={`Remove ${location} from location filter`}
                         onClick={() =>
                           setFilters({
                             ...filters,
@@ -366,7 +368,7 @@ export function MatchDiscovery({ initialFilters }: MatchDiscoveryProps) {
                         }
                         className="ml-1 hover:text-destructive"
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-3 w-3" aria-hidden="true" />
                       </button>
                     </Badge>
                   ))}
@@ -455,13 +457,12 @@ export function MatchDiscovery({ initialFilters }: MatchDiscoveryProps) {
         {matches.map((match) => (
           <Card
             key={match.match_id}
-            className={`hover:shadow-lg transition-all duration-300 ${
-              match.status === "mutual_interest"
+            className={`hover:shadow-lg transition-all duration-300 ${match.status === "mutual_interest"
                 ? "border-green-200 bg-green-50"
                 : match.status === "interested"
-                ? "border-blue-200"
-                : ""
-            }`}
+                  ? "border-blue-200"
+                  : ""
+              }`}
           >
             <CardHeader className="pb-3">
               <div className="flex justify-between items-start">
@@ -493,14 +494,16 @@ export function MatchDiscovery({ initialFilters }: MatchDiscoveryProps) {
                 <div className="relative">
                   <div className="w-16 h-16 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
                     <div
+                      role="img"
+                      aria-label={`Match score: ${Math.round(match.overall_score * 100)}% — ${getScoreLabel(match.overall_score)}`}
                       className={`w-14 h-14 rounded-full flex flex-col items-center justify-center text-white font-bold ${getScoreColor(
                         match.overall_score
                       )}`}
                     >
-                      <span className="text-lg">
+                      <span className="text-lg" aria-hidden="true">
                         {Math.round(match.overall_score * 100)}%
                       </span>
-                      <span className="text-[10px] opacity-90">
+                      <span className="text-[10px] opacity-90" aria-hidden="true">
                         {getScoreLabel(match.overall_score)}
                       </span>
                     </div>
@@ -576,25 +579,23 @@ export function MatchDiscovery({ initialFilters }: MatchDiscoveryProps) {
                 </Button>
 
                 {match.status === "interested" ||
-                match.status === "mutual_interest" ? (
+                  match.status === "mutual_interest" ? (
                   <Button
                     variant={
                       match.status === "mutual_interest" ? "default" : "outline"
                     }
                     size="sm"
-                    className={`flex-1 ${
-                      match.status === "mutual_interest"
+                    className={`flex-1 ${match.status === "mutual_interest"
                         ? "bg-green-600 hover:bg-green-700"
                         : "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                    }`}
+                      }`}
                     disabled
                   >
                     <Heart
-                      className={`h-4 w-4 mr-2 ${
-                        match.status === "mutual_interest"
+                      className={`h-4 w-4 mr-2 ${match.status === "mutual_interest"
                           ? "fill-white"
                           : "fill-blue-500"
-                      }`}
+                        }`}
                     />
                     {match.status === "mutual_interest"
                       ? "Connected"
@@ -617,9 +618,10 @@ export function MatchDiscovery({ initialFilters }: MatchDiscoveryProps) {
                 <Button
                   variant="outline"
                   size="sm"
+                  aria-label={`Decline ${match.matched_profile.current_role || "this match"}`}
                   onClick={() => handleMatchAction(match.match_id, "declined")}
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
             </CardContent>

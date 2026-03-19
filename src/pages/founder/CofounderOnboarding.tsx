@@ -57,10 +57,10 @@ const CofounderOnboarding = () => {
   const [profileData, setProfileData] = useState({
     // NEW: Step 1 - Intent Selection
     intent_type: "" as "founder_with_idea" | "cofounder" | "jobseeker" | "",
-    
+
     // NEW: Step 2 - Photos
     uploadedPhotos: [] as string[],
-    
+
     // Step 3: Basic Info (previously Step 1)
     current_role: "",
     years_experience: "",
@@ -95,7 +95,7 @@ const CofounderOnboarding = () => {
     bio: "",
     linkedin_url: "",
     portfolio_url: "",
-    
+
     // NEW: Conditional Founder Project Fields (only if intent_type === "founder_with_idea")
     idea_description: "",
     problem_statement: "",
@@ -107,20 +107,20 @@ const CofounderOnboarding = () => {
   // Check if user already has a profile and load it
   useEffect(() => {
     let cancelled = false;
-    
+
     const loadExistingProfile = async () => {
       try {
         const profile = await cofounderMatchingService.getProfile();
-        
+
         // If profile exists and onboarding is complete, redirect to dashboard
         if (profile && profile.onboarding_completed) {
           cancelled = true;
           navigate("/founder/dashboard", { replace: true });
           return;
         }
-        
+
         if (cancelled) return;
-        
+
         // Load existing profile data if available (incomplete onboarding)
         if (profile) {
           setProfileData(prev => ({
@@ -162,9 +162,9 @@ const CofounderOnboarding = () => {
         }
       }
     };
-    
+
     loadExistingProfile();
-    
+
     return () => { cancelled = true; };
   }, [navigate]);
 
@@ -172,27 +172,27 @@ const CofounderOnboarding = () => {
   const handlePhotoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    
+
     const file = files[0];
-    
+
     // Validate file type
     const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       toast.error("Invalid file type. Please upload PNG, JPEG, or WebP images.");
       return;
     }
-    
+
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       toast.error("File too large. Maximum size is 10MB.");
       return;
     }
-    
+
     if (profileData.uploadedPhotos.length >= 10) {
       toast.error("Maximum 10 photos allowed.");
       return;
     }
-    
+
     try {
       const response = await cofounderMatchingService.uploadPhoto(file);
       setProfileData(prev => ({
@@ -318,13 +318,13 @@ const CofounderOnboarding = () => {
       toast.error("Please select your intent");
       return;
     }
-    
+
     // Step 2: Photo Upload validation (minimum 3 photos)
     if (step === 2 && profileData.uploadedPhotos.length < 3) {
       toast.error("Please upload at least 3 photos");
       return;
     }
-    
+
     // Step 3: Basic Info validation (previously Step 1)
     if (
       step === 3 &&
@@ -333,13 +333,13 @@ const CofounderOnboarding = () => {
       toast.error("Please fill in all required fields");
       return;
     }
-    
+
     // Step 4: Skills validation (previously Step 2)
     if (step === 4 && profileData.technical_skills.length === 0) {
       toast.error("Please add at least one technical skill");
       return;
     }
-    
+
     // Step 5: Seeking validation (previously Step 3)
     if (
       step === 5 &&
@@ -349,7 +349,7 @@ const CofounderOnboarding = () => {
       toast.error("Please specify what you're looking for");
       return;
     }
-    
+
     // Step 6: Commitment/Location validation (previously Step 4)
     if (
       step === 6 &&
@@ -412,7 +412,7 @@ const CofounderOnboarding = () => {
 
       // Update the onboarding profile with all collected data
       await cofounderMatchingService.updateOnboardingProfile(finalData);
-      
+
       // Mark onboarding as complete
       await cofounderMatchingService.completeOnboarding();
 
@@ -444,11 +444,14 @@ const CofounderOnboarding = () => {
 
             <div className="grid grid-cols-1 gap-4">
               <Card
-                className={`cursor-pointer transition-all border-2 hover:shadow-lg ${
-                  profileData.intent_type === "founder_with_idea"
+                className={`cursor-pointer transition-all border-2 hover:shadow-lg ${profileData.intent_type === "founder_with_idea"
                     ? "border-blue-600 bg-blue-50/50 shadow-md"
                     : "border-slate-200 hover:border-blue-300"
-                }`}
+                  }`}
+                role="button"
+                tabIndex={0}
+                aria-pressed={profileData.intent_type === "founder_with_idea"}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setProfileData({ ...profileData, intent_type: "founder_with_idea" }); } }}
                 onClick={() =>
                   setProfileData({ ...profileData, intent_type: "founder_with_idea" })
                 }
@@ -474,11 +477,14 @@ const CofounderOnboarding = () => {
               </Card>
 
               <Card
-                className={`cursor-pointer transition-all border-2 hover:shadow-lg ${
-                  profileData.intent_type === "cofounder"
+                className={`cursor-pointer transition-all border-2 hover:shadow-lg ${profileData.intent_type === "cofounder"
                     ? "border-blue-600 bg-blue-50/50 shadow-md"
                     : "border-slate-200 hover:border-blue-300"
-                }`}
+                  }`}
+                role="button"
+                tabIndex={0}
+                aria-pressed={profileData.intent_type === "cofounder"}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setProfileData({ ...profileData, intent_type: "cofounder" }); } }}
                 onClick={() =>
                   setProfileData({ ...profileData, intent_type: "cofounder" })
                 }
@@ -504,11 +510,14 @@ const CofounderOnboarding = () => {
               </Card>
 
               <Card
-                className={`cursor-pointer transition-all border-2 hover:shadow-lg ${
-                  profileData.intent_type === "jobseeker"
+                className={`cursor-pointer transition-all border-2 hover:shadow-lg ${profileData.intent_type === "jobseeker"
                     ? "border-blue-600 bg-blue-50/50 shadow-md"
                     : "border-slate-200 hover:border-blue-300"
-                }`}
+                  }`}
+                role="button"
+                tabIndex={0}
+                aria-pressed={profileData.intent_type === "jobseeker"}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setProfileData({ ...profileData, intent_type: "jobseeker" }); } }}
                 onClick={() =>
                   setProfileData({ ...profileData, intent_type: "jobseeker" })
                 }
@@ -563,9 +572,8 @@ const CofounderOnboarding = () => {
                 />
                 <label
                   htmlFor="photo-upload"
-                  className={`cursor-pointer ${
-                    profileData.uploadedPhotos.length >= 10 ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+                  className={`cursor-pointer ${profileData.uploadedPhotos.length >= 10 ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                 >
                   <Upload className="h-12 w-12 mx-auto text-slate-400 mb-3" />
                   <p className="font-medium text-slate-700">
@@ -582,7 +590,7 @@ const CofounderOnboarding = () => {
 
               {/* Photo Grid */}
               {profileData.uploadedPhotos.length > 0 && (
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {profileData.uploadedPhotos.map((photoUrl, index) => (
                     <div key={photoUrl} className="relative group aspect-square">
                       <img
@@ -592,9 +600,10 @@ const CofounderOnboarding = () => {
                       />
                       <button
                         onClick={() => handlePhotoDelete(photoUrl)}
+                        aria-label={`Delete photo ${index + 1}`}
                         className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-4 w-4" aria-hidden="true" />
                       </button>
                       {index === 0 && (
                         <div className="absolute bottom-2 left-2 px-2 py-1 bg-blue-600 text-white text-xs rounded">
@@ -613,9 +622,8 @@ const CofounderOnboarding = () => {
                     <p className="text-sm font-medium text-amber-800">
                       {profileData.uploadedPhotos.length === 0
                         ? "No photos uploaded yet"
-                        : `${3 - profileData.uploadedPhotos.length} more photo${
-                            3 - profileData.uploadedPhotos.length > 1 ? "s" : ""
-                          } needed`}
+                        : `${3 - profileData.uploadedPhotos.length} more photo${3 - profileData.uploadedPhotos.length > 1 ? "s" : ""
+                        } needed`}
                     </p>
                     <p className="text-sm text-amber-700 mt-1">
                       Add at least 3 photos to continue
@@ -1260,7 +1268,7 @@ const CofounderOnboarding = () => {
               {profileData.intent_type === "founder_with_idea" && (
                 <>
                   <Separator className="my-6" />
-                  
+
                   <div className="bg-blue-50/50 rounded-lg p-6 space-y-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="p-2 bg-blue-100 rounded-lg">
@@ -1364,8 +1372,8 @@ const CofounderOnboarding = () => {
 
   return (
     <Layout>
-        <div className="min-h-screen bg-gradient-to-b from-blue-50/50 to-white">
-          <div className="max-w-2xl mx-auto p-4 py-8">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50/50 to-white">
+        <div className="max-w-2xl mx-auto p-4 py-8">
           {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
@@ -1378,6 +1386,11 @@ const CofounderOnboarding = () => {
             </div>
             <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
               <div
+                role="progressbar"
+                aria-valuenow={Math.round((step / totalSteps) * 100)}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`Onboarding progress: step ${step} of ${totalSteps}`}
                 className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full transition-all duration-300"
                 style={{ width: `${(step / totalSteps) * 100}%` }}
               />

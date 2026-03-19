@@ -6,8 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:ci": "vite build --mode production",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
+    "check:csp": "node scripts/check-csp.mjs",
+    "check:bundle": "node scripts/check-bundle-budget.mjs",
+    "check:security-performance": "npm run check:csp && npm run build:ci && npm run check:bundle",
     "preview": "vite preview",
     "test": "playwright test",
     "test:ui": "playwright test --ui",

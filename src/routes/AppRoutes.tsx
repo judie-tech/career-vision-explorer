@@ -8,6 +8,8 @@ import DashboardLayout from "@/components/admin/DashboardLayout";
 const Index = lazy(() => import("@/pages/Index"));
 const Login = lazy(() => import("@/pages/Login"));
 const Signup = lazy(() => import("@/pages/Signup"));
+const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const LinkedInCallback = lazy(() => import("@/pages/auth/LinkedInCallback"));
 const Notifications = lazy(() => import("@/pages/Notifications"));
 const Jobs = lazy(() => import("@/pages/Jobs"));
@@ -15,6 +17,7 @@ const JobDetails = lazy(() => import("@/pages/JobDetails"));
 const PublicProfile = lazy(() => import("@/pages/PublicProfile"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Profile = lazy(() => import("@/pages/Profile"));
+const AccountManagement = lazy(() => import("@/pages/AccountManagement"));
 const Skills = lazy(() => import("@/pages/Skills"));
 const CareerPaths = lazy(() => import("@/pages/CareerPaths"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
@@ -324,7 +327,23 @@ export const AppRoutes = () => {
             </Suspense>
           }
         />
-        {/* Forgot/reset password temporarily disabled (missing pages) */}
+        {/* Forgot/Reset Password */}
+        <Route
+          path="/forgot-password"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <ForgotPassword />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <ResetPassword />
+            </Suspense>
+          }
+        />
         <Route
           path="/auth/callback"
           element={
@@ -572,6 +591,16 @@ export const AppRoutes = () => {
             <ProtectedRoute>
               <Suspense fallback={<PageLoader />}>
                 <Profile />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <AccountManagement />
               </Suspense>
             </ProtectedRoute>
           }

@@ -132,6 +132,8 @@ export interface Profile {
   | "Part-time"
   | "Contract"
   | "Internship"
+  | "Freelance"
+  | "Hybrid"
   | "Remote";
   work_authorization?: string;
   languages?: string[];
@@ -302,6 +304,8 @@ export interface ProfileUpdate {
   | "Part-time"
   | "Contract"
   | "Internship"
+  | "Freelance"
+  | "Hybrid"
   | "Remote";
   work_authorization?: string;
   languages?: string[];

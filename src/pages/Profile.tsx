@@ -9,6 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -52,6 +60,76 @@ import { useNavigate } from "react-router-dom";
 import whatsapp from "/src/assets/whatsapp.png";
 import stackoverflow from "/src/assets/stackoverflow.png";
 
+const WORK_MODE_OPTIONS = ["Remote", "Onsite", "Hybrid"] as const;
+const EMPLOYMENT_TYPE_OPTIONS = [
+  "Full-time",
+  "Part-time",
+  "Contract",
+  "Internship",
+  "Freelance",
+] as const;
+
+const normalizeJobPreferences = (preferences?: unknown) => {
+  if (!preferences || typeof preferences !== "object" || Array.isArray(preferences)) {
+    return {} as Record<string, unknown>;
+  }
+
+  const source = preferences as Record<string, unknown>;
+  const normalized: Record<string, unknown> = {};
+
+  const rawWorkMode = source.work_mode;
+  const mode = typeof rawWorkMode === "string" ? rawWorkMode.trim().toLowerCase() : "";
+  if (mode === "remote") {
+    normalized.work_mode = "Remote";
+  } else if (mode === "onsite" || mode === "on-site" || mode === "on site") {
+    normalized.work_mode = "Onsite";
+  } else if (mode === "hybrid") {
+    normalized.work_mode = "Hybrid";
+  } else if (source.remote_work === true) {
+    normalized.work_mode = "Remote";
+  }
+
+  const rawEmploymentTypes = source.employment_types;
+  if (Array.isArray(rawEmploymentTypes)) {
+    const validTypes = rawEmploymentTypes
+      .map((value) => (typeof value === "string" ? value.trim() : ""))
+      .filter((value): value is string =>
+        EMPLOYMENT_TYPE_OPTIONS.includes(value as (typeof EMPLOYMENT_TYPE_OPTIONS)[number])
+      );
+
+    if (validTypes.length > 0) {
+      normalized.employment_types = Array.from(new Set(validTypes));
+    }
+  }
+
+  return normalized;
+};
+
+const getWorkModeFromPreferences = (preferences?: unknown) => {
+  const normalized = normalizeJobPreferences(preferences);
+  return typeof normalized.work_mode === "string" ? normalized.work_mode : "";
+};
+
+const getEmploymentTypesFromPreferences = (preferences?: unknown) => {
+  const normalized = normalizeJobPreferences(preferences);
+  return Array.isArray(normalized.employment_types)
+    ? (normalized.employment_types as string[])
+    : [];
+};
+
+const upsertJobPreferences = (
+  currentPreferences: unknown,
+  updates: Record<string, unknown>
+) => {
+  const merged = {
+    ...normalizeJobPreferences(currentPreferences),
+    ...updates,
+  };
+
+  const normalized = normalizeJobPreferences(merged);
+  return Object.keys(normalized).length > 0 ? normalized : undefined;
+};
+
 const Profile: React.FC = () => {
   const { user, isAuthenticated, profile: authProfile } = useAuth();
   const navigate = useNavigate();
@@ -62,6 +140,16 @@ const Profile: React.FC = () => {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [isParsing, setIsParsing] = useState(false);
   const [localCompletionPercentage, setLocalCompletionPercentage] = useState(0);
+  const [isPhotoEditorOpen, setIsPhotoEditorOpen] = useState(false);
+  const [photoEditorSrc, setPhotoEditorSrc] = useState<string | null>(null);
+  const [photoEditorZoom, setPhotoEditorZoom] = useState(1.2);
+  const [photoEditorX, setPhotoEditorX] = useState(0);
+  const [photoEditorY, setPhotoEditorY] = useState(0);
+  const [photoEditorImageSize, setPhotoEditorImageSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+  const [profileImageRefreshKey, setProfileImageRefreshKey] = useState<number>(Date.now());
 
   // Input refs for scrolling to sections
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -70,7 +158,7 @@ const Profile: React.FC = () => {
   const skillsInputRef = useRef<HTMLTextAreaElement>(null);
   const workExperienceInputRef = useRef<HTMLTextAreaElement>(null);
   const educationInputRef = useRef<HTMLInputElement>(null);
-  const preferencesInputRef = useRef<HTMLTextAreaElement>(null);
+  const preferencesInputRef = useRef<HTMLDivElement>(null);
   const salaryInputRef = useRef<HTMLInputElement>(null);
   const dobInputRef = useRef<HTMLInputElement>(null);
   const phoneInputRef = useRef<HTMLInputElement>(null);
@@ -83,41 +171,68 @@ const Profile: React.FC = () => {
   const stackoverflowInputRef = useRef<HTMLTextAreaElement>(null);
   const projectsInputRef = useRef<HTMLDivElement>(null);
 
+  const preferenceDisplayKeys = new Set([
+    "work_mode",
+    "employment_types",
+  ]);
+
+  const getDisplayablePreferences = (preferences?: Record<string, unknown>) => {
+    if (!preferences) {
+      return [] as [string, unknown][];
+    }
+
+    return Object.entries(preferences).filter(([key]) => {
+      const normalizedKey = key.trim().toLowerCase();
+      return preferenceDisplayKeys.has(normalizedKey);
+    });
+  };
+
   // Redirect employers to their dashboard
 
   useEffect(() => {
-    if (isAuthenticated && authProfile) {
-      setProfile(authProfile);
-      setEditForm(authProfile);
-      // Use backend value if available, otherwise calculate locally
-      setLocalCompletionPercentage(
-        authProfile.profile_completion_percentage ||
-        calculateProfileCompletion(authProfile)
-      );
-      setLoading(false);
-    } else if (isAuthenticated && !authProfile) {
+    if (isAuthenticated) {
+      if (authProfile) {
+        const sanitizedAuthProfile = {
+          ...authProfile,
+          preferences: normalizeJobPreferences(authProfile.preferences),
+        };
+
+        setProfile(sanitizedAuthProfile);
+        setEditForm(sanitizedAuthProfile);
+        setLocalCompletionPercentage(
+          sanitizedAuthProfile.profile_completion_percentage ||
+          calculateProfileCompletion(sanitizedAuthProfile)
+        );
+      }
       loadProfile();
     } else {
       setLoading(false);
     }
   }, [isAuthenticated, user, authProfile]);
 
+  useEffect(() => {
+    return () => {
+      // no-op cleanup: photo editor uses data/https URLs
+    };
+  }, []);
+
   const loadProfile = async () => {
     try {
-      if (!user?.user_id) {
-        console.error("No user_id found in user");
-        return;
-      }
-
       setLoading(true);
-      const profileData = await profileService.getProfile(user.user_id);
+      const profileData = await profileService.getProfile();
 
-      setProfile(profileData);
-      setEditForm(profileData);
+      const sanitizedProfileData = {
+        ...profileData,
+        preferences: normalizeJobPreferences(profileData.preferences),
+      };
+
+      setProfile(sanitizedProfileData);
+      setEditForm(sanitizedProfileData);
+      setProfileImageRefreshKey(Date.now());
       // Use backend value if available, otherwise calculate locally
       setLocalCompletionPercentage(
-        profileData.profile_completion_percentage ||
-        calculateProfileCompletion(profileData)
+        sanitizedProfileData.profile_completion_percentage ||
+        calculateProfileCompletion(sanitizedProfileData)
       );
     } catch (error) {
       console.error("Error loading profile:", error);
@@ -129,7 +244,13 @@ const Profile: React.FC = () => {
 
   const handleSave = async (dataToSave?: Partial<ProfileUpdate>) => {
     const payload = dataToSave || editForm;
-    if (!payload || Object.keys(payload).length === 0) {
+    const normalizedPreferences = upsertJobPreferences(payload.preferences, {});
+    const payloadWithSanitizedPreferences = {
+      ...payload,
+      preferences: normalizedPreferences,
+    };
+
+    if (!payloadWithSanitizedPreferences || Object.keys(payloadWithSanitizedPreferences).length === 0) {
       toast.info("No changes to save.");
       setEditing(false);
       return;
@@ -144,7 +265,7 @@ const Profile: React.FC = () => {
 
       // Clean the payload - remove undefined values
       const cleanPayload: ProfileUpdate = Object.fromEntries(
-        Object.entries(payload).filter(
+        Object.entries(payloadWithSanitizedPreferences).filter(
           ([_, value]) => value !== undefined && value !== null
         )
       ) as ProfileUpdate;
@@ -199,12 +320,17 @@ const Profile: React.FC = () => {
         );
       }
 
-      setProfile(updatedProfile);
-      setEditForm(updatedProfile);
+      const sanitizedUpdatedProfile = {
+        ...updatedProfile,
+        preferences: normalizeJobPreferences(updatedProfile.preferences),
+      };
+
+      setProfile(sanitizedUpdatedProfile);
+      setEditForm(sanitizedUpdatedProfile);
       // Use backend value if available, otherwise calculate locally
       setLocalCompletionPercentage(
-        updatedProfile.profile_completion_percentage ||
-        calculateProfileCompletion(updatedProfile)
+        sanitizedUpdatedProfile.profile_completion_percentage ||
+        calculateProfileCompletion(sanitizedUpdatedProfile)
       );
       setEditing(false);
       toast.success("Profile updated successfully!");
@@ -214,15 +340,191 @@ const Profile: React.FC = () => {
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image size must be 10MB or less");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const imageDataUrl = typeof reader.result === "string" ? reader.result : null;
+      if (!imageDataUrl) {
+        toast.error("Failed to read image. Please try another file.");
+        return;
+      }
+
+      openPhotoEditorWithSource(imageDataUrl);
+    };
+    reader.onerror = () => {
+      toast.error("Failed to read image. Please try another file.");
+    };
+    reader.readAsDataURL(file);
+
+    // Allow selecting the same file again later.
+    e.target.value = "";
+  };
+
+  const closePhotoEditor = () => {
+    setPhotoEditorSrc(null);
+    setPhotoEditorImageSize(null);
+    setIsPhotoEditorOpen(false);
+  };
+
+  const openPhotoEditorWithSource = (src: string) => {
+    const image = new Image();
+    if (src.startsWith("http://") || src.startsWith("https://")) {
+      image.crossOrigin = "anonymous";
+    }
+
+    image.onload = () => {
+      setPhotoEditorSrc(src);
+      setPhotoEditorImageSize({
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+      });
+      setPhotoEditorZoom(1.2);
+      setPhotoEditorX(0);
+      setPhotoEditorY(0);
+      setIsPhotoEditorOpen(true);
+    };
+
+    image.onerror = () => {
+      toast.error("Failed to load image. Please try another file.");
+    };
+
+    image.src = src;
+  };
+
+  const getCropFrame = (
+    imageWidth: number,
+    imageHeight: number,
+    viewportSize: number,
+    zoom: number,
+    xOffsetPercent: number,
+    yOffsetPercent: number
+  ) => {
+    const baseCoverScale = Math.max(viewportSize / imageWidth, viewportSize / imageHeight);
+    const renderScale = baseCoverScale * zoom;
+
+    const drawWidth = imageWidth * renderScale;
+    const drawHeight = imageHeight * renderScale;
+
+    const maxOffsetX = Math.max(0, (drawWidth - viewportSize) / 2);
+    const maxOffsetY = Math.max(0, (drawHeight - viewportSize) / 2);
+
+    const drawX = (viewportSize - drawWidth) / 2 + (xOffsetPercent / 100) * maxOffsetX;
+    const drawY = (viewportSize - drawHeight) / 2 + (yOffsetPercent / 100) * maxOffsetY;
+
+    return { drawX, drawY, drawWidth, drawHeight };
+  };
+
+  const openPhotoEditorPanel = () => {
+    if (profile?.profile_image_url) {
+      openPhotoEditorWithSource(profile.profile_image_url);
+      return;
+    }
+
+    setPhotoEditorSrc(null);
+    setPhotoEditorImageSize(null);
+    setPhotoEditorZoom(1.2);
+    setPhotoEditorX(0);
+    setPhotoEditorY(0);
+    setIsPhotoEditorOpen(true);
+  };
+
+  const triggerPhotoPicker = () => {
+    profileImageInputRef.current?.click();
+  };
+
+  const createCroppedImageFile = async (
+    imageSrc: string,
+    zoom: number,
+    xPercent: number,
+    yPercent: number
+  ): Promise<File> => {
+    const image = new Image();
+    if (imageSrc.startsWith("http://") || imageSrc.startsWith("https://")) {
+      image.crossOrigin = "anonymous";
+    }
+    image.src = imageSrc;
+
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error("Failed to load image"));
+    });
+
+    const canvasSize = 512;
+    const canvas = document.createElement("canvas");
+    canvas.width = canvasSize;
+    canvas.height = canvasSize;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      throw new Error("Failed to initialize image editor");
+    }
+
+    const safeZoom = Math.max(1.05, Math.min(3, zoom));
+    const frame = getCropFrame(
+      image.width,
+      image.height,
+      canvasSize,
+      safeZoom,
+      xPercent,
+      yPercent
+    );
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(image, frame.drawX, frame.drawY, frame.drawWidth, frame.drawHeight);
+
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", 0.9)
+    );
+
+    if (!blob) {
+      throw new Error("Failed to process image");
+    }
+
+    return new File([blob], "profile-photo.jpg", { type: "image/jpeg" });
+  };
+
+  const handlePhotoEditorSave = async () => {
+    if (!photoEditorSrc) return;
+
     try {
       setLoading(true);
-      await profileService.uploadProfileImage(file);
+      const croppedFile = await createCroppedImageFile(
+        photoEditorSrc,
+        photoEditorZoom,
+        photoEditorX,
+        photoEditorY
+      );
+
+      const uploadResult = await profileService.uploadProfileImage(croppedFile);
+      if (uploadResult?.image_url) {
+        setProfile((prev) =>
+          prev
+            ? { ...prev, profile_image_url: uploadResult.image_url }
+            : prev
+        );
+        setEditForm((prev) => ({
+          ...prev,
+          profile_image_url: uploadResult.image_url,
+        }));
+        setProfileImageRefreshKey(Date.now());
+      }
       await loadProfile();
       toast.success("Profile image updated successfully");
+      closePhotoEditor();
     } catch (error) {
       console.error("Image upload failed", error);
       toast.error("Failed to upload image. Max size 10MB.");
@@ -231,8 +533,27 @@ const Profile: React.FC = () => {
     }
   };
 
+  const PHOTO_PREVIEW_SIZE = 288;
+  const profileAvatarSrc = profile?.profile_image_url
+    ? `${profile.profile_image_url}${profile.profile_image_url.includes("?") ? "&" : "?"
+    }t=${profileImageRefreshKey}`
+    : undefined;
+  const previewFrame = photoEditorImageSize
+    ? getCropFrame(
+      photoEditorImageSize.width,
+      photoEditorImageSize.height,
+      PHOTO_PREVIEW_SIZE,
+      Math.max(1.05, Math.min(3, photoEditorZoom)),
+      photoEditorX,
+      photoEditorY
+    )
+    : null;
+
   const handleCancel = () => {
-    setEditForm(profile as ProfileType);
+    setEditForm({
+      ...(profile as ProfileType),
+      preferences: normalizeJobPreferences(profile?.preferences),
+    });
     // Use backend value if available, otherwise calculate locally
     setLocalCompletionPercentage(
       profile?.profile_completion_percentage ||
@@ -1147,8 +1468,11 @@ const Profile: React.FC = () => {
                 <CardContent className="p-6">
                   <div className="text-center">
                     <div className="relative inline-block">
-                      <Avatar className="h-24 w-24 mx-auto mb-4">
-                        <AvatarImage src={profile?.profile_image_url} />
+                      <Avatar
+                        className="h-24 w-24 mx-auto mb-4 cursor-pointer ring-offset-background transition hover:opacity-90"
+                        onClick={openPhotoEditorPanel}
+                      >
+                        <AvatarImage src={profileAvatarSrc} />
                         <AvatarFallback className="text-2xl">
                           {profile?.name
                             ?.split(" ")
@@ -1158,25 +1482,24 @@ const Profile: React.FC = () => {
                         </AvatarFallback>
                       </Avatar>
 
-                      {editing && (
-                        <div className="absolute bottom-4 right-0">
-                          <Button
-                            variant="secondary"
-                            size="icon"
-                            className="h-8 w-8 rounded-full shadow-md"
-                            onClick={() => profileImageInputRef.current?.click()}
-                          >
-                            <Edit3 className="h-4 w-4" />
-                          </Button>
-                          <input
-                            ref={profileImageInputRef}
-                            type="file"
-                            className="hidden"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                          />
-                        </div>
-                      )}
+                      <div className="absolute bottom-4 right-0">
+                        <Button
+                          variant="secondary"
+                          size="icon"
+                          className="h-8 w-8 rounded-full shadow-md"
+                          onClick={openPhotoEditorPanel}
+                          aria-label="Edit profile photo"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
+                        <input
+                          ref={profileImageInputRef}
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                        />
+                      </div>
                     </div>
 
                     {editing ? (
@@ -1341,6 +1664,8 @@ const Profile: React.FC = () => {
                             <SelectItem value="Internship">
                               Internship
                             </SelectItem>
+                            <SelectItem value="Freelance">Freelance</SelectItem>
+                            <SelectItem value="Hybrid">Hybrid</SelectItem>
                             <SelectItem value="Remote">Remote</SelectItem>
                           </SelectContent>
                         </Select>
@@ -1894,14 +2219,12 @@ const Profile: React.FC = () => {
                                 </Button>
                               </li>
                             )}
-                            {!profile?.preferences && (
+                            {!profile?.preferred_job_type && (
                               <li>
                                 <Button
                                   variant="link"
                                   className="text-xs p-0 h-auto"
-                                  onClick={() =>
-                                    handleJumpToField("preferences")
-                                  }
+                                  onClick={() => handleJumpToField("job_type")}
                                   aria-label="Add job preferences"
                                 >
                                   Job Preferences
@@ -2647,31 +2970,74 @@ const Profile: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   {editing ? (
-                    <Textarea
-                      ref={preferencesInputRef}
-                      value={JSON.stringify(
-                        editForm.preferences || {},
-                        null,
-                        2
-                      )}
-                      onChange={(e) => {
-                        try {
-                          const preferences = JSON.parse(e.target.value);
-                          setEditForm({ ...editForm, preferences });
-                        } catch { }
-                      }}
-                      placeholder={`{
-  "remote_work": true,
-  "travel_willingness": "low",
-  "company_size": "startup",
-  "industry_preferences": ["tech", "finance"]
-}`}
-                      rows={6}
-                    />
+                    <div className="space-y-4" ref={preferencesInputRef} tabIndex={-1}>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Work Mode</label>
+                        <Select
+                          value={getWorkModeFromPreferences(editForm.preferences)}
+                          onValueChange={(value) =>
+                            setEditForm({
+                              ...editForm,
+                              preferences: upsertJobPreferences(editForm.preferences, {
+                                work_mode: value,
+                              }),
+                            })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select work mode" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {WORK_MODE_OPTIONS.map((mode) => (
+                              <SelectItem key={mode} value={mode}>
+                                {mode}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Employment Type</label>
+                        <div className="flex flex-wrap gap-2">
+                          {EMPLOYMENT_TYPE_OPTIONS.map((employmentType) => {
+                            const selectedEmploymentTypes = getEmploymentTypesFromPreferences(
+                              editForm.preferences
+                            );
+                            const isSelected = selectedEmploymentTypes.includes(employmentType);
+
+                            return (
+                              <Button
+                                key={employmentType}
+                                type="button"
+                                variant={isSelected ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => {
+                                  const nextEmploymentTypes = isSelected
+                                    ? selectedEmploymentTypes.filter(
+                                      (value) => value !== employmentType
+                                    )
+                                    : [...selectedEmploymentTypes, employmentType];
+
+                                  setEditForm({
+                                    ...editForm,
+                                    preferences: upsertJobPreferences(editForm.preferences, {
+                                      employment_types: nextEmploymentTypes,
+                                    }),
+                                  });
+                                }}
+                              >
+                                {employmentType}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
                   ) : profile?.preferences &&
-                    Object.keys(profile.preferences).length > 0 ? (
+                    getDisplayablePreferences(profile.preferences).length > 0 ? (
                     <div className="space-y-2">
-                      {Object.entries(profile.preferences).map(([k, v]) => (
+                      {getDisplayablePreferences(profile.preferences).map(([k, v]) => (
                         <div key={k} className="flex justify-between text-sm">
                           <span className="text-muted-foreground capitalize">
                             {k.replace("_", " ")}
@@ -2693,6 +3059,107 @@ const Profile: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <Dialog open={isPhotoEditorOpen} onOpenChange={(open) => {
+        if (!open) {
+          closePhotoEditor();
+        }
+      }}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Fit Profile Photo</DialogTitle>
+            <DialogDescription>
+              Adjust zoom and position so your face is centered before saving.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="mx-auto h-72 w-72 overflow-hidden rounded-full border-4 border-muted bg-muted">
+              {photoEditorSrc && previewFrame && (
+                <div className="relative h-full w-full overflow-hidden">
+                  <img
+                    src={photoEditorSrc}
+                    alt="Profile fit preview"
+                    className="absolute max-w-none"
+                    style={{
+                      left: `${previewFrame.drawX}px`,
+                      top: `${previewFrame.drawY}px`,
+                      width: `${previewFrame.drawWidth}px`,
+                      height: `${previewFrame.drawHeight}px`,
+                    }}
+                  />
+
+                  {/* Rule-of-thirds guide */}
+                  <div className="pointer-events-none absolute inset-0">
+                    <div className="absolute left-1/3 top-0 h-full w-px bg-white/40" />
+                    <div className="absolute left-2/3 top-0 h-full w-px bg-white/40" />
+                    <div className="absolute top-1/3 left-0 h-px w-full bg-white/40" />
+                    <div className="absolute top-2/3 left-0 h-px w-full bg-white/40" />
+                  </div>
+                </div>
+              )}
+              {!photoEditorSrc && (
+                <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
+                  Choose a photo to continue
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-center">
+              <Button variant="outline" onClick={triggerPhotoPicker}>
+                Update Photo
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium">Zoom</label>
+                <Input
+                  type="range"
+                  min={1.05}
+                  max={3}
+                  step={0.01}
+                  value={photoEditorZoom}
+                  onChange={(e) => setPhotoEditorZoom(Number(e.target.value))}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Horizontal Position</label>
+                <Input
+                  type="range"
+                  min={-100}
+                  max={100}
+                  step={1}
+                  value={photoEditorX}
+                  onChange={(e) => setPhotoEditorX(Number(e.target.value))}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Vertical Position</label>
+                <Input
+                  type="range"
+                  min={-100}
+                  max={100}
+                  step={1}
+                  value={photoEditorY}
+                  onChange={(e) => setPhotoEditorY(Number(e.target.value))}
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={closePhotoEditor}>
+              Cancel
+            </Button>
+            <Button onClick={handlePhotoEditorSave} disabled={loading || !photoEditorSrc}>
+              {loading ? "Saving..." : "Save Photo"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
