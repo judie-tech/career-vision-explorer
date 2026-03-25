@@ -123,7 +123,7 @@ class ApiClient {
                     : undefined;
                 const message =
                   "message" in errorData &&
-                  typeof errorData.message === "string"
+                    typeof errorData.message === "string"
                     ? errorData.message
                     : undefined;
                 errorMessage = detail || message || text;

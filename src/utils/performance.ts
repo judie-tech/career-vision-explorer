@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 export class PerformanceMonitor {
   private static instance: PerformanceMonitor;
   private slowOperations: Map<string, number> = new Map();
-  
+
   static getInstance(): PerformanceMonitor {
     if (!PerformanceMonitor.instance) {
       PerformanceMonitor.instance = new PerformanceMonitor();
@@ -28,11 +28,11 @@ export class PerformanceMonitor {
 
     return new Promise(async (resolve, reject) => {
       const startTime = performance.now();
-      
+
       // Show loading toast for operations that might be slow
       let warningToastId: string | number | undefined;
       let errorToastId: string | number | undefined;
-      
+
       const warningTimer = setTimeout(() => {
         if (showToast) {
           warningToastId = toast.loading(
@@ -68,19 +68,19 @@ export class PerformanceMonitor {
         // Clear timers
         clearTimeout(warningTimer);
         clearTimeout(errorTimer);
-        
+
         // Dismiss loading toasts
         if (warningToastId) toast.dismiss(warningToastId);
         if (errorToastId) toast.dismiss(errorToastId);
 
         // Track performance
         this.slowOperations.set(operationName, duration);
-        
+
         // Log performance
         if (duration > errorThreshold) {
           console.error(`🔥 Very slow: ${operationName} completed in ${Math.round(duration)}ms`);
           if (showToast) {
-            toast.warning(`${operationName} completed but was slow (${Math.round(duration/1000)}s)`);
+            toast.warning(`${operationName} completed but was slow (${Math.round(duration / 1000)}s)`);
           }
         } else if (duration > warningThreshold) {
           console.warn(`⚠️ Slow: ${operationName} completed in ${Math.round(duration)}ms`);
@@ -93,13 +93,13 @@ export class PerformanceMonitor {
         // Clear timers
         clearTimeout(warningTimer);
         clearTimeout(errorTimer);
-        
+
         // Dismiss loading toasts
         if (warningToastId) toast.dismiss(warningToastId);
         if (errorToastId) toast.dismiss(errorToastId);
 
         console.error(`❌ Failed: ${operationName}`, error);
-        
+
         if (
           showToast &&
           error instanceof Error &&

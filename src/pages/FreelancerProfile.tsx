@@ -674,11 +674,10 @@ export default function FreelancerProfile() {
                               aria-label={`Rate ${value} stars`}
                             >
                               <Star
-                                className={`w-6 h-6 ${
-                                  value <= reviewRating
+                                className={`w-6 h-6 ${value <= reviewRating
                                     ? "text-yellow-500 fill-current"
                                     : "text-gray-300"
-                                }`}
+                                  }`}
                               />
                             </button>
                           ))}
@@ -725,11 +724,10 @@ export default function FreelancerProfile() {
                                 {[1, 2, 3, 4, 5].map((s) => (
                                   <Star
                                     key={`${review.review_id || index}-star-${s}`}
-                                    className={`w-4 h-4 ${
-                                      s <= (review.rating || 0)
+                                    className={`w-4 h-4 ${s <= (review.rating || 0)
                                         ? "text-yellow-500 fill-current"
                                         : "text-gray-300"
-                                    }`}
+                                      }`}
                                   />
                                 ))}
                               </div>
