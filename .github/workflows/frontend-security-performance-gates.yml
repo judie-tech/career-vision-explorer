@@ -3,20 +3,17 @@ name: Frontend Security and Performance Gates
 on:
   pull_request:
     paths:
-      - "career-vision-explorer/**"
+      - "**"
       - ".github/workflows/frontend-security-performance-gates.yml"
   push:
     branches: [main, master]
     paths:
-      - "career-vision-explorer/**"
+      - "**"
       - ".github/workflows/frontend-security-performance-gates.yml"
 
 jobs:
   frontend-gates:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: career-vision-explorer
 
     steps:
       - name: Checkout
@@ -27,7 +24,7 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: ./package-lock.json
 
       - name: Install dependencies
         run: npm ci
