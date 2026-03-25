@@ -89,7 +89,7 @@ export class PerformanceMonitor {
         }
 
         resolve(result);
-      } catch (error) {
+      } catch (error: unknown) {
         // Clear timers
         clearTimeout(warningTimer);
         clearTimeout(errorTimer);
@@ -100,7 +100,11 @@ export class PerformanceMonitor {
 
         console.error(`❌ Failed: ${operationName}`, error);
         
-        if (showToast && error.message?.includes('timed out')) {
+        if (
+          showToast &&
+          error instanceof Error &&
+          error.message.includes('timed out')
+        ) {
           toast.error('Database Timeout', {
             description: 'The operation took too long. Please try again or check your connection.',
             duration: 5000

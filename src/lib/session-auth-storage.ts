@@ -2,8 +2,8 @@ const ACCESS_TOKEN_KEY = "access_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
 const USER_KEY = "user";
 
-// Compatibility window: keep writing to localStorage until backend/session rollout is complete.
-const LEGACY_LOCALSTORAGE_COMPAT = true;
+// Compatibility window: read legacy localStorage values, but keep new writes in session storage only.
+const LEGACY_LOCALSTORAGE_COMPAT = false;
 
 function getSessionStorage(): Storage | null {
   try {

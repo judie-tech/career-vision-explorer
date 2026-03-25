@@ -2,6 +2,11 @@
 import { API_CONFIG } from "../config/api.config";
 import { authStorage } from "./session-auth-storage";
 
+type ApiRequestError = Error & {
+  status?: number;
+  response?: unknown;
+};
+
 // API Client configuration for FastAPI backend
 class ApiClient {
   private baseURL: string;
@@ -94,7 +99,7 @@ class ApiClient {
       if (timeoutId) clearTimeout(timeoutId);
 
       if (!response.ok) {
-        let errorData: any = null;
+        let errorData: unknown = null;
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
 
         try {
@@ -107,7 +112,24 @@ class ApiClient {
           if (text) {
             try {
               errorData = JSON.parse(text);
-              errorMessage = errorData.detail || errorData.message || text;
+              if (
+                errorData &&
+                typeof errorData === "object" &&
+                ("detail" in errorData || "message" in errorData)
+              ) {
+                const detail =
+                  "detail" in errorData && typeof errorData.detail === "string"
+                    ? errorData.detail
+                    : undefined;
+                const message =
+                  "message" in errorData &&
+                  typeof errorData.message === "string"
+                    ? errorData.message
+                    : undefined;
+                errorMessage = detail || message || text;
+              } else {
+                errorMessage = text;
+              }
             } catch {
               errorMessage = text;
             }
@@ -118,9 +140,9 @@ class ApiClient {
           }
         }
 
-        const error = new Error(errorMessage);
-        (error as any).status = response.status;
-        (error as any).response = errorData;
+        const error: ApiRequestError = new Error(errorMessage);
+        error.status = response.status;
+        error.response = errorData;
         throw error;
       }
 
@@ -132,10 +154,10 @@ class ApiClient {
 
       const text = await response.text();
       return text as unknown as T;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (timeoutId) clearTimeout(timeoutId);
 
-      if (error.name === "AbortError") {
+      if (error instanceof Error && error.name === "AbortError") {
         if (import.meta.env.DEV) {
           console.error(`⏰ Timeout: ${endpoint} (${timeoutMs}ms)`);
         }
@@ -143,7 +165,10 @@ class ApiClient {
       }
 
       if (import.meta.env.DEV) {
-        console.error(`❌ ${endpoint}`, error.message);
+        console.error(
+          `❌ ${endpoint}`,
+          error instanceof Error ? error.message : String(error)
+        );
       }
       throw error;
     }
@@ -162,7 +187,7 @@ class ApiClient {
 
   async post<T>(
     endpoint: string,
-    data?: any,
+    data?: unknown,
     config?: { signal?: AbortSignal }
   ): Promise<T> {
     const isFormData = data instanceof FormData;
@@ -178,14 +203,14 @@ class ApiClient {
     );
   }
 
-  async put<T>(endpoint: string, data?: any): Promise<T> {
+  async put<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.request<T>(endpoint, {
       method: "PUT",
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
-  async patch<T>(endpoint: string, data?: any): Promise<T> {
+  async patch<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.request<T>(endpoint, {
       method: "PATCH",
       body: data ? JSON.stringify(data) : undefined,

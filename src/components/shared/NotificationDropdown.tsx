@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, X, Check, Trash2, Mail, Calendar, BriefcaseIcon, User, MessageSquare, AlertCircle } from 'lucide-react';
+import { Bell, X, Check, Trash2, Mail, Calendar, BriefcaseIcon, User, MessageSquare, AlertCircle, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -38,6 +38,8 @@ const NotificationIcon = ({ type }: { type: Notification['type'] }) => {
     case 'message_received':
     case 'cofounder_new_message':
       return <MessageSquare {...iconProps} className="h-4 w-4 text-cyan-500" />;
+    case 'freelancer_review_received':
+      return <Star {...iconProps} className="h-4 w-4 text-amber-500" />;
     case 'system':
       return <AlertCircle {...iconProps} className="h-4 w-4 text-gray-500" />;
     default:

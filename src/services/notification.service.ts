@@ -3,20 +3,21 @@ import { apiClient } from "@/lib/api-client";
 export interface Notification {
   id: string;
   user_id: string;
-  type: 
-    | 'interview_scheduled'
-    | 'interview_reminder'
-    | 'interview_cancelled'
-    | 'application_viewed'
-    | 'application_status_changed'
-    | 'job_match'
-    | 'profile_viewed'
-    | 'message_received'
-    | 'cofounder_new_message'
-    | 'cofounder_mutual_interest'
-    | 'cofounder_connection'
-    | 'cofounder_match_suggestion'
-    | 'system';
+  type:
+  | 'interview_scheduled'
+  | 'interview_reminder'
+  | 'interview_cancelled'
+  | 'application_viewed'
+  | 'application_status_changed'
+  | 'job_match'
+  | 'profile_viewed'
+  | 'message_received'
+  | 'freelancer_review_received'
+  | 'cofounder_new_message'
+  | 'cofounder_mutual_interest'
+  | 'cofounder_connection'
+  | 'cofounder_match_suggestion'
+  | 'system';
   title: string;
   message: string;
   link?: string;

@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Star,
   MapPin,
+  Mail,
   Check,
   ImageIcon,
   DollarSign,
@@ -22,6 +23,8 @@ import Layout from "@/components/layout/Layout";
 import { ContactDialog } from "@/components/freelancer/ContactDialog";
 import { PricingDialog } from "@/components/freelancer/PricingDialog";
 import { useAuth } from "@/hooks/use-auth";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function FreelancerProfile() {
   const { freelancerId } = useParams<{ freelancerId: string }>();
@@ -38,6 +41,18 @@ export default function FreelancerProfile() {
   const [selectedPackageForContact, setSelectedPackageForContact] = useState<
     string | undefined
   >();
+  const [reviews, setReviews] = useState<Array<{
+    review_id?: string;
+    reviewer_name?: string;
+    rating?: number;
+    comment?: string;
+    created_at?: string;
+    project_title?: string;
+  }>>([]);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewProjectTitle, setReviewProjectTitle] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     if (freelancerId) {
@@ -57,12 +72,22 @@ export default function FreelancerProfile() {
           freelancerId
         );
         setFreelancer(enrichedData);
+        const loadedReviews = await freelancerService.getFreelancerReviews(
+          freelancerId,
+          50
+        );
+        setReviews(loadedReviews || []);
       } catch (enrichedError) {
         console.log(
           "Enriched endpoint failed, falling back to regular endpoint"
         );
         const data = await freelancerService.getFreelancer(freelancerId);
         setFreelancer(data);
+        const loadedReviews = await freelancerService.getFreelancerReviews(
+          freelancerId,
+          50
+        );
+        setReviews(loadedReviews || data.recent_reviews || []);
       }
     } catch (error) {
       console.error("Error loading freelancer:", error);
@@ -106,8 +131,14 @@ export default function FreelancerProfile() {
     tierPrice?: number;
     message: string;
   }) => {
-    console.log("Sending message:", data);
-    toast.success("Message sent successfully!");
+    if (!freelancer?.freelancer_id) {
+      throw new Error("Freelancer not found");
+    }
+    await freelancerService.contactFreelancer(freelancer.freelancer_id, {
+      message: data.message,
+      selected_tier: (data.selectedTier as "basic" | "standard" | "premium" | undefined),
+      tier_price: data.tierPrice,
+    });
   };
 
   const openContactDialog = (packageType?: string) => {
@@ -118,19 +149,35 @@ export default function FreelancerProfile() {
   const isOwnFreelancerProfile =
     !!user?.user_id && !!freelancer?.user_id && user.user_id === freelancer.user_id;
 
-  const reviews = ((freelancer as any)?.reviews ||
-    (freelancer as any)?.recent_reviews || []) as Array<{
-      id?: string;
-      reviewer_name?: string;
-      rating?: number;
-      comment?: string;
-      created_at?: string;
-      project_title?: string;
-    }>;
-
   const uniqueSkills = Array.from(
     new Set((freelancer?.skills || []).map((skill) => (skill || "").trim()).filter(Boolean))
   );
+
+  const handleSubmitReview = async () => {
+    if (!freelancer?.freelancer_id) return;
+    if (!reviewComment.trim() || reviewComment.trim().length < 5) {
+      toast.error("Please enter a meaningful review comment.");
+      return;
+    }
+
+    try {
+      setSubmittingReview(true);
+      await freelancerService.createFreelancerReview(freelancer.freelancer_id, {
+        rating: reviewRating,
+        comment: reviewComment.trim(),
+        project_title: reviewProjectTitle.trim() || undefined,
+      });
+      toast.success("Review submitted successfully.");
+      setReviewComment("");
+      setReviewProjectTitle("");
+      setReviewRating(5);
+      await loadFreelancer();
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to submit review.");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   const handlePortfolioSync = async () => {
     if (!freelancer?.freelancer_id) return;
@@ -247,6 +294,13 @@ export default function FreelancerProfile() {
                     <p className="mt-4 text-gray-700 dark:text-gray-300 max-w-3xl">
                       {freelancer.bio}
                     </p>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-300">
+                      <span className="inline-flex items-center gap-1">
+                        <Mail className="w-4 h-4" />
+                        {freelancer.email}
+                      </span>
+                    </div>
                   </div>
 
                   {/* CTA */}
@@ -602,20 +656,84 @@ export default function FreelancerProfile() {
                   </CardContent>
                 </Card>
 
+                {!isOwnFreelancerProfile && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Leave a Review</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">Your rating</p>
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map((value) => (
+                            <button
+                              key={value}
+                              type="button"
+                              className="p-1"
+                              onClick={() => setReviewRating(value)}
+                              aria-label={`Rate ${value} stars`}
+                            >
+                              <Star
+                                className={`w-6 h-6 ${
+                                  value <= reviewRating
+                                    ? "text-yellow-500 fill-current"
+                                    : "text-gray-300"
+                                }`}
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">Project title (optional)</p>
+                        <Input
+                          value={reviewProjectTitle}
+                          onChange={(e) => setReviewProjectTitle(e.target.value)}
+                          placeholder="e.g. Selenium test suite setup"
+                        />
+                      </div>
+
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">Your review</p>
+                        <Textarea
+                          value={reviewComment}
+                          onChange={(e) => setReviewComment(e.target.value)}
+                          placeholder="Share your experience working with this freelancer"
+                          rows={4}
+                        />
+                      </div>
+
+                      <Button onClick={handleSubmitReview} disabled={submittingReview || !reviewComment.trim()}>
+                        {submittingReview ? "Submitting..." : "Submit Review"}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {reviews.length > 0 ? (
                   <div className="space-y-4">
                     {reviews.map((review, index) => (
-                      <Card key={review.id || `${review.reviewer_name || "review"}-${index}`}>
+                      <Card key={review.review_id || `${review.reviewer_name || "review"}-${index}`}>
                         <CardContent className="pt-6 space-y-2">
                           <div className="flex items-center justify-between">
                             <div className="font-semibold">
                               {review.reviewer_name || "Client"}
                             </div>
                             <div className="flex items-center gap-1">
-                              <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                              <span className="font-medium">
-                                {(review.rating || 0).toFixed(1)}
-                              </span>
+                              <div className="flex items-center gap-0.5">
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                  <Star
+                                    key={`${review.review_id || index}-star-${s}`}
+                                    className={`w-4 h-4 ${
+                                      s <= (review.rating || 0)
+                                        ? "text-yellow-500 fill-current"
+                                        : "text-gray-300"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                              <span className="font-medium">{review.rating || 0}.0</span>
                             </div>
                           </div>
                           {review.project_title && (
@@ -652,12 +770,16 @@ export default function FreelancerProfile() {
       />
 
       <ContactDialog
-        isOpen={contactDialogOpen}
-        onClose={() => setContactDialogOpen(false)}
-        onSubmit={handleSendMessage}
+        open={contactDialogOpen}
+        onOpenChange={setContactDialogOpen}
+        onSendMessage={handleSendMessage}
         freelancerName={freelancer.name}
-        packages={freelancer.pricing}
-        selectedPackage={selectedPackageForContact}
+        pricing={freelancer.pricing}
+        initialSelectedTier={selectedPackageForContact as
+          | "basic"
+          | "standard"
+          | "premium"
+          | undefined}
       />
     </Layout>
   );
