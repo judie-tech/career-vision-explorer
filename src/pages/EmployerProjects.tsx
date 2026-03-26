@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { FolderOpen, Plus, Eye } from "lucide-react";
+import Navbar from "@/components/layout/Navbar";
 
 const ProjectsPage = ({ projects = [] }) => {
   const [activeTab, setActiveTab] = useState("all");
@@ -56,6 +57,7 @@ const ProjectsPage = ({ projects = [] }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navbar />
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Header */}
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 sm:p-8 border border-white/20 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
