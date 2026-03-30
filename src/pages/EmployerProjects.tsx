@@ -49,11 +49,11 @@ const ProjectsPage = ({ projects = [] }) => {
     activeTab === "all"
       ? projects
       : projects.filter((project) => {
-          if (activeTab === "active") return project.status === "Active";
-          if (activeTab === "review") return project.status === "In Review";
-          if (activeTab === "pending") return project.status === "Pending";
-          return true;
-        });
+        if (activeTab === "active") return project.status === "Active";
+        if (activeTab === "review") return project.status === "In Review";
+        if (activeTab === "pending") return project.status === "Pending";
+        return true;
+      });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -84,17 +84,15 @@ const ProjectsPage = ({ projects = [] }) => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
-                  activeTab === tab.id
+                className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all duration-200 whitespace-nowrap flex-shrink-0 ${activeTab === tab.id
                     ? "bg-blue-100 text-blue-700 font-medium"
                     : "text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-                }`}
+                  }`}
               >
                 <span className="text-sm sm:text-base">{tab.label}</span>
                 <span
-                  className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-xs sm:text-sm ${
-                    activeTab === tab.id ? "bg-blue-200" : "bg-gray-200"
-                  }`}
+                  className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-xs sm:text-sm ${activeTab === tab.id ? "bg-blue-200" : "bg-gray-200"
+                    }`}
                 >
                   {tab.count}
                 </span>
