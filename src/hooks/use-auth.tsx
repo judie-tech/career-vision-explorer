@@ -3,8 +3,10 @@ import {
   useContext,
   useEffect,
   useState,
+  useCallback,
   ReactNode,
 } from "react";
+import { useNavigate } from "react-router-dom";
 import { authService } from "../services/auth.service";
 import { profileService } from "../services/profile.service";
 import { User, UserLogin, UserRegister } from "../types/auth";
@@ -58,7 +60,15 @@ const getDashboardPath = (accountType: string): string => {
   }
 };
 
+const getErrorMessage = (error: unknown, fallback: string): string => {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return fallback;
+};
+
 const AuthProvider = ({ children }: AuthProviderProps) => {
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,11 +76,34 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const [originalUser, setOriginalUser] = useState<User | null>(null);
   const [isImpersonating, setIsImpersonating] = useState(false);
 
-  useEffect(() => {
-    initializeAuth();
+  const loadUserProfile = useCallback(async () => {
+    try {
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Profile load timeout")), 30000)
+      );
+      const profilePromise = profileService.getProfile();
+      const userProfile = (await Promise.race([
+        profilePromise,
+        timeoutPromise,
+      ])) as Profile;
+      setProfile(userProfile);
+    } catch (err: unknown) {
+      console.error("Error loading profile:", err);
+      setProfile(null);
+      const message = getErrorMessage(err, "");
+      if (message.includes("401") || message.includes("403")) {
+        try {
+          await authService.refreshToken();
+          const userProfile = await profileService.getProfile();
+          setProfile(userProfile);
+        } catch {
+          setError("Session expired. Please log in again.");
+        }
+      }
+    }
   }, []);
 
-  const initializeAuth = async () => {
+  const initializeAuth = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -104,40 +137,18 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
           }
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error initializing auth:", err);
-      setError(err.message || "Failed to initialize authentication");
+      setError(getErrorMessage(err, "Failed to initialize authentication"));
       await authService.logout();
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [loadUserProfile]);
 
-  const loadUserProfile = async () => {
-    try {
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Profile load timeout")), 30000)
-      );
-      const profilePromise = profileService.getProfile();
-      const userProfile = (await Promise.race([
-        profilePromise,
-        timeoutPromise,
-      ])) as Profile;
-      setProfile(userProfile);
-    } catch (err: any) {
-      console.error("Error loading profile:", err);
-      setProfile(null);
-      if (err.message?.includes("401") || err.message?.includes("403")) {
-        try {
-          await authService.refreshToken();
-          const userProfile = await profileService.getProfile();
-          setProfile(userProfile);
-        } catch {
-          setError("Session expired. Please log in again.");
-        }
-      }
-    }
-  };
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
 
   const login = async (credentials: UserLogin) => {
     try {
@@ -147,7 +158,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         user_id: tokenResponse.user_id,
         name: "",
         email: tokenResponse.email,
-        account_type: tokenResponse.account_type,
+        account_type: tokenResponse.account_type as User["account_type"],
       };
       authService.setStoredUser(user);
       setUser(user);
@@ -156,9 +167,9 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
       // Redirect to appropriate dashboard
       const redirectPath = getDashboardPath(user.account_type);
-      window.location.href = redirectPath;
-    } catch (err: any) {
-      toast.error(err.message || "Login failed.");
+      navigate(redirectPath, { replace: true });
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Login failed."));
       throw err;
     } finally {
       setIsLoading(false);
@@ -177,9 +188,9 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
       // Redirect to appropriate dashboard
       const redirectPath = getDashboardPath(user.account_type);
-      window.location.href = redirectPath;
-    } catch (err: any) {
-      toast.error(err.message || "Registration failed.");
+      navigate(redirectPath, { replace: true });
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Registration failed."));
       throw err;
     } finally {
       setIsLoading(false);
@@ -252,11 +263,14 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
     // Decode token to get user info
     try {
-      const payload = JSON.parse(atob(accessToken.split(".")[1]));
+      const payload = JSON.parse(atob(accessToken.split(".")[1])) as Record<
+        string,
+        unknown
+      >;
       const user: User = {
-        user_id: payload.sub,
-        name: payload.name || "",
-        email: payload.email,
+        user_id: String(payload.sub ?? ""),
+        name: typeof payload.name === "string" ? payload.name : "",
+        email: String(payload.email ?? ""),
         account_type: payload.account_type as User["account_type"],
       };
 
@@ -278,11 +292,14 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       setIsLoading(true);
       localStorage.setItem("oauth_account_type", "job_seeker");
       await authService.signInWithLinkedIn();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("LinkedIn sign-in error:", error);
       toast.error("LinkedIn Authentication Failed", {
         description:
-          error.message ||
+          getErrorMessage(
+            error,
+            "Failed to initiate LinkedIn authentication. Please try again."
+          ) ||
           "Failed to initiate LinkedIn authentication. Please try again.",
       });
       throw error;
@@ -318,12 +335,15 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
       // Redirect to appropriate dashboard
       const redirectPath = getDashboardPath(user.account_type);
-      window.location.href = redirectPath;
-    } catch (error: any) {
+      navigate(redirectPath, { replace: true });
+    } catch (error: unknown) {
       console.error("OAuth callback error:", error);
       toast.error("Authentication Failed", {
         description:
-          error.message ||
+          getErrorMessage(
+            error,
+            "Failed to complete LinkedIn authentication. Please try again."
+          ) ||
           "Failed to complete LinkedIn authentication. Please try again.",
       });
       throw error;

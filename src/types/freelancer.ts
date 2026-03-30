@@ -23,6 +23,54 @@ export interface FreelancerPricing {
   premium_package?: FreelancerPricingPackage;
 }
 
+export interface FreelancerReview {
+  review_id: string;
+  freelancer_id: string;
+  reviewer_user_id: string;
+  reviewer_name: string;
+  reviewer_email?: string;
+  rating: number;
+  comment: string;
+  project_title?: string;
+  created_at: string;
+}
+
+export interface FreelancerReviewCreate {
+  rating: number;
+  comment: string;
+  project_title?: string;
+}
+
+export interface FreelancerInquiryCreate {
+  message: string;
+  selected_tier?: "basic" | "standard" | "premium";
+  tier_price?: number;
+}
+
+export interface FreelancerInquiry {
+  inquiry_id: string;
+  freelancer_id: string;
+  sender_user_id: string;
+  sender_name: string;
+  sender_email: string;
+  message: string;
+  selected_tier?: "basic" | "standard" | "premium";
+  tier_price?: number;
+  created_at: string;
+}
+
+export interface FreelancerInquiryReplyCreate {
+  message: string;
+}
+
+export interface FreelancerInquiryReply {
+  inquiry_id: string;
+  sender_user_id: string;
+  recipient_user_id: string;
+  message: string;
+  created_at: string;
+}
+
 export interface FreelancerBase {
   title: string;
   bio: string;
@@ -35,9 +83,9 @@ export interface FreelancerBase {
   languages: string[];
 }
 
-export interface FreelancerCreate extends FreelancerBase {}
+export interface FreelancerCreate extends FreelancerBase { }
 
-export interface FreelancerUpdate extends Partial<FreelancerBase> {}
+export interface FreelancerUpdate extends Partial<FreelancerBase> { }
 
 export interface Freelancer extends FreelancerBase {
   freelancer_id: string;
@@ -52,6 +100,7 @@ export interface Freelancer extends FreelancerBase {
   last_active?: string;
   portfolio_items?: FreelancerPortfolioItem[];
   pricing?: FreelancerPricing;
+  recent_reviews?: FreelancerReview[];
   created_at: string;
   updated_at: string;
 }

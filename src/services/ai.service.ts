@@ -6,20 +6,74 @@ import {
   InterviewQuestion
 } from '../types/api';
 
+interface SkillGapResponse {
+  skill_gaps?: {
+    missing_critical?: string[];
+    missing_required?: string[];
+  };
+  recommendations?: {
+    priority_actions?: string[];
+  };
+}
+
+interface JobDescriptionResponse {
+  technical_skills?: {
+    required?: string[];
+    preferred?: string[];
+  };
+  experience_required?: {
+    level?: string;
+  };
+  job_title?: string;
+}
+
+interface AnalyzeSkillGapsResponse {
+  skill_gaps?: Array<{ skill?: string } | string>;
+  career_opportunities?: string[];
+}
+
+type GenericContext = Record<string, unknown>;
+
 class AIService {
+  private async deepseekGenerate(prompt: string): Promise<string> {
+    const response = await apiClient.post<{ response: string }>('/deepseek/generate', { prompt });
+    return response.response;
+  }
+
   // Resume analysis
   async analyzeResume(resumeText: string): Promise<AIAnalysisResponse> {
-    const request: AIAnalysisRequest = { resume_text: resumeText };
-    return await apiClient.post<AIAnalysisResponse>('/ai/analyze-resume', request);
+    const generated = await this.deepseekGenerate(
+      `Analyze this resume text and return concise strengths, skill gaps, and recommendations:\n\n${resumeText}`
+    );
+
+    return {
+      analysis: generated,
+      recommendations: [],
+      skill_gaps: [],
+    };
   }
 
   // Job matching
   async analyzeJobMatch(jobDescription: string, userSkills?: string[]): Promise<AIAnalysisResponse> {
-    const request: AIAnalysisRequest = {
-      job_description: jobDescription,
-      user_skills: userSkills
+    const skills = userSkills?.length
+      ? userSkills
+      : jobDescription
+        .split(/[^a-zA-Z0-9+#.]+/)
+        .filter(Boolean)
+        .slice(0, 10);
+
+    const params = new URLSearchParams();
+    skills.forEach((skill) => params.append('skills', skill));
+
+    const response = await apiClient.post<Array<{ match_score?: number }>>(`/jobs/ai-match?${params.toString()}`);
+    const matchScore = response.length > 0 ? response[0].match_score : undefined;
+
+    return {
+      analysis: 'Matched jobs based on provided skills.',
+      recommendations: [],
+      skill_gaps: [],
+      match_score: matchScore,
     };
-    return await apiClient.post<AIAnalysisResponse>('/ai/job-match', request);
   }
 
   // Skill gap analysis
@@ -32,7 +86,15 @@ class AIService {
       priority: 'high' | 'medium' | 'low';
     }>;
   }> {
-    return await apiClient.post('/ai/skill-gap', { job_description: jobDescription });
+    const response = await apiClient.post<SkillGapResponse>('/skill-gap/analyze-skill-gap', {
+      job_description: jobDescription,
+    });
+
+    return {
+      skill_gaps: response?.skill_gaps?.missing_critical || response?.skill_gaps?.missing_required || [],
+      recommendations: response?.recommendations?.priority_actions || [],
+      learning_resources: [],
+    };
   }
 
   // Career path recommendations
@@ -46,30 +108,58 @@ class AIService {
     }>;
     reasoning: string;
   }> {
-    return await apiClient.get('/ai/career-paths');
+    const recommendations = await apiClient.get<Array<{ suggested_skill: string; rationale: string }>>('/ai/skill-recommendations');
+
+    return {
+      recommended_paths: recommendations.slice(0, 5).map((rec) => ({
+        title: rec.suggested_skill,
+        description: rec.rationale,
+        required_skills: [rec.suggested_skill],
+        salary_range: 'N/A',
+        growth_potential: 0.7,
+      })),
+      reasoning: 'Generated from personalized skill recommendations.',
+    };
   }
 
   // Interview preparation
   async generateInterviewQuestions(role: string, experience_level?: string): Promise<InterviewResponse> {
-    return await apiClient.post<InterviewResponse>('/ai/interview-questions', {
-      role,
-      experience_level: experience_level || 'mid'
-    });
+    const generated = await this.deepseekGenerate(
+      `Generate concise interview questions for a ${experience_level || 'mid'} ${role} role. Return plain text bullet points.`
+    );
+
+    return {
+      questions: generated
+        .split('\n')
+        .map((line) => line.replace(/^[-*\d.\s]+/, '').trim())
+        .filter(Boolean)
+        .slice(0, 8)
+        .map((question) => ({
+          question,
+          type: 'technical' as const,
+          difficulty: 'medium' as const,
+        })),
+      session_id: `local-${Date.now()}`,
+    };
   }
 
   async generateRoleBasedQuestions(role: string): Promise<InterviewResponse> {
-    return await apiClient.post<InterviewResponse>('/interview/generate-questions', { role });
+    return this.generateInterviewQuestions(role);
   }
 
   // Cover letter generation
-  async generateCoverLetter(jobDescription: string, userProfile?: any): Promise<{
+  async generateCoverLetter(jobDescription: string, userProfile?: unknown): Promise<{
     cover_letter: string;
     tips: string[];
   }> {
-    return await apiClient.post('/ai/cover-letter', {
-      job_description: jobDescription,
-      user_profile: userProfile
-    });
+    const generated = await this.deepseekGenerate(
+      `Write a professional cover letter for this job description:\n${jobDescription}\n\nCandidate context:\n${JSON.stringify(userProfile || {}, null, 2)}`
+    );
+
+    return {
+      cover_letter: generated,
+      tips: ['Customize company details before sending.'],
+    };
   }
 
   // Skills analysis from text
@@ -78,7 +168,20 @@ class AIService {
     categories: { [skill: string]: string };
     confidence_scores: { [skill: string]: number };
   }> {
-    return await apiClient.post('/ai/extract-skills', { text });
+    const generated = await this.deepseekGenerate(
+      `Extract skills from the following text. Return a comma-separated list only:\n\n${text}`
+    );
+    const skills = generated
+      .split(',')
+      .map((skill) => skill.trim())
+      .filter(Boolean)
+      .slice(0, 30);
+
+    return {
+      skills,
+      categories: {},
+      confidence_scores: {},
+    };
   }
 
   // Job description analysis
@@ -90,9 +193,18 @@ class AIService {
     salary_estimate?: string;
     company_insights?: string[];
   }> {
-    return await apiClient.post('/ai/analyze-job-description', {
+    const response = await apiClient.post<JobDescriptionResponse>('/skill-gap/analyze-job-description', {
       job_description: jobDescription
     });
+
+    return {
+      required_skills: response?.technical_skills?.required || [],
+      preferred_skills: response?.technical_skills?.preferred || [],
+      experience_level: response?.experience_required?.level || 'unknown',
+      role_type: response?.job_title || 'unknown',
+      salary_estimate: undefined,
+      company_insights: [],
+    };
   }
 
   // Personalized recommendations
@@ -109,7 +221,16 @@ class AIService {
       priority: number;
     }>;
   }> {
-    return await apiClient.get('/ai/recommendations');
+    const response = await apiClient.post<Array<{ job_id: string; match_score: number }>>('/ai/job-recommendations', {});
+    return {
+      job_recommendations: response.map((item) => ({
+        job_id: item.job_id,
+        match_score: item.match_score,
+        reasons: [],
+      })),
+      skill_recommendations: [],
+      learning_recommendations: [],
+    };
   }
 
   // Gemini-powered features
@@ -119,27 +240,50 @@ class AIService {
     improvement_areas: string[];
     market_insights: string[];
   }> {
-    return await apiClient.post('/deepseek/analyze-skills', { skills });
+    const response = await apiClient.post<AnalyzeSkillGapsResponse>('/analyze/skill-gaps', {
+      skills,
+    });
+    return {
+      analysis: 'DeepSeek skill gap analysis completed.',
+      strengths: [],
+      improvement_areas:
+        response?.skill_gaps
+          ?.map((gap) => (typeof gap === 'string' ? gap : gap.skill || ''))
+          .filter(Boolean) || [],
+      market_insights: response?.career_opportunities || [],
+    };
   }
 
-  async deepseekCareerAdvice(profile: any): Promise<{
+  async deepseekCareerAdvice(profile: unknown): Promise<{
     advice: string;
     action_items: string[];
     resources: string[];
   }> {
-    return await apiClient.post('/deepseek/career-advice', { profile });
+    const generated = await this.deepseekGenerate(
+      `Provide concise career advice and action items based on this profile:\n${JSON.stringify(profile || {}, null, 2)}`
+    );
+    return {
+      advice: generated,
+      action_items: [],
+      resources: [],
+    };
   }
 
   // Chat with AI assistant
-  async chatWithAI(message: string, context?: any): Promise<{
+  async chatWithAI(message: string, context?: GenericContext): Promise<{
     response: string;
     suggestions: string[];
-    context: any;
+    context: GenericContext;
   }> {
-    return await apiClient.post('/ai/chat', {
-      message,
-      context
-    });
+    const response = await this.deepseekGenerate(
+      `User message: ${message}\nContext: ${JSON.stringify(context || {}, null, 2)}`
+    );
+
+    return {
+      response,
+      suggestions: [],
+      context: context || {},
+    };
   }
 
   // CV upload and parsing
@@ -150,10 +294,10 @@ class AIService {
       email?: string;
       phone?: string;
       skills?: string[];
-      experience?: any[];
-      education?: any[];
+      experience?: unknown[];
+      education?: unknown[];
       summary?: string;
-      [key: string]: any;
+      [key: string]: unknown;
     };
     profile_updated?: boolean;
     message?: string;
@@ -167,7 +311,7 @@ class AIService {
   // Check if user has uploaded CV
   async checkIfCVParsed(): Promise<boolean> {
     try {
-      const profile = await apiClient.get<any>('/profile/');
+      const profile = await apiClient.get<{ resume_link?: string; resume_analysis?: unknown }>('/profile/');
       return !!profile.resume_link || !!profile.resume_analysis;
     } catch (error) {
       console.error('Error checking CV status:', error);

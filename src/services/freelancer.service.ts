@@ -1,10 +1,16 @@
 import { apiClient } from '../lib/api-client';
-import { 
-  Freelancer, 
-  FreelancerCreate, 
-  FreelancerUpdate, 
+import {
+  Freelancer,
+  FreelancerCreate,
+  FreelancerUpdate,
   FreelancerListResponse,
-  FreelancerFilter 
+  FreelancerFilter,
+  FreelancerInquiry,
+  FreelancerInquiryCreate,
+  FreelancerInquiryReply,
+  FreelancerInquiryReplyCreate,
+  FreelancerReview,
+  FreelancerReviewCreate,
 } from '../types/freelancer';
 
 class FreelancerService {
@@ -81,10 +87,10 @@ class FreelancerService {
     try {
       const userStr = localStorage.getItem('user');
       if (!userStr) return false;
-      
+
       const user = JSON.parse(userStr);
       if (!user?.user_id) return false;
-      
+
       await this.getFreelancerByUserId(user.user_id);
       return true;
     } catch {
@@ -123,6 +129,58 @@ class FreelancerService {
     updated_count: number;
   }> {
     return apiClient.post(`/freelancers/${freelancerId}/enhance-portfolio-images`);
+  }
+
+  async contactFreelancer(
+    freelancerId: string,
+    inquiryData: FreelancerInquiryCreate
+  ): Promise<{
+    inquiry_id: string;
+    freelancer_id: string;
+    sender_user_id: string;
+    sender_name: string;
+    sender_email: string;
+    message: string;
+    selected_tier?: string;
+    tier_price?: number;
+    created_at: string;
+  }> {
+    return apiClient.post(`/freelancers/${freelancerId}/contact`, inquiryData);
+  }
+
+  async getMyFreelancerInquiries(
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<FreelancerInquiry[]> {
+    return apiClient.get(`/freelancers/inquiries/me?limit=${limit}&offset=${offset}`);
+  }
+
+  async getMySentFreelancerInquiries(
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<FreelancerInquiry[]> {
+    return apiClient.get(`/freelancers/inquiries/sent/me?limit=${limit}&offset=${offset}`);
+  }
+
+  async replyToFreelancerInquiry(
+    inquiryId: string,
+    payload: FreelancerInquiryReplyCreate
+  ): Promise<FreelancerInquiryReply> {
+    return apiClient.post(`/freelancers/inquiries/${inquiryId}/reply`, payload);
+  }
+
+  async getFreelancerReviews(
+    freelancerId: string,
+    limit: number = 20
+  ): Promise<FreelancerReview[]> {
+    return apiClient.get(`/freelancers/${freelancerId}/reviews?limit=${limit}`);
+  }
+
+  async createFreelancerReview(
+    freelancerId: string,
+    reviewData: FreelancerReviewCreate
+  ): Promise<FreelancerReview> {
+    return apiClient.post(`/freelancers/${freelancerId}/reviews`, reviewData);
   }
 }
 

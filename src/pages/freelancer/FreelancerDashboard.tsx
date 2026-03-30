@@ -17,16 +17,18 @@ import {
   Clock,
   Users,
   Plus,
+  MessageSquare,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { freelancerService } from "@/services/freelancer.service";
-import { Freelancer } from "@/types/freelancer";
+import { Freelancer, FreelancerInquiry } from "@/types/freelancer";
 import { toast } from "sonner";
 import { PricingDialog } from "@/components/freelancer/PricingDialog";
 import { RoleSwitcher } from "@/components/layout/RoleSwitcher";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import InsightsEmbedded from "@/components/insights/InsightsEmbedded";
 import Layout from "@/components/layout/Layout";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function FreelancerDashboard() {
   const navigate = useNavigate();
@@ -37,6 +39,10 @@ export default function FreelancerDashboard() {
   const [loading, setLoading] = useState(true);
   const [hasProfile, setHasProfile] = useState(false);
   const [pricingDialogOpen, setPricingDialogOpen] = useState(false);
+  const [inquiries, setInquiries] = useState<FreelancerInquiry[]>([]);
+  const [inquiriesLoading, setInquiriesLoading] = useState(false);
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [sendingReplyForId, setSendingReplyForId] = useState<string | null>(null);
 
   useEffect(() => {
     checkFreelancerProfile();
@@ -53,6 +59,7 @@ export default function FreelancerDashboard() {
       if (profile) {
         setFreelancerProfile(profile);
         setHasProfile(true);
+        await loadInquiries();
       }
     } catch (error: any) {
       console.error("Error loading freelancer profile:", error);
@@ -70,10 +77,54 @@ export default function FreelancerDashboard() {
   };
 
   const handleCreateProfile = () => navigate("/freelancer/create-profile");
+
+  const loadInquiries = async () => {
+    try {
+      setInquiriesLoading(true);
+      const data = await freelancerService.getMyFreelancerInquiries(10, 0);
+      setInquiries(data || []);
+    } catch (error) {
+      console.error("Error loading freelancer inquiries:", error);
+      setInquiries([]);
+    } finally {
+      setInquiriesLoading(false);
+    }
+  };
+
+  const formatMessageDate = (dateString: string) => {
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return "Unknown date";
+    return date.toLocaleString();
+  };
+
+  const getTierLabel = (tier?: string) => {
+    if (!tier) return "General inquiry";
+    return `${tier.charAt(0).toUpperCase()}${tier.slice(1)} package`;
+  };
   const handleViewPublicProfile = () => {
     if (freelancerProfile)
       navigate(`/freelancers/${freelancerProfile.freelancer_id}`);
   };
+
+  const handleSendReply = async (inquiryId: string) => {
+    const draft = (replyDrafts[inquiryId] || "").trim();
+    if (!draft) {
+      toast.error("Please enter a reply message.");
+      return;
+    }
+
+    try {
+      setSendingReplyForId(inquiryId);
+      await freelancerService.replyToFreelancerInquiry(inquiryId, { message: draft });
+      setReplyDrafts((prev) => ({ ...prev, [inquiryId]: "" }));
+      toast.success("Reply sent to client.");
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to send reply.");
+    } finally {
+      setSendingReplyForId(null);
+    }
+  };
+
   const handleSavePricing = async (pricingData: any) => {
     try {
       await freelancerService.updateFreelancerPricing(
@@ -325,20 +376,82 @@ export default function FreelancerDashboard() {
                 </CardContent>
               </Card>
 
-              {/* Recent Activity */}
+              {/* Client Messages */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
+                  <CardTitle>Recent Client Messages</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8 text-gray-500">
-                    <Clock className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                    <p>No recent activity</p>
-                    <p className="text-sm mt-1">
-                      Start applying to projects or update your profile to attract
-                      clients
-                    </p>
-                  </div>
+                  {inquiriesLoading ? (
+                    <div className="space-y-3">
+                      {[...Array(3)].map((_, idx) => (
+                        <Skeleton key={idx} className="h-16 w-full" />
+                      ))}
+                    </div>
+                  ) : inquiries.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p>No client messages yet</p>
+                      <p className="text-sm mt-1">
+                        Messages from employers will appear here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {inquiries.map((inquiry) => (
+                        <div
+                          key={inquiry.inquiry_id}
+                          className="rounded-lg border border-gray-200 dark:border-gray-800 p-4"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">
+                                {inquiry.sender_name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {inquiry.sender_email}
+                              </p>
+                            </div>
+                            <Badge variant="outline" className="text-xs">
+                              {getTierLabel(inquiry.selected_tier)}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 mt-3 whitespace-pre-wrap">
+                            {inquiry.message}
+                          </p>
+                          <div className="text-xs text-gray-500 mt-3 flex flex-wrap items-center gap-2">
+                            <span>{formatMessageDate(inquiry.created_at)}</span>
+                            {typeof inquiry.tier_price === "number" && (
+                              <span>Quoted tier: ${inquiry.tier_price}</span>
+                            )}
+                          </div>
+
+                          <div className="mt-4 space-y-2">
+                            <Textarea
+                              value={replyDrafts[inquiry.inquiry_id] || ""}
+                              onChange={(e) =>
+                                setReplyDrafts((prev) => ({
+                                  ...prev,
+                                  [inquiry.inquiry_id]: e.target.value,
+                                }))
+                              }
+                              placeholder="Reply to this client..."
+                              rows={3}
+                            />
+                            <div className="flex justify-end">
+                              <Button
+                                size="sm"
+                                onClick={() => handleSendReply(inquiry.inquiry_id)}
+                                disabled={sendingReplyForId === inquiry.inquiry_id || !(replyDrafts[inquiry.inquiry_id] || "").trim()}
+                              >
+                                {sendingReplyForId === inquiry.inquiry_id ? "Sending..." : "Send Reply"}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
