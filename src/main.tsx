@@ -30,17 +30,28 @@ const optimizeFonts = () => {
 
 // Service Worker registration for caching
 const registerServiceWorker = () => {
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then(() => {
-          console.log('SW registered');
-        })
-        .catch(() => {
-          console.log('SW registration failed');
-        });
-    });
+  if (!('serviceWorker' in navigator)) {
+    return;
   }
+
+  if (import.meta.env.DEV) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((registration) => {
+        registration.unregister();
+      });
+    });
+    return;
+  }
+
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => {
+        console.log('SW registered');
+      })
+      .catch(() => {
+        console.log('SW registration failed');
+      });
+  });
 };
 
 const root = createRoot(document.getElementById("root")!);
@@ -51,7 +62,7 @@ registerServiceWorker();
 
 root.render(
   <StrictMode>
-    <BrowserRouter 
+    <BrowserRouter
       future={{
         v7_startTransition: true,
         v7_relativeSplatPath: true

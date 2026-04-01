@@ -3,7 +3,9 @@ import { useAuth } from '@/hooks/use-auth';
 import { toast } from '@/components/ui/sonner';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { CallbackSkeleton } from '@/components/ui/skeleton-loaders';
+
+let oAuthCallbackStatus: 'idle' | 'processing' | 'done' = 'idle';
 
 const OAuthCallback = () => {
   const { handleOAuthCallback } = useAuth();
@@ -11,11 +13,19 @@ const OAuthCallback = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (oAuthCallbackStatus === 'processing' || oAuthCallbackStatus === 'done') {
+      return;
+    }
+
     const processCallback = async () => {
+      oAuthCallbackStatus = 'processing';
+
       try {
         await handleOAuthCallback();
+        oAuthCallbackStatus = 'done';
         // The handleOAuthCallback function will handle the redirect
       } catch (error: any) {
+        oAuthCallbackStatus = 'idle';
         console.error('OAuth callback error:', error);
         setError(error.message || 'Failed to complete authentication');
         setIsProcessing(false);
@@ -24,6 +34,10 @@ const OAuthCallback = () => {
 
     processCallback();
   }, [handleOAuthCallback]);
+
+  if (isProcessing) {
+    return <CallbackSkeleton />;
+  }
 
   if (error) {
     return (
@@ -49,28 +63,6 @@ const OAuthCallback = () => {
       </Layout>
     );
   }
-
-  return (
-    <Layout>
-      <div className="max-w-md mx-auto px-4 py-12">
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center">
-              Completing Authentication
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <div className="flex flex-col items-center space-y-4">
-              <Loader2 className="h-8 w-8 animate-spin text-career-blue" />
-              <p className="text-gray-600">
-                Please wait while we complete your LinkedIn authentication...
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </Layout>
-  );
 };
 
 export default OAuthCallback;

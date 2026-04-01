@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ContentSkeleton } from '@/components/ui/skeleton-loaders';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Calendar, BriefcaseIcon, User, MessageSquare, AlertCircle, Check, Trash2, RefreshCw } from 'lucide-react';
 import { notificationService, type Notification } from '@/services/notification.service';
 import { toast } from 'sonner';
@@ -169,9 +171,21 @@ const NotificationsPage = () => {
 
           <TabsContent value={activeTab} className="space-y-4">
             {loading ? (
-              <Card>
-                <CardContent className="p-8 text-center text-muted-foreground">
-                  Loading notifications...
+              <Card className="border-dashed">
+                <CardHeader className="space-y-3">
+                  <Skeleton className="h-5 w-40" />
+                  <Skeleton className="h-4 w-72" />
+                </CardHeader>
+                <CardContent className="space-y-4 pb-6">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <div key={index} className="flex items-start gap-4 rounded-lg border border-border/60 p-4">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-1/2" />
+                        <ContentSkeleton lines={2} />
+                      </div>
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
             ) : notifications.length === 0 ? (

@@ -198,23 +198,9 @@ class AuthService {
   }
 
   async handleOAuthCallback(): Promise<TokenResponse> {
-    if (!isSupabaseConfigured() || !supabase) {
-      throw new Error(
-        "Supabase is not configured. Check environment variables."
-      );
-    }
-
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession();
-
-    if (error) throw new Error(`Failed to get session: ${error.message}`);
-    if (!session)
-      throw new Error("No active session found. Try logging in again.");
-
-    const supabaseUser = session.user;
-    const linkedinProfile = supabaseUser.user_metadata;
+    const callbackUrl = new URL(window.location.href);
+    const code = callbackUrl.searchParams.get("code");
+    const state = callbackUrl.searchParams.get("state");
     const accountType =
       (localStorage.getItem("oauth_account_type") as
         | "job_seeker"
@@ -222,24 +208,119 @@ class AuthService {
         | "freelancer"
         | null) || "job_seeker";
 
-    const response = await apiClient.post<TokenResponse>(
-      "/auth/linkedin/verify",
-      {
-        supabase_access_token: session.access_token,
-        supabase_user_id: supabaseUser.id,
-        email: supabaseUser.email,
-        account_type: accountType,
-        user_metadata: linkedinProfile,
-      }
-    );
+    if (code && isSupabaseConfigured() && supabase) {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (response.access_token) {
-      this.setSession(response);
+        if (error) {
+          throw error;
+        }
+
+        if (!session) {
+          throw new Error("No session returned from LinkedIn");
+        }
+
+        const supabaseUser = session.user;
+        const linkedinProfile = supabaseUser.user_metadata;
+
+        const response = await apiClient.post<TokenResponse>(
+          "/auth/linkedin/verify",
+          {
+            supabase_access_token: session.access_token,
+            supabase_user_id: supabaseUser.id,
+            email: supabaseUser.email,
+            account_type: accountType,
+            user_metadata: linkedinProfile,
+          }
+        );
+
+        if (response.access_token) {
+          this.setSession(response);
+        }
+
+        await supabase.auth.signOut().catch(() => undefined);
+        localStorage.removeItem("oauth_account_type");
+        return response;
+      } catch (error) {
+        console.warn("Supabase OAuth code exchange failed, checking session fallback:", error);
+      }
     }
 
-    await supabase.auth.signOut();
-    localStorage.removeItem("oauth_account_type");
-    return response;
+    if (isSupabaseConfigured() && supabase) {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (error) {
+        console.warn(`Failed to get Supabase session: ${error.message}`);
+      }
+
+      if (session) {
+        const supabaseUser = session.user;
+        const linkedinProfile = supabaseUser.user_metadata;
+
+        const response = await apiClient.post<TokenResponse>(
+          "/auth/linkedin/verify",
+          {
+            supabase_access_token: session.access_token,
+            supabase_user_id: supabaseUser.id,
+            email: supabaseUser.email,
+            account_type: accountType,
+            user_metadata: linkedinProfile,
+          }
+        );
+
+        if (response.access_token) {
+          this.setSession(response);
+        }
+
+        await supabase.auth.signOut();
+        localStorage.removeItem("oauth_account_type");
+        return response;
+      }
+    }
+
+    if (code) {
+      const callbackQuery = new URLSearchParams({ code });
+      if (state) {
+        callbackQuery.set("state", state);
+      }
+
+      const response = await apiClient.get<TokenResponse>(
+        `/oauth/linkedin/callback?${callbackQuery.toString()}`
+      );
+
+      if (response.access_token) {
+        this.setSession(response);
+      }
+
+      if (isSupabaseConfigured() && supabase) {
+        await supabase.auth.signOut().catch(() => undefined);
+      }
+
+      localStorage.removeItem("oauth_account_type");
+      return response;
+    }
+
+    const existingUser = this.getStoredUser();
+    const existingAccessToken = apiClient.getToken();
+    const existingRefreshToken = localStorage.getItem("refresh_token");
+
+    if (existingUser && existingAccessToken && existingRefreshToken) {
+      return {
+        access_token: existingAccessToken,
+        refresh_token: existingRefreshToken,
+        user_id: existingUser.user_id,
+        email: existingUser.email,
+        account_type: existingUser.account_type,
+      };
+    }
+
+    throw new Error("No active session found. Try logging in again.");
   }
 
   isOAuthCallback(): boolean {

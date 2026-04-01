@@ -34,6 +34,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { apiClient } from "@/lib/api-client";
 import { cofounderMatchingService, IdeaProject } from "@/services/founder-matching.service";
 import { ProjectDetailView } from "@/components/founder-matching/ProjectDetailView";
+import { ProfileCardSkeleton } from "@/components/ui/skeleton-loaders";
 
 // Define the profile type
 interface FounderProfileData {
@@ -250,10 +251,9 @@ const FounderProfile = () => {
   if (fetching) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gradient-to-b from-blue-50/50 to-white flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-            <p className="text-slate-600">Loading profile...</p>
+        <div className="min-h-screen bg-gradient-to-b from-blue-50/50 to-white">
+          <div className="max-w-4xl mx-auto p-4 py-8">
+            <ProfileCardSkeleton />
           </div>
         </div>
       </Layout>

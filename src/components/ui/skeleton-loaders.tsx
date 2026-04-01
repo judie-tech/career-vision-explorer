@@ -2,6 +2,8 @@ import React from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
+export { Skeleton };
+
 // Statistics Card Skeleton
 export const StatsCardSkeleton: React.FC = () => (
   <Card>
@@ -166,5 +168,71 @@ export const FormSkeleton: React.FC<{ fields?: number }> = ({ fields = 4 }) => (
       </div>
     ))}
     <Skeleton className="h-10 w-32" />
+  </div>
+);
+
+export const PageLoaderSkeleton: React.FC = () => (
+  <div className="min-h-screen bg-background">
+    <div className="border-b bg-background/80 backdrop-blur-sm">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
+        <Skeleton className="h-8 w-32" />
+        <div className="hidden gap-3 sm:flex">
+          <Skeleton className="h-8 w-20" />
+          <Skeleton className="h-8 w-20" />
+          <Skeleton className="h-8 w-24" />
+        </div>
+      </div>
+    </div>
+    <div className="mx-auto max-w-7xl px-4 py-10 space-y-8">
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-3/4 max-w-2xl" />
+        <Skeleton className="h-5 w-1/2 max-w-xl" />
+      </div>
+      <div className="grid gap-6 md:grid-cols-3">
+        <Skeleton className="h-64 w-full rounded-2xl" />
+        <Skeleton className="h-64 w-full rounded-2xl" />
+        <Skeleton className="h-64 w-full rounded-2xl" />
+      </div>
+    </div>
+  </div>
+);
+
+export const AuthPageSkeleton: React.FC = () => (
+  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40 flex items-center justify-center px-4">
+    <Card className="w-full max-w-md border-0 shadow-2xl shadow-blue-950/5">
+      <CardHeader className="space-y-3 pb-2">
+        <Skeleton className="mx-auto h-9 w-40" />
+        <Skeleton className="mx-auto h-4 w-72 max-w-full" />
+      </CardHeader>
+      <CardContent className="space-y-4 pb-6">
+        <Skeleton className="h-11 w-full" />
+        <Skeleton className="h-11 w-full" />
+        <Skeleton className="h-11 w-full" />
+        <div className="flex items-center justify-between gap-3 pt-2">
+          <Skeleton className="h-10 w-28 rounded-full" />
+          <Skeleton className="h-10 w-24 rounded-full" />
+        </div>
+        <div className="space-y-2 pt-2">
+          <Skeleton className="h-4 w-40 mx-auto" />
+          <Skeleton className="h-4 w-56 mx-auto" />
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+);
+
+export const CallbackSkeleton: React.FC = () => (
+  <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+    <Card className="w-full max-w-md border-0 shadow-xl">
+      <CardHeader className="space-y-3 text-center pb-2">
+        <Skeleton className="mx-auto h-8 w-56" />
+        <Skeleton className="mx-auto h-4 w-72 max-w-full" />
+      </CardHeader>
+      <CardContent className="space-y-4 pb-6">
+        <Skeleton className="mx-auto h-14 w-14 rounded-full" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-5/6 mx-auto" />
+      </CardContent>
+    </Card>
   </div>
 );

@@ -13,7 +13,6 @@ import {
   Eye,
   ExternalLink,
   Users,
-  Loader2,
   CheckCircle,
   XCircle,
   Clock,
@@ -22,6 +21,7 @@ import { useEmployerApplications } from "@/hooks/use-employer-applications";
 import { ApplicantProfileDialog } from "./ApplicantProfileDialog";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { RecentApplicationsTableSkeleton } from "@/components/ui/skeleton-loaders";
 
 export const RecentApplicantsTable = () => {
   const {
@@ -191,8 +191,7 @@ export const RecentApplicantsTable = () => {
             {isLoading ? (
               <tr>
                 <td colSpan={6} className="text-center py-8 text-gray-500">
-                  <Loader2 className="animate-spin h-8 w-8 mx-auto text-gray-600" />
-                  <p>Loading applications...</p>
+                  <RecentApplicationsTableSkeleton />
                 </td>
               </tr>
             ) : error ? (
@@ -319,8 +318,7 @@ export const RecentApplicantsTable = () => {
       <div className="sm:hidden space-y-4">
         {isLoading ? (
           <div className="text-center py-8 text-gray-500">
-            <Loader2 className="animate-spin h-8 w-8 mx-auto text-gray-600" />
-            <p>Loading applications...</p>
+            <RecentApplicationsTableSkeleton />
           </div>
         ) : error ? (
           <div className="text-center py-8 text-red-500">

@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { AdminProfile } from "@/pages/admin/AdminProfiles";
 import { Link } from "react-router-dom";
+import { TableRowSkeleton } from "@/components/ui/skeleton-loaders";
 
 interface ProfileTableProps {
   profiles: AdminProfile[];
@@ -52,7 +53,17 @@ export const ProfileTable = ({
   isLoading,
 }: ProfileTableProps) => {
   if (isLoading) {
-    return <div className="flex justify-center py-8">Loading profiles...</div>;
+    return (
+      <div className="rounded-md border">
+        <Table>
+          <TableBody>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <TableRowSkeleton key={index} columns={8} />
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    );
   }
 
   return (

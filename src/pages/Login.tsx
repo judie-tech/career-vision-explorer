@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/form";
 import { toast } from "@/components/ui/sonner";
 import Layout from "@/components/layout/Layout";
+import { AuthPageSkeleton } from "@/components/ui/skeleton-loaders";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -87,6 +88,10 @@ const Login = () => {
     }
   };
 
+  if (isLoading) {
+    return <AuthPageSkeleton />;
+  }
+
   return (
     <Layout>
       <div className="max-w-md mx-auto px-4 py-12">
@@ -142,7 +147,7 @@ const Login = () => {
                   className="w-full bg-career-blue hover:bg-career-blue/90 transition-colors"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Logging in..." : "Log In"}
+                  Log In
                 </Button>
 
                 <div className="text-center">

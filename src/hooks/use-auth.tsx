@@ -12,6 +12,7 @@ import { profileService } from "../services/profile.service";
 import { User, UserLogin, UserRegister } from "../types/auth";
 import { Profile } from "../types/api";
 import { toast } from "sonner";
+import { AuthPageSkeleton } from "@/components/ui/skeleton-loaders";
 
 interface AuthContextType {
   user: User | null;
@@ -376,11 +377,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        Loading authentication...
-      </div>
-    );
+    return <AuthPageSkeleton />;
   }
 
   if (error) {

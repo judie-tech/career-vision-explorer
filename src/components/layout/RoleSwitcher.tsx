@@ -8,7 +8,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Briefcase,
   UserCircle,
@@ -138,10 +137,8 @@ export function RoleSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="flex items-center gap-2" data-testid="role-switcher-trigger">
-          {getRoleIcon(normalizedCurrentRole)}
+        <Button variant="ghost" className="flex items-center gap-1 px-2" data-testid="role-switcher-trigger">
           <span className="hidden sm:inline">{getRoleLabel(normalizedCurrentRole)}</span>
-          {hasMultipleRoles && <Badge variant="secondary" className="ml-1">Multi</Badge>}
           <ChevronDown className="w-4 h-4 ml-1" />
         </Button>
       </DropdownMenuTrigger>

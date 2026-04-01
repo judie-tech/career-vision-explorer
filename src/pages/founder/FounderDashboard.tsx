@@ -40,6 +40,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { DashboardStatsGridSkeleton, PageHeaderSkeleton } from "@/components/ui/skeleton-loaders";
 
 // Types
 interface FounderProfile {
@@ -355,11 +356,9 @@ const FounderDashboard = () => {
   const renderMainProfileView = () => {
     if (loading) {
       return (
-        <div className="flex items-center justify-center py-12">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-            <p className="text-slate-600">Loading potential matches...</p>
-          </div>
+        <div className="space-y-6 py-6">
+          <PageHeaderSkeleton />
+          <DashboardStatsGridSkeleton />
         </div>
       );
     }

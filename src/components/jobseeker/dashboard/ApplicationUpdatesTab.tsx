@@ -7,6 +7,7 @@ import { Users, ChevronRight, Clock, AlertCircle } from "lucide-react";
 import { applicationsService } from "@/services/applications.service";
 import { useAuth } from "@/hooks/use-auth";
 import { Application } from "@/types/api";
+import { RecentApplicationsTableSkeleton } from "@/components/ui/skeleton-loaders";
 
 interface ApplicationUpdatesTabProps {
   onViewApplication: (application: any) => void;
@@ -83,10 +84,7 @@ export const ApplicationUpdatesTab = ({ onViewApplication }: ApplicationUpdatesT
         )}
         
         {loading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Loading applications...</p>
-          </div>
+          <RecentApplicationsTableSkeleton />
         ) : applications.length > 0 ? (
           applications.map((application) => {
             // Transform the application to include compatibility fields

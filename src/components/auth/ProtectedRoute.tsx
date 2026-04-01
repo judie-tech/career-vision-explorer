@@ -2,6 +2,7 @@ import { ReactNode, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/components/ui/sonner";
+import { PageLoaderSkeleton } from "@/components/ui/skeleton-loaders";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -41,11 +42,7 @@ export const ProtectedRoute = ({
   }, [isAuthenticated, isLoading, requiredRole, navigate, effectiveRole]);
 
   if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-      </div>
-    );
+    return <PageLoaderSkeleton />;
   }
 
   if (

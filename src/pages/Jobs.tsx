@@ -10,6 +10,7 @@ import { SalaryExpectationsStep } from "@/components/onboarding/steps/SalaryExpe
 import { JobMatchService } from "@/api/job-matching-api";
 import { getCurrentUser } from "@/lib/auth";
 import { useAuth } from "@/hooks/use-auth";
+import { DashboardStatsGridSkeleton, JobCardSkeleton, PageHeaderSkeleton } from "@/components/ui/skeleton-loaders";
 
 // Frontend Job type for the UI components
 interface Job {
@@ -574,12 +575,12 @@ const Jobs = () => {
     return (
       <Layout>
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20">
-          <div className="relative container py-6 sm:py-12 px-3 sm:px-4">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">
-                {authLoading ? "Loading user profile..." : "Loading jobs..."}
-              </p>
+          <div className="relative container py-6 sm:py-12 px-3 sm:px-4 space-y-8">
+            <PageHeaderSkeleton />
+            {authLoading && <DashboardStatsGridSkeleton />}
+            <div className="grid gap-6 lg:grid-cols-2">
+              <JobCardSkeleton />
+              <JobCardSkeleton />
             </div>
           </div>
         </div>

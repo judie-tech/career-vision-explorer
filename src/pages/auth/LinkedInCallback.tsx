@@ -1,30 +1,30 @@
-import React, { useEffect, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
-import { Loader2 } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { CallbackSkeleton } from "@/components/ui/skeleton-loaders";
+
+let linkedInCallbackStatus: "idle" | "processing" | "done" = "idle";
 
 const LinkedInCallback: React.FC = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const { handleOAuthCallback } = useAuth();
-  const callbackHandledRef = useRef(false);
 
   useEffect(() => {
+    if (linkedInCallbackStatus === "processing" || linkedInCallbackStatus === "done") {
+      return;
+    }
+
     const handleCallback = async () => {
-      if (callbackHandledRef.current) return;
-      callbackHandledRef.current = true;
+      linkedInCallbackStatus = "processing";
 
       try {
         console.log("🔍 LinkedInCallback: Starting callback handling");
 
-        if (!isSupabaseConfigured() || !supabase) {
-          throw new Error("Supabase is not configured");
-        }
-
         await handleOAuthCallback();
+        linkedInCallbackStatus = "done";
       } catch (error: any) {
+        linkedInCallbackStatus = "idle";
         console.error("Callback handling failed:", error);
         toast.error("Authentication failed", {
           description:
@@ -36,21 +36,9 @@ const LinkedInCallback: React.FC = () => {
     };
 
     handleCallback();
-  }, [location, navigate, handleOAuthCallback]);
+  }, [navigate, handleOAuthCallback]);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto text-career-blue" />
-        <h2 className="mt-4 text-lg font-semibold">
-          Completing LinkedIn authentication...
-        </h2>
-        <p className="mt-2 text-sm text-gray-600">
-          Please wait while we process your login.
-        </p>
-      </div>
-    </div>
-  );
+  return <CallbackSkeleton />;
 };
 
 export default LinkedInCallback;

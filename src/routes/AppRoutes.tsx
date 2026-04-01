@@ -3,6 +3,7 @@ import { useEffect, lazy, Suspense } from "react";
 import { useLocation } from "react-router-dom";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import DashboardLayout from "@/components/admin/DashboardLayout";
+import { PageLoaderSkeleton } from "@/components/ui/skeleton-loaders";
 
 // Lazy load pages
 const Index = lazy(() => import("@/pages/Index"));
@@ -101,21 +102,7 @@ const AIJobMatching = lazy(() => import("@/pages/AIJobMatching"));
 const JobMatching = lazy(() => import("@/pages/JobMatching"));
 
 // Loader
-const PageLoader = () => (
-  <div className="min-h-screen bg-background flex items-center justify-center">
-    <div className="flex items-center gap-2">
-      <div className="w-4 h-4 bg-primary rounded-full animate-pulse"></div>
-      <div
-        className="w-4 h-4 bg-primary rounded-full animate-pulse"
-        style={{ animationDelay: "0.2s" }}
-      ></div>
-      <div
-        className="w-4 h-4 bg-primary rounded-full animate-pulse"
-        style={{ animationDelay: "0.4s" }}
-      ></div>
-    </div>
-  </div>
-);
+const PageLoader = () => <PageLoaderSkeleton />;
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();

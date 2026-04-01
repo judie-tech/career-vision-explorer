@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/components/ui/sonner";
 import { ApiErrorBoundary } from "@/components/error/ApiErrorBoundary";
 import Layout from "@/components/layout/Layout";
+import { PageLoaderSkeleton } from "@/components/ui/skeleton-loaders";
 
 const EmployerDashboard = () => {
   const navigate = useNavigate();
@@ -31,11 +32,7 @@ const EmployerDashboard = () => {
   }, [isAuthenticated, hasRole, isLoading, navigate]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-      </div>
-    );
+    return <PageLoaderSkeleton />;
   }
 
   if (!isAuthenticated || !hasRole("employer")) return null;
