@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -21,10 +21,15 @@ export const NotificationSettings = ({
   const { toast } = useToast();
   const [notifications, setNotifications] = useState(initialNotifications);
 
+  // Update local state when props change (for real-time sync)
+  useEffect(() => {
+    setNotifications(initialNotifications);
+  }, [initialNotifications]);
+
   const handleChange = (key: string, value: boolean) => {
     const updatedNotifications = { ...notifications, [key]: value };
     setNotifications(updatedNotifications);
-    onNotificationsChange(updatedNotifications);
+    onNotificationsChange({ [key]: value });
   };
 
   return (
@@ -38,13 +43,12 @@ export const NotificationSettings = ({
           checked={notifications.emailNotifications} 
           onCheckedChange={(checked) => {
             const updatedNotifications = {
-              ...notifications, 
               emailNotifications: checked,
               // If main switch is off, disable all child switches
               welcomeEmail: checked ? notifications.welcomeEmail : false,
               jobAlerts: checked ? notifications.jobAlerts : false
             };
-            setNotifications(updatedNotifications);
+            setNotifications({ ...notifications, ...updatedNotifications });
             onNotificationsChange(updatedNotifications);
             
             toast({
@@ -93,8 +97,8 @@ export const NotificationSettings = ({
       <Button 
         onClick={() => {
           toast({
-            title: "Notification Settings Saved",
-            description: "Your notification preferences have been updated"
+            title: "Notification Settings Applied",
+            description: "Your notification preferences have been updated in real-time"
           });
         }}
       >

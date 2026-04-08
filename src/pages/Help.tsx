@@ -3,6 +3,7 @@ import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Help = () => {
   const faqs = [
@@ -64,9 +65,9 @@ const Help = () => {
             <p className="text-muted-foreground mb-4">
               Can't find what you're looking for? Our support team is here to help.
             </p>
-            <a href="/contact" className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
+            <Link to="/contact" className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
               Contact Support
-            </a>
+            </Link>
           </div>
         </div>
       </div>

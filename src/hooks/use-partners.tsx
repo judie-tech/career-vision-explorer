@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 export interface Partner {
@@ -20,11 +20,13 @@ interface PartnersContextType {
   deletePartner: (id: number) => void;
   getPartnersByCategory: (category: Partner["category"]) => Partner[];
   isLoading: boolean;
+  refreshPartners: () => void;
 }
 
 const PartnersContext = createContext<PartnersContextType | undefined>(undefined);
 
-const mockPartners: Partner[] = [
+// Global partners state for real-time sync
+let globalPartnersState: Partner[] = [
   { 
     id: 1,
     name: "TechGiant Inc.", 
@@ -87,21 +89,41 @@ const mockPartners: Partner[] = [
   },
 ];
 
+// Event listeners for real-time sync
+const listeners: Set<() => void> = new Set();
+
+const notifyListeners = () => {
+  listeners.forEach(listener => listener());
+};
+
 export const PartnersProvider = ({ children }: { children: ReactNode }) => {
-  const [partners, setPartners] = useState<Partner[]>(mockPartners);
+  const [partners, setPartners] = useState<Partner[]>(globalPartnersState);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Sync with global state
+  useEffect(() => {
+    const syncState = () => {
+      setPartners([...globalPartnersState]);
+    };
+    
+    listeners.add(syncState);
+    return () => {
+      listeners.delete(syncState);
+    };
+  }, []);
 
   const addPartner = (partnerData: Omit<Partner, "id" | "createdAt">) => {
     setIsLoading(true);
     try {
       const newPartner: Partner = {
         ...partnerData,
-        id: Math.max(...partners.map(p => p.id)) + 1,
+        id: Math.max(...globalPartnersState.map(p => p.id)) + 1,
         status: "active",
         createdAt: new Date().toISOString().split('T')[0]
       };
-      setPartners(prev => [...prev, newPartner]);
+      globalPartnersState = [...globalPartnersState, newPartner];
+      notifyListeners();
       toast({
         title: "Success",
         description: "Partner added successfully"
@@ -120,9 +142,10 @@ export const PartnersProvider = ({ children }: { children: ReactNode }) => {
   const updatePartner = (id: number, partnerData: Partial<Partner>) => {
     setIsLoading(true);
     try {
-      setPartners(prev => prev.map(p => 
+      globalPartnersState = globalPartnersState.map(p => 
         p.id === id ? { ...p, ...partnerData } : p
-      ));
+      );
+      notifyListeners();
       toast({
         title: "Success",
         description: "Partner updated successfully"
@@ -141,7 +164,8 @@ export const PartnersProvider = ({ children }: { children: ReactNode }) => {
   const deletePartner = (id: number) => {
     setIsLoading(true);
     try {
-      setPartners(prev => prev.filter(p => p.id !== id));
+      globalPartnersState = globalPartnersState.filter(p => p.id !== id);
+      notifyListeners();
       toast({
         title: "Success",
         description: "Partner deleted successfully"
@@ -161,6 +185,10 @@ export const PartnersProvider = ({ children }: { children: ReactNode }) => {
     return partners.filter(partner => partner.category === category);
   };
 
+  const refreshPartners = () => {
+    setPartners([...globalPartnersState]);
+  };
+
   return (
     <PartnersContext.Provider value={{
       partners,
@@ -168,7 +196,8 @@ export const PartnersProvider = ({ children }: { children: ReactNode }) => {
       updatePartner,
       deletePartner,
       getPartnersByCategory,
-      isLoading
+      isLoading,
+      refreshPartners
     }}>
       {children}
     </PartnersContext.Provider>

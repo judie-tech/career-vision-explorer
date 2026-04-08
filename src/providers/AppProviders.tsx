@@ -1,44 +1,47 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import { AuthProvider } from "@/hooks/use-auth";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { FeatureProvider } from "@/hooks/use-features";
-import AuthProvider from "@/hooks/use-auth";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { FreelancersProvider } from "@/hooks/use-freelancers";
+import { MessagingProvider } from "@/hooks/use-messaging";
 import { UserProfileProvider } from "@/hooks/use-user-profile";
+import { LearningPathsProvider } from "@/hooks/use-learning-paths";
 import { CareerPathsProvider } from "@/hooks/use-career-paths";
-import { ReactNode } from "react";
+import { FeatureProvider } from "@/hooks/use-features";
 
-// Optimize query client for faster loading
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
+      retry: false,
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
     },
   },
 });
 
 export const AppProviders = ({ children }: { children: ReactNode }) => {
   return (
-    <AuthProvider>
-      <UserProfileProvider>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider defaultTheme="light" storageKey="visiondrill-ui-theme">
-            <TooltipProvider>
-              <FeatureProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="light" storageKey="visiondrillTheme">
+        <FeatureProvider>
+          <AuthProvider>
+            <UserProfileProvider>
+              <LearningPathsProvider>
                 <CareerPathsProvider>
-                  {children}
-                  <Toaster />
-                  <Sonner />
+                  <FreelancersProvider>
+                    <MessagingProvider>
+                      {children}
+                      <Toaster />
+                      <Sonner />
+                    </MessagingProvider>
+                  </FreelancersProvider>
                 </CareerPathsProvider>
-              </FeatureProvider>
-            </TooltipProvider>
-          </ThemeProvider>
-        </QueryClientProvider>
-      </UserProfileProvider>
-    </AuthProvider>
+              </LearningPathsProvider>
+            </UserProfileProvider>
+          </AuthProvider>
+        </FeatureProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 };

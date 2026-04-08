@@ -21,7 +21,7 @@ export const LoginTabs = ({ loginType, setLoginType }: LoginTabsProps) => {
         </TabsTrigger>
         <TabsTrigger value="jobseeker" className="flex items-center space-x-2">
           <User className="h-4 w-4" />
-          <span>Job Seeker</span>
+          <span>Freelancer</span>
         </TabsTrigger>
       </TabsList>
     </Tabs>

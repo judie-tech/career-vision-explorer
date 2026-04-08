@@ -4,6 +4,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const FAQ = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -148,9 +149,9 @@ const FAQ = () => {
             <p className="text-muted-foreground mb-4">
               Can't find what you're looking for? Our support team is ready to help.
             </p>
-            <a href="/contact" className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
+            <Link to="/contact" className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
               Contact Support
-            </a>
+            </Link>
           </div>
         </div>
       </div>
